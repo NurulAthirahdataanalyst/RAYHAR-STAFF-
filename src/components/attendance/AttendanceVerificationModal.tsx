@@ -15,7 +15,6 @@ import {
   ShieldCheck,
   Loader2,
   ExternalLink,
-  History,
   ImageOff,
   Maximize2,
   ZoomIn,
@@ -475,9 +474,10 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
                   <Button
                     type="button"
                     size="sm"
-                    variant="destructive"
+                    variant="outline"
                     disabled={submitting}
                     onClick={() => void handleReview("reject")}
+                    className="border-2 border-red-300 dark:border-red-800/70 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600 dark:hover:text-white rounded-xl font-bold shadow-xs hover:shadow-md hover:shadow-red-600/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
                   >
                     {submitting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <XCircle className="w-3.5 h-3.5 mr-1" />}
                     Reject (Absent)
@@ -485,9 +485,10 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
                   <Button
                     type="button"
                     size="sm"
+                    variant="outline"
                     disabled={submitting}
                     onClick={() => void handleReview("approve")}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="border-2 border-emerald-300 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 dark:hover:bg-emerald-600 dark:hover:text-white rounded-xl font-bold shadow-xs hover:shadow-md hover:shadow-emerald-600/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
                   >
                     {submitting ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
                     Approve (Present)
@@ -525,26 +526,28 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
 
             {/* Permanent Audit Timeline */}
             <div className="rounded-xl border border-border bg-muted/10 p-3 space-y-2">
-              <div className="text-xs font-bold flex items-center gap-1.5">
-                <History className="w-3.5 h-3.5 text-[#942392]" />
-                Audit Timeline
-              </div>
+              <div className="text-xs font-bold">Audit Timeline</div>
               {auditLogs.length === 0 ? (
                 <div className="text-xs text-muted-foreground">No audit events recorded yet.</div>
               ) : (
                 <ul className="space-y-1.5 text-xs">
-                  {auditLogs.map((log) => (
-                    <li key={log.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-border/50 pb-1.5 last:border-none last:pb-0">
-                      <div>
-                        <span className="font-semibold text-foreground">{log.action}</span>
-                        <span className="text-muted-foreground"> • by {log.actor_name || log.actor_id}</span>
-                        {log.remarks && <div className="text-[11px] text-muted-foreground">{log.remarks}</div>}
-                      </div>
-                      <span className="text-[11px] font-mono text-muted-foreground shrink-0">
-                        {formatDateTimeMYT(log.created_at)}
-                      </span>
-                    </li>
-                  ))}
+                  {auditLogs.map((log) => {
+                    const cleanedRemarks = log.remarks
+                      ? String(log.remarks).replace(/\s*\((?:geofence_photo|geofence|photo_only)\)/gi, "")
+                      : "";
+                    return (
+                      <li key={log.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 border-b border-border/50 pb-1.5 last:border-none last:pb-0 text-xs">
+                        <div>
+                          <span className="font-semibold text-foreground">{log.action}</span>
+                          <span className="text-muted-foreground"> • by {log.actor_name || log.actor_id}</span>
+                          {cleanedRemarks && <div className="text-xs text-muted-foreground">{cleanedRemarks}</div>}
+                        </div>
+                        <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                          {formatDateTimeMYT(log.created_at)}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

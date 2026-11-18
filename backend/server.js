@@ -9793,7 +9793,7 @@ app.post("/api/attendance", async (req, res) => {
         action: 'Attendance Submitted',
         actorId: user_id,
         actorName: empProfile[0]?.name || user_id,
-        remarks: `Clock-In submitted with live photo (${policy.verification_rule}). Pending HR verification.`,
+        remarks: 'Clock-In submitted with live photo. Pending HR verification.',
         metadata: { punch: 'clock_in', location: finalLocation, device_info: safeDeviceInfo }
       }).catch((e) => console.error('Clock-in audit log error:', e.message));
     }
@@ -10056,7 +10056,7 @@ app.post("/api/clock-out", async (req, res) => {
         action: 'Attendance Submitted',
         actorId: user_id,
         actorName: policy.full_name || user_id,
-        remarks: `Clock-Out submitted with live photo (${policy.verification_rule}). Pending HR verification.`,
+        remarks: 'Clock-Out submitted with live photo. Pending HR verification.',
         metadata: { punch: 'clock_out', device_info: safeDeviceInfo }
       }).catch((e) => console.error('Clock-out audit log error:', e.message));
     }
