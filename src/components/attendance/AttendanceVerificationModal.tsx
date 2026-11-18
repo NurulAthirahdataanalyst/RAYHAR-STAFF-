@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { API_BASE_URL } from "@/config/api";
+import { formatDeviceDisplay } from "@/utils/deviceInfo";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -11,11 +12,26 @@ import {
   Clock,
   MapPin,
   ShieldAlert,
+  ShieldCheck,
   Loader2,
   ExternalLink,
   History,
   ImageOff,
+  Maximize2,
+  ZoomIn,
+  ZoomOut,
+  Smartphone,
 } from "lucide-react";
+
+interface PhotoPreviewItem {
+  label: string;
+  actionBadge: "CLOCK IN" | "CLOCK OUT";
+  src: string;
+  lat?: number | null;
+  lng?: number | null;
+  device?: string | null;
+  timestamp?: string | null;
+}
 
 interface AttendanceVerificationModalProps {
   open: boolean;
@@ -81,6 +97,30 @@ function formatDateTimeMYT(val?: string | null) {
   });
 }
 
+function formatTimePartsMYT(val?: string | null) {
+  if (!val) return { timeStr: "--:--", dateStr: "--", weekdayStr: "" };
+  const d = new Date(val);
+  if (Number.isNaN(d.getTime())) return { timeStr: "--:--", dateStr: "--", weekdayStr: "" };
+  return {
+    timeStr: d.toLocaleTimeString("en-US", {
+      timeZone: "Asia/Kuala_Lumpur",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }),
+    dateStr: d.toLocaleDateString("en-GB", {
+      timeZone: "Asia/Kuala_Lumpur",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+    weekdayStr: d.toLocaleDateString("en-US", {
+      timeZone: "Asia/Kuala_Lumpur",
+      weekday: "long",
+    }),
+  };
+}
+
 function formatCountdown(expiresAt?: string | null) {
   if (!expiresAt) return null;
   const diff = new Date(expiresAt).getTime() - Date.now();
@@ -108,6 +148,8 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [remarks, setRemarks] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
+  const [previewPhoto, setPreviewPhoto] = useState<PhotoPreviewItem | null>(null);
+  const [zoomed, setZoomed] = useState(false);
 
   const loadDetails = async () => {
     if (!attendanceId) return;
@@ -130,7 +172,12 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
     if (open && attendanceId) {
       setRemarks("");
       setOverrideReason("");
+      setPreviewPhoto(null);
+      setZoomed(false);
       void loadDetails();
+    } else if (!open) {
+      setPreviewPhoto(null);
+      setZoomed(false);
     }
   }, [open, attendanceId]);
 
@@ -202,12 +249,23 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
   const vBadge = getVerificationBadgeProps(record?.verification_status);
   const aBadge = getVerificationBadgeProps(record?.resolved_attendance_status);
 
-  const renderPhotoCard = (label: string, photoUrl?: string | null, deleted?: boolean, lat?: number | null, lng?: number | null, device?: string | null) => {
+  const renderPhotoCard = (
+    label: string,
+    actionBadge: "CLOCK IN" | "CLOCK OUT",
+    photoUrl?: string | null,
+    deleted?: boolean,
+    lat?: number | null,
+    lng?: number | null,
+    device?: string | null,
+    timestamp?: string | null
+  ) => {
     const resolvedSrc = photoUrl
       ? photoUrl.startsWith("http")
         ? photoUrl
         : `${API_BASE_URL}${photoUrl}`
       : null;
+
+    const cleanDevice = formatDeviceDisplay(device);
 
     return (
       <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
@@ -232,11 +290,33 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
             <span>Photo soft-deleted after retention window</span>
           </div>
         ) : resolvedSrc ? (
-          <img
-            src={resolvedSrc}
-            alt={label}
-            className="w-full max-h-56 object-cover rounded-lg border border-border"
-          />
+          <button
+            type="button"
+            onClick={() => {
+              setZoomed(false);
+              setPreviewPhoto({
+                label,
+                actionBadge,
+                src: resolvedSrc,
+                lat,
+                lng,
+                device,
+                timestamp,
+              });
+            }}
+            className="group relative w-full rounded-lg overflow-hidden border border-border bg-slate-950 focus:outline-none focus:ring-2 focus:ring-[#942392] cursor-zoom-in"
+            title="Click to inspect full photo"
+          >
+            <img
+              src={resolvedSrc}
+              alt={label}
+              className="w-full max-h-72 object-contain mx-auto transition-transform duration-200 group-hover:scale-[1.01]"
+            />
+            <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-slate-950/85 border border-white/25 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur-xs group-hover:bg-[#942392] transition-colors">
+              <Maximize2 className="w-3 h-3" />
+              View Full Photo
+            </span>
+          </button>
         ) : (
           <div className="h-24 rounded-lg border border-dashed border-border flex items-center justify-center text-xs text-muted-foreground bg-background/60">
             No photo submitted for this punch
@@ -246,13 +326,21 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
           {lat != null && lng != null && (
             <div>GPS: <span className="font-mono text-foreground">{Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}</span></div>
           )}
-          {device && <div className="truncate">Device: <span className="text-foreground">{device}</span></div>}
+          {cleanDevice && (
+            <div className="truncate" title={device || undefined}>
+              Device: <span className="text-foreground font-medium">{cleanDevice}</span>
+            </div>
+          )}
         </div>
       </div>
     );
   };
 
+  const previewTimeParts = formatTimePartsMYT(previewPhoto?.timestamp);
+  const previewDeviceDisplay = formatDeviceDisplay(previewPhoto?.device);
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden sm:rounded-2xl border-border/50 [&>button]:text-white [&>button]:hover:bg-white/20">
         <DialogHeader className="bg-[#942392] px-6 py-5 sm:rounded-t-2xl m-0 text-left shrink-0 border-b border-white/25 shadow-sm">
@@ -351,20 +439,24 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {renderPhotoCard(
                 "Clock-In Proof",
+                "CLOCK IN",
                 record.clock_in_photo_url,
                 Boolean(record.clock_in_photo_deleted),
                 record.clock_in_latitude,
                 record.clock_in_longitude,
-                record.clock_in_device_info
+                record.clock_in_device_info,
+                record.clock_in
               )}
               {(record.clock_out || record.clock_out_photo_url) &&
                 renderPhotoCard(
                   "Clock-Out Proof",
+                  "CLOCK OUT",
                   record.clock_out_photo_url,
                   Boolean(record.clock_out_photo_deleted),
                   record.clock_out_latitude,
                   record.clock_out_longitude,
-                  record.clock_out_device_info
+                  record.clock_out_device_info,
+                  record.clock_out
                 )}
             </div>
 
@@ -461,5 +553,139 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Fullscreen Marki-Style Proof Lightbox */}
+    <Dialog
+      open={Boolean(previewPhoto)}
+      onOpenChange={(next) => {
+        if (!next) {
+          setPreviewPhoto(null);
+          setZoomed(false);
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden sm:rounded-2xl bg-slate-950 text-white border border-white/15 [&>button]:text-white [&>button]:hover:bg-white/20">
+        <DialogHeader className="px-4 sm:px-5 py-3.5 bg-slate-900/95 border-b border-white/10 shrink-0 pr-12 text-left">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <DialogTitle className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <span>{previewPhoto?.label || "Attendance Photo"}</span>
+                {previewPhoto && (
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-extrabold tracking-wider ${
+                      previewPhoto.actionBadge === "CLOCK IN" ? "bg-[#942392] text-white" : "bg-emerald-600 text-white"
+                    }`}
+                  >
+                    {previewPhoto.actionBadge}
+                  </span>
+                )}
+              </DialogTitle>
+              <DialogDescription className="text-[11px] text-slate-300 mt-0.5">
+                {record ? `${record.full_name || record.user_id} • ${record.company_name || "Subsidiary"}` : ""}
+              </DialogDescription>
+            </div>
+            {previewPhoto && (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setZoomed((z) => !z)}
+                  className="h-7 px-2.5 text-[11px] bg-slate-800 border-white/20 text-white hover:bg-slate-700 hover:text-white"
+                >
+                  {zoomed ? <ZoomOut className="w-3.5 h-3.5 mr-1" /> : <ZoomIn className="w-3.5 h-3.5 mr-1" />}
+                  {zoomed ? "Fit Screen" : "Zoom In"}
+                </Button>
+                <a
+                  href={previewPhoto.src}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-white/20 bg-slate-800 text-[11px] font-medium text-white hover:bg-slate-700 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Open Original
+                </a>
+              </div>
+            )}
+          </div>
+        </DialogHeader>
+
+        {previewPhoto && (
+          <>
+            <div className="flex-1 overflow-auto bg-black flex items-center justify-center p-2 sm:p-4">
+              <img
+                src={previewPhoto.src}
+                alt={previewPhoto.label}
+                onClick={() => setZoomed((z) => !z)}
+                className={
+                  zoomed
+                    ? "w-[175%] max-w-none h-auto rounded-lg cursor-zoom-out"
+                    : "max-h-[58vh] w-auto max-w-full object-contain rounded-lg cursor-zoom-in"
+                }
+                title={zoomed ? "Click to fit screen" : "Click to zoom in"}
+              />
+            </div>
+
+            {/* Marki-style Verification Metadata Bar */}
+            <div className="bg-slate-900 border-t border-white/10 shrink-0">
+              <div
+                className={`flex items-center justify-between px-4 py-1.5 text-[10px] font-extrabold tracking-wider ${
+                  previewPhoto.actionBadge === "CLOCK IN" ? "bg-[#942392]" : "bg-emerald-600"
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  RAYHAR VERIFICATION STAMP
+                </span>
+                <span>{vBadge.label.toUpperCase()}</span>
+              </div>
+              <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-xl sm:text-2xl font-black leading-none tracking-tight tabular-nums text-white">
+                    {previewTimeParts.timeStr}
+                  </div>
+                  <div
+                    className={`w-0.5 self-stretch rounded-full ${
+                      previewPhoto.actionBadge === "CLOCK IN" ? "bg-fuchsia-400" : "bg-emerald-400"
+                    }`}
+                  />
+                  <div className="text-xs leading-tight">
+                    <div className="font-bold text-slate-100">{previewTimeParts.dateStr} MYT</div>
+                    <div className="text-slate-300 text-[11px]">{previewTimeParts.weekdayStr}</div>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-slate-300 space-y-1 sm:text-right">
+                  <div className="flex flex-wrap items-center sm:justify-end gap-2">
+                    <span className="inline-flex items-center gap-1 text-slate-100 font-medium">
+                      <MapPin className="w-3.5 h-3.5 text-fuchsia-300 shrink-0" />
+                      {record?.location || record?.permanent_branch || "Branch"}
+                    </span>
+                    {previewPhoto.lat != null && previewPhoto.lng != null && (
+                      <a
+                        href={`https://www.google.com/maps?q=${previewPhoto.lat},${previewPhoto.lng}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-mono text-fuchsia-300 hover:underline"
+                      >
+                        {Number(previewPhoto.lat).toFixed(5)}, {Number(previewPhoto.lng).toFixed(5)}
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                  </div>
+                  {previewDeviceDisplay && (
+                    <div className="inline-flex items-center gap-1 text-slate-300" title={previewPhoto.device || undefined}>
+                      <Smartphone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{previewDeviceDisplay}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };

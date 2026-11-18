@@ -1,7 +1,72 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Camera, RefreshCw, CheckCircle2, RotateCcw, Loader2, ShieldCheck } from "lucide-react";
+import { Camera, RefreshCw, CheckCircle2, RotateCcw, Loader2, ShieldCheck, MapPin } from "lucide-react";
+import { buildSubmittedDeviceInfo, getCompactDeviceInfo } from "@/utils/deviceInfo";
+
+interface MYTTimeParts {
+  timeStr: string;
+  dateStr: string;
+  weekdayStr: string;
+}
+
+function getMYTTimeParts(date = new Date()): MYTTimeParts {
+  const timeStr = date.toLocaleTimeString("en-US", {
+    timeZone: "Asia/Kuala_Lumpur",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  const dateStr = date.toLocaleDateString("en-GB", {
+    timeZone: "Asia/Kuala_Lumpur",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const weekdayStr = date.toLocaleDateString("en-US", {
+    timeZone: "Asia/Kuala_Lumpur",
+    weekday: "long",
+  });
+  return { timeStr, dateStr, weekdayStr };
+}
+
+function truncateCanvasText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  const ellipsis = "...";
+  let low = 0;
+  let high = text.length;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    if (ctx.measureText(text.slice(0, mid) + ellipsis).width <= maxWidth) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return text.slice(0, low) + ellipsis;
+}
+
+function fillRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+}
 
 interface RayharCameraModalProps {
   open: boolean;
@@ -37,18 +102,8 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
-  const [nowText, setNowText] = useState<string>(() =>
-    new Date().toLocaleString("en-GB", {
-      timeZone: "Asia/Kuala_Lumpur",
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-    })
-  );
+  const [timeParts, setTimeParts] = useState<MYTTimeParts>(() => getMYTTimeParts());
+  const deviceLabel = getCompactDeviceInfo();
 
   const stopCamera = () => {
     if (streamRef.current) {
@@ -96,33 +151,13 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
       void startCamera(facingMode);
     }
     const timer = setInterval(() => {
-      setNowText(
-        new Date().toLocaleString("en-GB", {
-          timeZone: "Asia/Kuala_Lumpur",
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        })
-      );
+      setTimeParts(getMYTTimeParts());
     }, 1000);
     return () => {
       clearInterval(timer);
       stopCamera();
     };
   }, [open, facingMode]);
-
-  const getCompactDeviceInfo = () => {
-    const ua = navigator.userAgent || "Browser";
-    if (/iPhone/i.test(ua)) return "iPhone Mobile";
-    if (/Android/i.test(ua)) return "Android Mobile";
-    if (/Windows/i.test(ua)) return "Windows Desktop";
-    if (/Mac/i.test(ua)) return "Mac Desktop";
-    return ua.slice(0, 60);
-  };
 
   const handleCapture = () => {
     const video = videoRef.current;
@@ -150,56 +185,104 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
       ctx.drawImage(video, 0, 0, width, height);
     }
 
-    // Rayhar Staff Portal Watermark Footer (no distance/radius numbers shown)
-    const barHeight = Math.max(88, Math.round(height * 0.22));
-    const barY = height - barHeight;
-    ctx.fillStyle = "rgba(15, 23, 42, 0.78)";
-    ctx.fillRect(0, barY, width, barHeight);
+    // Marki-style floating watermark card (no distance/radius numbers shown)
+    const liveParts = getMYTTimeParts();
+    const currentDevice = getCompactDeviceInfo();
+    const margin = Math.max(10, Math.round(width * 0.025));
+    const cardW = width < 640 ? width - margin * 2 : Math.min(width - margin * 2, 460);
+    const scaleBase = Math.max(340, Math.min(cardW, 500));
 
-    ctx.fillStyle = "#942392";
-    ctx.fillRect(0, barY, width, 4);
+    const padX = Math.max(12, Math.round(scaleBase * 0.032));
+    const headerH = Math.max(24, Math.round(scaleBase * 0.064));
+    const headerFont = Math.max(10, Math.round(scaleBase * 0.026));
+    const timeFont = Math.max(20, Math.round(scaleBase * 0.06));
+    const dateFont = Math.max(10, Math.round(scaleBase * 0.026));
+    const metaFont = Math.max(10, Math.round(scaleBase * 0.024));
+    const gapY = Math.max(6, Math.round(scaleBase * 0.018));
+    const timeBlockH = Math.max(timeFont + 2, dateFont * 2 + 5);
+    const cardH = headerH + padX + timeBlockH + gapY + metaFont + 6 + metaFont + padX;
+    const cardX = margin;
+    const cardY = Math.max(margin, height - margin - cardH);
 
-    const padX = 16;
-    const titleSize = Math.max(14, Math.round(width * 0.022));
-    const bodySize = Math.max(11, Math.round(width * 0.016));
+    const accentColor = actionType === "CLOCK IN" ? "#942392" : "#059669";
+    const dividerColor = actionType === "CLOCK IN" ? "#e879f9" : "#34d399";
 
-    // Top line: Brand + Action Badge
-    ctx.font = `bold ${titleSize}px sans-serif`;
+    ctx.save();
+    fillRoundedRect(ctx, cardX, cardY, cardW, cardH, 10);
+    ctx.clip();
+
+    ctx.fillStyle = "rgba(15, 23, 42, 0.84)";
+    ctx.fillRect(cardX, cardY, cardW, cardH);
+
+    // Header bar
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(cardX, cardY, cardW, headerH);
+
+    ctx.textBaseline = "middle";
+    ctx.font = `bold ${headerFont}px sans-serif`;
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText("RAYHAR STAFF PORTAL", padX, barY + Math.round(barHeight * 0.28));
+    ctx.fillText("RAYHAR STAFF PORTAL", cardX + padX, cardY + headerH / 2);
 
-    const badgeText = actionType;
-    ctx.font = `bold ${bodySize}px sans-serif`;
-    const badgeW = ctx.measureText(badgeText).width + 18;
-    const badgeH = bodySize + 10;
-    const badgeX = width - padX - badgeW;
-    const badgeY = barY + Math.round(barHeight * 0.12);
-    ctx.fillStyle = actionType === "CLOCK IN" ? "#942392" : "#059669";
-    ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+    const actionW = ctx.measureText(actionType).width;
+    ctx.fillText(actionType, cardX + cardW - padX - actionW, cardY + headerH / 2);
+
+    // Time + Date/Weekday row
+    const row1Y = cardY + headerH + padX;
+    ctx.textBaseline = "top";
+    ctx.font = `bold ${timeFont}px sans-serif`;
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(badgeText, badgeX + 9, badgeY + bodySize + 2);
+    ctx.fillText(liveParts.timeStr, cardX + padX, row1Y);
+    const timeW = ctx.measureText(liveParts.timeStr).width;
 
-    // Middle line: Staff & Company + MYT Time
-    ctx.font = `${bodySize}px sans-serif`;
-    ctx.fillStyle = "#E2E8F0";
-    ctx.fillText(`${staffName} (${staffId}) • ${companyName}`, padX, barY + Math.round(barHeight * 0.56));
+    const divX = cardX + padX + timeW + 10;
+    ctx.fillStyle = dividerColor;
+    ctx.fillRect(divX, row1Y + 2, 2, timeBlockH - 4);
 
-    const timeLabel = `${nowText} MYT`;
-    const timeW = ctx.measureText(timeLabel).width;
-    ctx.fillText(timeLabel, width - padX - timeW, barY + Math.round(barHeight * 0.56));
-
-    // Bottom line: Branch & Device + Coordinates
+    const dateX = divX + 10;
+    ctx.font = `bold ${dateFont}px sans-serif`;
+    ctx.fillStyle = "#F8FAFC";
+    ctx.fillText(`${liveParts.dateStr} MYT`, dateX, row1Y + 1);
+    ctx.font = `${dateFont}px sans-serif`;
     ctx.fillStyle = "#CBD5E1";
-    ctx.fillText(`${branchName} • ${getCompactDeviceInfo()}`, padX, barY + Math.round(barHeight * 0.82));
+    ctx.fillText(liveParts.weekdayStr, dateX, row1Y + dateFont + 4);
 
+    // Location & GPS row
+    const row2Y = row1Y + timeBlockH + gapY;
     const coordText =
       latitude !== undefined && longitude !== undefined
         ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
         : "GPS Verified";
+    ctx.font = `${metaFont}px sans-serif`;
     const coordW = ctx.measureText(coordText).width;
-    ctx.fillText(coordText, width - padX - coordW, barY + Math.round(barHeight * 0.82));
+    ctx.fillStyle = "#E2E8F0";
+    ctx.fillText(coordText, cardX + cardW - padX - coordW, row2Y);
 
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+    const branchMaxW = Math.max(80, cardW - padX * 2 - coordW - 12);
+    ctx.fillStyle = "#F8FAFC";
+    ctx.fillText(truncateCanvasText(ctx, `${branchName} • ${companyName}`, branchMaxW), cardX + padX, row2Y);
+
+    // Staff & Device row
+    const row3Y = row2Y + metaFont + 6;
+    ctx.fillStyle = "#CBD5E1";
+    const staffLine = truncateCanvasText(
+      ctx,
+      `${staffName} (${staffId}) • ${currentDevice}`,
+      cardW - padX * 2
+    );
+    ctx.fillText(staffLine, cardX + padX, row3Y);
+
+    ctx.restore();
+
+    // Subtle crisp card border
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, cardH, 10);
+    ctx.stroke();
+    ctx.restore();
+
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     setCapturedPhoto(dataUrl);
     stopCamera();
   };
@@ -211,7 +294,7 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
 
   const handleConfirm = () => {
     if (!capturedPhoto) return;
-    onSubmitPhoto(capturedPhoto, navigator.userAgent || getCompactDeviceInfo());
+    onSubmitPhoto(capturedPhoto, buildSubmittedDeviceInfo());
   };
 
   return (
@@ -253,24 +336,48 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
                     Starting live camera...
                   </div>
                 )}
-                {/* Live Rayhar Staff Portal Watermark Preview Overlay */}
-                <div className="absolute inset-x-0 bottom-0 bg-slate-950/80 border-t-2 border-[#942392] px-3 py-2 text-white space-y-0.5 pointer-events-none">
-                  <div className="flex items-center justify-between text-[11px] font-bold">
+                {/* Live Marki-Style Rayhar Watermark Preview Card */}
+                <div className="absolute left-2.5 right-2.5 sm:right-auto sm:w-[360px] bottom-2.5 rounded-lg overflow-hidden bg-slate-950/85 border border-white/20 shadow-lg text-white pointer-events-none">
+                  <div
+                    className={`flex items-center justify-between px-2.5 py-1 text-[10px] font-extrabold tracking-wider ${
+                      actionType === "CLOCK IN" ? "bg-[#942392]" : "bg-emerald-600"
+                    }`}
+                  >
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-purple-300" />
+                      <ShieldCheck className="w-3 h-3" />
                       RAYHAR STAFF PORTAL
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-[#942392] text-[10px] font-extrabold">{actionType}</span>
+                    <span>{actionType}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-200">
-                    <span className="truncate">{staffName} ({staffId}) • {companyName}</span>
-                    <span className="font-mono shrink-0 ml-2">{nowText} MYT</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-300">
-                    <span className="truncate">{branchName} • {getCompactDeviceInfo()}</span>
-                    <span className="font-mono shrink-0 ml-2">
-                      {latitude !== undefined && longitude !== undefined ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}` : "GPS Ready"}
-                    </span>
+                  <div className="px-2.5 py-2 space-y-1">
+                    <div className="flex items-center gap-2.5">
+                      <div className="text-lg sm:text-xl font-black leading-none tracking-tight tabular-nums">
+                        {timeParts.timeStr}
+                      </div>
+                      <div
+                        className={`w-0.5 self-stretch rounded-full ${
+                          actionType === "CLOCK IN" ? "bg-fuchsia-400" : "bg-emerald-400"
+                        }`}
+                      />
+                      <div className="text-[10px] leading-tight">
+                        <div className="font-bold text-slate-100">{timeParts.dateStr} MYT</div>
+                        <div className="text-slate-300">{timeParts.weekdayStr}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 text-[10px] text-slate-200 pt-0.5">
+                      <span className="flex items-center gap-1 truncate">
+                        <MapPin className="w-3 h-3 text-fuchsia-300 shrink-0" />
+                        <span className="truncate">{branchName} • {companyName}</span>
+                      </span>
+                      <span className="font-mono shrink-0 text-[9.5px] text-slate-300">
+                        {latitude !== undefined && longitude !== undefined
+                          ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+                          : "GPS Ready"}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-300 truncate">
+                      {staffName} ({staffId}) • {deviceLabel}
+                    </div>
                   </div>
                 </div>
               </>
