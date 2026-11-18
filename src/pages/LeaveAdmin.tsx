@@ -203,8 +203,24 @@ type TabFilter = "pending" | "approved" | "rejected" | "history";
 
 export default function LeaveAdmin() {
   const { user } = useAuth();
-  const { role, roleName, userBranch, userDepartment, userId, hasPermission, loading: roleLoading } = useRole();
+  const { role, roleName, scopeType, userBranch, userDepartment, userId, hasPermission, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
+
+  const isAllCompanyAccess =
+    ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager", "assure_leader", "superadmin"].includes(
+      String(role || "").toLowerCase().trim().replace(/\s+/g, "_")
+    ) ||
+    scopeType === "Parent Group Data" ||
+    scopeType === "Company Staff Data";
+  const queryBranch = isAllCompanyAccess ? "" : (userBranch || "");
+  const queryDept = isAllCompanyAccess ? "" : (userDepartment || "");
+
+  const inferCompanyIdFromBranch = (branch?: string): number => {
+    const b = String(branch || "").toUpperCase().trim();
+    if (b.startsWith("RV")) return 3;
+    if (b === "RAYRENT") return 2;
+    return 1;
+  };
 
   const current_user_id = String(userId || user?.user_id || user?.id || "").trim();
   const current_employee_id = String(user?.employee_id || user?.user_id || user?.id || userId || "").trim();
@@ -260,8 +276,8 @@ export default function LeaveAdmin() {
     try {
       const scopeParams = new URLSearchParams({
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || "",
+        branch: queryBranch,
+        department: queryDept,
         status: "Active",
         company_id: String(activeCompany?.id || 1),
       });
@@ -372,7 +388,7 @@ export default function LeaveAdmin() {
 
   // First, filter by year, month, and employee
   const requestsByMonth = requests.filter((req) => {
-    const reqCompanyId = req.companyId || (req.branch?.toUpperCase() === "RAYRENT" ? 2 : 1);
+    const reqCompanyId = req.companyId || inferCompanyIdFromBranch(req.branch);
     if (activeCompany?.id && reqCompanyId !== currentCompanyId) return false;
     if (!req.from) return false;
     const reqYear = req.from.substring(0, 4);
@@ -465,7 +481,7 @@ export default function LeaveAdmin() {
       sse.close();
       window.removeEventListener('rayhar_company_switched', handleCompanySwitch);
     };
-  }, [role, userBranch, userDepartment, activeCompany?.id]);
+  }, [role, scopeType, userBranch, userDepartment, activeCompany?.id]);
 
   // Handle URL query parameters (tab, month, year, leaveId)
   useEffect(() => {
@@ -612,15 +628,18 @@ export default function LeaveAdmin() {
       try {
         const params = new URLSearchParams({
           role,
-          branch: userBranch || "",
-          department: userDepartment || "",
+          branch: queryBranch,
+          department: queryDept,
           company_id: String(activeCompany?.id || 1),
           viewerId: userId || "",
+          scope_type: scopeType || "",
         });
 
         const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
           headers: {
-            'x-company-id': String(activeCompany?.id || 1)
+            'x-company-id': String(activeCompany?.id || 1),
+            ...(userId ? { 'x-operator-id': userId } : {}),
+            ...(scopeType ? { 'x-user-scope': encodeURIComponent(scopeType) } : {}),
           }
         });
         if (!response.ok) {
@@ -641,8 +660,8 @@ export default function LeaveAdmin() {
           createdBy: request.created_by || request.user_id,
           employee_id: request.employee_id || request.user_id,
           employeeId: request.employee_id || request.user_id,
-          companyId: request.company_id || (request.branch === "RAYRENT" ? 2 : 1),
-          companyName: request.company_name || (request.branch === "RAYRENT" ? "RayRent" : "Rayhar Travels"),
+          companyId: request.company_id || inferCompanyIdFromBranch(request.branch),
+          companyName: request.company_name || (request.branch === "RAYRENT" ? "RayRent" : String(request.branch || "").toUpperCase().startsWith("RV") ? "Rayhar Vacation" : "Rayhar Travels"),
           employee: request.full_name || request.user_id,
           branch: request.branch || "HQ",
           department: request.department || "—",

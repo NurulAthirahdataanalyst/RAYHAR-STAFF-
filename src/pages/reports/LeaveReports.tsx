@@ -42,6 +42,7 @@ export default function LeaveReports() {
 
   const isOwnDataOnly = effectiveScope === 'Own Data Only';
   const isBranchOnly = effectiveScope === 'Branch Data Only';
+  const isDepartmentOnly = effectiveScope === 'Department Data Only';
   const [loading, setLoading] = useState(true);
   const [leaveData, setLeaveData] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,11 +88,12 @@ export default function LeaveReports() {
     try {
       const params = new URLSearchParams({
         role: role || "",
-        branch: (isOwnDataOnly || isBranchOnly) ? (userBranch || "") : (userBranch || ""),
-        department: isOwnDataOnly ? (userDepartment || "") : (userDepartment || ""),
+        branch: (isOwnDataOnly || isBranchOnly) ? (userBranch || "") : "",
+        department: (isOwnDataOnly || isDepartmentOnly) ? (userDepartment || "") : "",
         scope_type: effectiveScope,
         userId: isOwnDataOnly ? (userId || "") : "",
-        requesterId: userId || ""
+        requesterId: userId || "",
+        viewerId: userId || "",
       });
 
       if (viewType === "day") {

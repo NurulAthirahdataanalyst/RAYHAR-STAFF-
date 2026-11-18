@@ -389,10 +389,13 @@ export default function Dashboard() {
     
     setIsFetchingLeave(true);
     try {
+      const isAllAccess = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager", "assure_leader", "superadmin"].includes(
+        String(role || "").toLowerCase().trim().replace(/\s+/g, "_")
+      );
       const params = new URLSearchParams({
         role,
-        branch: userBranch || "",
-        department: userDepartment || "",
+        branch: isAllAccess ? "" : (userBranch || ""),
+        department: isAllAccess ? "" : (userDepartment || ""),
       });
       const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`);
       const data = await response.json();

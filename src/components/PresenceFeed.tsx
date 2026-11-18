@@ -96,10 +96,13 @@ export default function PresenceFeed({ isCollapsed = false }: PresenceFeedProps)
       // 2. Fetch leave requests submitted on this date
       if (role === "hr_admin" || role === "head_of_department" || role === "branch_leader" || role === "managing_director" || role === "operation_manager" || role === "assure_leader" || (role as string) === "finance_manager") {
         try {
+          const isAllAccess = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager", "assure_leader", "superadmin"].includes(
+            String(role || "").toLowerCase().trim().replace(/\s+/g, "_")
+          );
           const leaveParams = new URLSearchParams({
             role: role || "employee",
-            branch: userBranch || "",
-            department: userDepartment || "",
+            branch: isAllAccess ? "" : (userBranch || ""),
+            department: isAllAccess ? "" : (userDepartment || ""),
             date: dateStr,
           });
           const leaveResponse = await fetch(`${API_BASE_URL}/api/leave-requests?${leaveParams}`);

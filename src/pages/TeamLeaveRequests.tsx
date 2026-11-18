@@ -39,7 +39,7 @@ const formatPrintText = (value?: string | null) => {
 };
 
 export default function TeamLeaveRequests() {
-  const { role, userId, userBranch, userDepartment } = useRole();
+  const { role, scopeType, userId, userBranch, userDepartment } = useRole();
   const { activeCompany } = useCompany();
   const [loading, setLoading] = useState(true);
   const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
@@ -148,12 +148,19 @@ export default function TeamLeaveRequests() {
     const fetchRequests = async () => {
       setLoading(true);
       try {
+        const isAllCompanyAccess =
+          ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager", "assure_leader", "superadmin"].includes(
+            String(role || "").toLowerCase().trim().replace(/\s+/g, "_")
+          ) ||
+          scopeType === "Parent Group Data" ||
+          scopeType === "Company Staff Data";
         const params = new URLSearchParams({
           role: role || "",
-          branch: userBranch || "",
-          department: userDepartment || "",
+          branch: isAllCompanyAccess ? "" : (userBranch || ""),
+          department: isAllCompanyAccess ? "" : (userDepartment || ""),
           company_id: String(activeCompany?.id || 1),
           viewerId: userId || "",
+          scope_type: scopeType || "",
         });
 
         const response = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
@@ -167,7 +174,8 @@ export default function TeamLeaveRequests() {
           // Filter by activeCompany
           const currentCompanyId = activeCompany?.id || 1;
           let filtered = (data.leaveRequests || []).filter((r: any) => {
-            const cId = r.company_id || (r.branch?.toUpperCase() === 'RAYRENT' ? 2 : 1);
+            const bUpper = String(r.branch || "").toUpperCase();
+            const cId = r.company_id || (bUpper.startsWith('RV') ? 3 : bUpper === 'RAYRENT' ? 2 : 1);
             return cId === currentCompanyId;
           });
           // If HOD, extra safe filter to ensure only same branch & department

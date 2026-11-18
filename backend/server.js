@@ -5146,7 +5146,8 @@ app.get("/api/leave-requests", async (req, res) => {
 
     companyId = await resolveAssureCompanyId(req, companyId);
     const effectiveTargetId = userId || requesterId;
-    const resolvedScope = await resolveUserScope(req, effectiveTargetId, role);
+    const scopeLookupUid = viewerId || effectiveTargetId;
+    const resolvedScope = await resolveUserScope(req, scopeLookupUid, role);
     const viewerCategory = viewerId
       ? await resolveApproverCategoryFromDb(viewerId, role)
       : classifyRoleCategory(role, null, null, resolvedScope);
@@ -5155,20 +5156,22 @@ app.get("/api/leave-requests", async (req, res) => {
       viewerCategory && viewerCategory !== "other" ? viewerCategory : normRole;
     const isGroupWideLeaveRole =
       resolvedScope === "Parent Group Data" ||
-      ["hr_admin", "hr", "admin", "managing_director", "md"].includes(effectiveViewerRole);
+      ["hr_admin", "hr", "admin", "managing_director", "md", "superadmin"].includes(effectiveViewerRole);
 
-    if (companyId && !userId && resolvedScope !== 'Parent Group Data') {
-      filters.push(`COALESCE(
-        (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
-        b_comp.company_id,
-        CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
-      )::int = ?`);
-      params.push(companyId);
+    if (companyId && !userId) {
+      filters.push(`(
+        EXISTS (SELECT 1 FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' AND cur.company_id = ?)
+        OR (
+          NOT EXISTS (SELECT 1 FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active')
+          AND COALESCE(b_comp.company_id, CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END)::int = ?
+        )
+      )`);
+      params.push(companyId, companyId);
     } else if (normRole.includes("assure") && !userId) {
       filters.push(`COALESCE(
         (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
         b_comp.company_id,
-        CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+        CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
       )::int = 2`);
     }
 
@@ -5179,22 +5182,15 @@ app.get("/api/leave-requests", async (req, res) => {
       filters.push("lr.user_id = ?");
       params.push(userId);
     } else if (resolvedScope === 'Department Data Only') {
-      const safeDept = (await resolveRequesterDepartment(req, viewerId, department)) || "INVALID_BYPASS";
+      const safeDept = (await resolveRequesterDepartment(req, scopeLookupUid, department)) || "INVALID_BYPASS";
       filters.push(getNormalizedDeptSql("p.department"));
       params.push(safeDept, safeDept);
     } else if (resolvedScope === 'Branch Data Only') {
       const safeBranch = (branch && branch.toLowerCase() !== 'all') ? branch : 'INVALID_BYPASS';
       filters.push("LOWER(p.branch) = LOWER(?)");
       params.push(safeBranch);
-    } else if (resolvedScope === 'Company Staff Data' || resolvedScope === 'Parent Group Data') {
-      if (branch && branch.toLowerCase() !== 'all') {
-        filters.push("LOWER(p.branch) = LOWER(?)");
-        params.push(branch);
-      }
-      if (department && department.toLowerCase() !== 'all') {
-        filters.push(getNormalizedDeptSql("p.department"));
-        params.push(department, department);
-      }
+    } else if (resolvedScope === 'Company Staff Data' || resolvedScope === 'Parent Group Data' || isGroupWideLeaveRole) {
+      // HR Admin, MD, Operation Manager and company/group-wide roles see all branches & departments within scope
     } else {
       if ((effectiveViewerRole === "branch_leader" || normRole.includes("branch_leader") || normRole.includes("branch leader") || normRole.includes("branch")) && branch && branch !== 'all') {
         filters.push("LOWER(p.branch) = LOWER(?)");
@@ -5247,16 +5243,33 @@ app.get("/api/leave-requests", async (req, res) => {
         p.full_name,
         p.branch,
         p.department,
-        COALESCE(
-          (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
-          b_comp.company_id,
-          CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
-        )::int AS company_id,
-        COALESCE(
-          (SELECT c.company_name FROM company_user_roles cur JOIN companies c ON c.id = cur.company_id WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
-          c_branch.company_name,
-          CASE WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
-        ) AS company_name,
+        ${Number.isFinite(companyId)
+          ? `CASE
+               WHEN EXISTS (SELECT 1 FROM company_user_roles cur_m WHERE cur_m.user_id = lr.user_id AND cur_m.status = 'active' AND cur_m.company_id = ${Number(companyId)}) THEN ${Number(companyId)}
+               ELSE COALESCE(
+                 (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                 b_comp.company_id,
+                 CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+               )
+             END::int AS company_id,`
+          : `COALESCE(
+               (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+               b_comp.company_id,
+               CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END
+             )::int AS company_id,`
+        }
+        ${Number.isFinite(companyId)
+          ? `COALESCE(
+               (SELECT c.company_name FROM company_user_roles cur JOIN companies c ON c.id = cur.company_id WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY (CASE WHEN cur.company_id = ${Number(companyId)} THEN 0 ELSE 1 END), cur.company_id DESC LIMIT 1),
+               c_branch.company_name,
+               CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 'Rayhar Vacation' WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
+             ) AS company_name,`
+          : `COALESCE(
+               (SELECT c.company_name FROM company_user_roles cur JOIN companies c ON c.id = cur.company_id WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+               c_branch.company_name,
+               CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 'Rayhar Vacation' WHEN UPPER(p.branch) = 'RAYRENT' THEN 'RayRent' ELSE 'Rayhar Travels' END
+             ) AS company_name,`
+        }
         COALESCE(lr.phone, p.phone, '') AS phone,
         COALESCE(p_appr.full_name, '') AS approver_name,
         COALESCE(ur_approver.role, p_appr.role, '') AS approver_role,
@@ -6345,7 +6358,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
     let nextStatus = status; // Default to what frontend sent
     if (nextStatus && !isValidStatus(nextStatus)) return res.status(400).json({ success: false, error: 'Invalid status value' });
 
-    const isHrApprover = ['hr_admin', 'hr', 'admin'].includes(effectiveApproverCat) || ['hr_admin', 'hr', 'admin'].includes(normApproverRole);
+    const isHrApprover = ['hr_admin', 'hr', 'admin', 'superadmin'].includes(effectiveApproverCat) || ['hr_admin', 'hr', 'admin', 'superadmin'].includes(normApproverRole);
     let resolvedPatchWorkflow = null;
     let resolvedNextStep = null;
 
@@ -10119,9 +10132,18 @@ app.post("/api/clock-out", async (req, res) => {
 // SUBSIDIARY ATTENDANCE PHOTO VERIFICATION & REVIEW
 // ===============================
 async function verifyHrReviewerPermission(pgPool, actorId, claimedRole) {
-  const normalizedClaim = String(claimedRole || '').toLowerCase().replace(/\s+/g, '_');
-  const allowed = ['hr_admin', 'managing_director', 'superadmin', 'hr'];
-  if (!actorId) return allowed.some((r) => normalizedClaim.includes(r));
+  const normalizedClaim = String(claimedRole || '').toLowerCase().trim().replace(/\s+/g, '_');
+  const matchesAllowedRole = (val) => {
+    if (!val) return false;
+    return (
+      val === 'hr' ||
+      val === 'admin' ||
+      val.includes('hr_admin') ||
+      val.includes('managing_director') ||
+      val.includes('superadmin')
+    );
+  };
+  if (!actorId) return matchesAllowedRole(normalizedClaim);
 
   const res = await pgPool.query(
     `SELECT LOWER(REPLACE(COALESCE(ur.role, p.role, ''), ' ', '_')) AS role_name
@@ -10133,8 +10155,8 @@ async function verifyHrReviewerPermission(pgPool, actorId, claimedRole) {
     [actorId]
   );
   const dbRole = res.rows?.[0]?.role_name || '';
-  if (allowed.some((r) => dbRole.includes(r))) return true;
-  if (allowed.some((r) => normalizedClaim.includes(r))) return true;
+  if (matchesAllowedRole(dbRole)) return true;
+  if (matchesAllowedRole(normalizedClaim)) return true;
 
   // Also check company_user_roles joined with roles
   const curRes = await pgPool.query(
@@ -10144,7 +10166,7 @@ async function verifyHrReviewerPermission(pgPool, actorId, claimedRole) {
       WHERE cur.user_id = $1 AND cur.status = 'active'`,
     [actorId]
   );
-  return (curRes.rows || []).some((row) => allowed.some((r) => row.role_name.includes(r)));
+  return (curRes.rows || []).some((row) => matchesAllowedRole(row.role_name));
 }
 
 // Get effective verification policy for an employee (Main Company always geofence-only)

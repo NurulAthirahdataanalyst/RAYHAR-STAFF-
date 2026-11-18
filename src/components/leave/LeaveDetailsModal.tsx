@@ -2,7 +2,7 @@ import { sanitizeUrl, safeFileUrl, downloadUploadedFile, getMcAttachmentUrl, pre
 import { formatBranchName } from '@/utils/branchUtils';
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRole } from "@/contexts/RoleContext";
+import { useRole, normalizeRole } from "@/contexts/RoleContext";
 import {
   Dialog,
   DialogContent,
@@ -509,7 +509,7 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                   </div>
                 )}
 
-                {ADMIN_VIEW_ROLES.includes(role) && (
+                {ADMIN_VIEW_ROLES.includes(normalizeRole(role)) && (
                   <>
                     <div className="hidden print:block border-t border-[#111]" />
                     <div className="pt-4 border-t border-border/50 print:border-t-0 print:pt-0 space-y-4 print:space-y-0">

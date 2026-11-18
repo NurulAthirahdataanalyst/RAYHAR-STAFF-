@@ -106,9 +106,12 @@ export default function AttendanceDashboard() {
   const { role, userBranch, userDepartment, scopeType, loading } = useRole();
   const isDepartmentScoped = scopeType === "Department Data Only" || (!scopeType && role === "head_of_department");
   const isBranchScoped = scopeType === "Branch Data Only" || (!scopeType && role === "branch_leader");
-  const isSubsidiaryView = activeCompany?.company_type === "subsidiary";
-  const canHrReview = ["hr_admin", "managing_director", "superadmin"].some((r) =>
-    String(role || "").toLowerCase().includes(r)
+  const queryBranch = isBranchScoped ? (userBranch || "") : "";
+  const queryDept = isDepartmentScoped ? (userDepartment || "") : "";
+  const isSubsidiaryView = activeCompany?.company_type === "subsidiary" || Number(activeCompany?.id || 1) > 1;
+  const normRole = String(role || "").toLowerCase().trim().replace(/\s+/g, "_");
+  const canHrReview = ["hr_admin", "hr", "admin", "managing_director", "md", "superadmin"].some((r) =>
+    r === "hr" || r === "admin" || r === "md" ? normRole === r : normRole.includes(r)
   );
   const [reviewAttendanceId, setReviewAttendanceId] = useState<number | null>(null);
   const location = useLocation();
@@ -362,11 +365,11 @@ export default function AttendanceDashboard() {
     }
     try {
       const [resDaily, resStats, resAbsent, resOutstation, resLeave, resWorkAssign, resMultiLoc] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
-        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "All")}&department=${encodeURIComponent(userDepartment || "All")}&date=${encodeURIComponent(selectedDate)}&company_id=${activeCompany?.id || 1}`),
-        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
-        fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
-        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/reports/daily-attendance?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/dashboard-stats?userId=ADMIN&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch || "All")}&department=${encodeURIComponent(queryDept || "All")}&date=${encodeURIComponent(selectedDate)}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/reports/absent-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/outstation?role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&company_id=${activeCompany?.id || 1}`),
+        fetch(`${API_BASE_URL}/api/reports/on-leave-employees?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&company_id=${activeCompany?.id || 1}`),
         fetch(`${API_BASE_URL}/api/work-assignments-all`),
         fetch(`${API_BASE_URL}/api/multi-location-users`)
       ]);
@@ -474,8 +477,8 @@ export default function AttendanceDashboard() {
         year: selectedYear.toString(), 
         date: selectedDate,
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || ""
+        branch: queryBranch,
+        department: queryDept
       });
       const response = await fetch(`${API_BASE_URL}/api/reports/analytics?${params}`);
       const data = await response.json();
@@ -494,8 +497,8 @@ export default function AttendanceDashboard() {
     try {
       const params = new URLSearchParams({
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || ""
+        branch: queryBranch,
+        department: queryDept
       });
       const response = await fetch(`${API_BASE_URL}/api/reports/total-leave-requests?${params}`);
       const data = await response.json();
@@ -512,8 +515,8 @@ export default function AttendanceDashboard() {
     try {
       const params = new URLSearchParams({
         role: role || "",
-        branch: userBranch || "",
-        department: userDepartment || ""
+        branch: queryBranch,
+        department: queryDept
       });
       const response = await fetch(`${API_BASE_URL}/api/reports/leave-utilization?${params}`);
       const data = await response.json();
@@ -549,7 +552,7 @@ export default function AttendanceDashboard() {
   // ── LIVE-STATS SSE CONNECTION ─────────────────────────────────────────
   useEffect(() => {
     if (loading) return;
-    const url = `${API_BASE_URL}/api/presence/live-stats?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(userBranch || "")}&department=${encodeURIComponent(userDepartment || "")}&scope_type=${encodeURIComponent(scopeType || "")}&company_id=${activeCompany?.id || 1}`;
+    const url = `${API_BASE_URL}/api/presence/live-stats?date=${encodeURIComponent(selectedDate)}&role=${encodeURIComponent(role || "")}&branch=${encodeURIComponent(queryBranch)}&department=${encodeURIComponent(queryDept)}&scope_type=${encodeURIComponent(scopeType || "")}&company_id=${activeCompany?.id || 1}`;
     const es = new EventSource(url);
     liveEsRef.current = es;
 
@@ -2347,7 +2350,7 @@ export default function AttendanceDashboard() {
         open={reviewAttendanceId !== null}
         onOpenChange={(next) => { if (!next) setReviewAttendanceId(null); }}
         attendanceId={reviewAttendanceId}
-        canReview={canHrReview && isSubsidiaryView}
+        canReview={canHrReview}
         reviewerId={String(user?.user_id || user?.id || "")}
         reviewerName={user?.full_name || user?.name || "HR Admin"}
         reviewerRole={String(role || "hr_admin")}

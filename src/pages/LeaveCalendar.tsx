@@ -65,7 +65,7 @@ type LeaveRequest = {
 };
 
 export default function LeaveCalendar() {
-  const { role, userBranch, userDepartment, loading: roleLoading } = useRole();
+  const { role, scopeType, userBranch, userDepartment, userId, loading: roleLoading } = useRole();
   const { activeCompany } = useCompany();
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,11 +80,19 @@ export default function LeaveCalendar() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const isAllCompanyAccess =
+          ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager", "assure_leader", "superadmin"].includes(
+            String(role || "").toLowerCase().trim().replace(/\s+/g, "_")
+          ) ||
+          scopeType === "Parent Group Data" ||
+          scopeType === "Company Staff Data";
         const params = new URLSearchParams({
           role,
-          branch: userBranch || "",
-          department: userDepartment || "",
+          branch: isAllCompanyAccess ? "" : (userBranch || ""),
+          department: isAllCompanyAccess ? "" : (userDepartment || ""),
           company_id: String(activeCompany?.id || 1),
+          viewerId: userId || "",
+          scope_type: scopeType || "",
         });
         const res = await fetch(`${API_BASE_URL}/api/leave-requests?${params}`, {
           headers: {
@@ -102,7 +110,7 @@ export default function LeaveCalendar() {
       }
     };
     if (!roleLoading) void fetchData();
-  }, [role, userBranch, userDepartment, roleLoading, activeCompany?.id]);
+  }, [role, scopeType, userBranch, userDepartment, userId, roleLoading, activeCompany?.id]);
 
   // Get all days in the current view grid
   const calDays = useMemo(() => {
@@ -118,7 +126,8 @@ export default function LeaveCalendar() {
     const dateStr = format(day, 'yyyy-MM-dd');
     const currentCompanyId = activeCompany?.id || 1;
     return requests.filter(a => {
-      const aCompanyId = (a as any).company_id || (a.branch?.toUpperCase() === 'RAYRENT' ? 2 : 1);
+      const branchUpper = String(a.branch || "").toUpperCase();
+      const aCompanyId = (a as any).company_id || (branchUpper.startsWith('RV') ? 3 : branchUpper === 'RAYRENT' ? 2 : 1);
       if (activeCompany?.id && aCompanyId !== currentCompanyId) return false;
       let isMatchStatus = false;
       if (filterStatus === "All") isMatchStatus = true;
