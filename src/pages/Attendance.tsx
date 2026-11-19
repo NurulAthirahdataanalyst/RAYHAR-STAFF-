@@ -372,7 +372,15 @@ export default function Attendance() {
       const now = new Date();
       setCurrentTime(now);
 
-      if (activeSession && activeSession.clock_in) {
+      const isRejectedOrUnverifiedLog = (l: any) =>
+        ["Rejected", "Expired", "Pending Verification"].includes(String(l?.verification_status || "")) ||
+        ["Absent (Rejected)", "Absent (Expired)", "Rejected", "Expired", "Pending Verification"].includes(String(l?.status || ""));
+
+      if (activeSession && activeSession.clock_in && !["Rejected", "Expired"].includes(String(activeSession.verification_status || ""))) {
+        if (String(activeSession.verification_status || "") === "Pending Verification") {
+          setWorkingHrs("--:--");
+          return;
+        }
         let clockInStr = activeSession.clock_in;
         if (typeof clockInStr === "string") {
           clockInStr = clockInStr.replace(" ", "T");
@@ -394,7 +402,8 @@ export default function Attendance() {
             (l.date === todayStr || (l.date && l.date.startsWith(todayStr))) &&
             l.attendance_id !== activeSession.attendance_id &&
             l.clock_in &&
-            l.clock_out
+            l.clock_out &&
+            !isRejectedOrUnverifiedLog(l)
         );
         const isFirstSession = earlierSessions.length === 0;
         const effectiveInMins = isFirstSession ? Math.max(clockInMins, startMins) : clockInMins;
@@ -419,7 +428,10 @@ export default function Attendance() {
         // When not clocked in: check if employee already clocked out today
         const todayStr = now.toLocaleDateString('en-CA');
         const todaySessions = historyLogs.filter(
-          (l: any) => (l.date === todayStr || (l.date && l.date.startsWith(todayStr))) && l.clock_in
+          (l: any) =>
+            (l.date === todayStr || (l.date && l.date.startsWith(todayStr))) &&
+            l.clock_in &&
+            !isRejectedOrUnverifiedLog(l)
         );
         if (todaySessions.length > 0) {
           let todayMins = 0;
@@ -514,7 +526,8 @@ export default function Attendance() {
         });
       }
 
-      if (data.active && data.record) {
+      const verifStatus = String(data.record?.verification_status || "");
+      if (data.active && data.record && verifStatus !== "Rejected" && verifStatus !== "Expired") {
         setActiveSession(data.record);
         try {
           sessionStorage.setItem("activeAttendanceSession", JSON.stringify(data.record));
@@ -670,6 +683,12 @@ export default function Attendance() {
     const weekStartStr = weekStart.toLocaleDateString('en-CA');
 
     historyLogs.forEach(log => {
+      if (
+        ["Rejected", "Expired", "Pending Verification"].includes(String(log.verification_status || "")) ||
+        ["Absent (Rejected)", "Absent (Expired)", "Rejected", "Expired", "Pending Verification"].includes(String(log.status || ""))
+      ) {
+        return;
+      }
       const dur = log.duration || log.working_hours;
       if (dur && dur !== '--' && dur !== '--:--') {
         const parts = dur.match(/(\d+)\s*[hH]\s*(\d+)\s*[mM]/);
@@ -2826,11 +2845,34 @@ export default function Attendance() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className={`font-medium ${log.late === "0 Min" || log.late === "00h 00m" || log.late === "00:00" ? "text-[#008000]" : "text-rose-600"}`}>
-                          {log.late === "00h 00m" || log.late === "00:00" || log.late === "--" ? "--" : log.late}
+                        <TableCell className={`font-medium ${
+                          ["Absent (Rejected)", "Absent (Expired)", "Rejected", "Expired", "Pending Verification"].includes(String(log.status || "")) ||
+                          ["Rejected", "Expired", "Pending Verification"].includes(String(log.verification_status || ""))
+                            ? "text-muted-foreground"
+                            : log.late === "0 Min" || log.late === "00h 00m" || log.late === "00:00"
+                            ? "text-[#008000]"
+                            : "text-rose-600"
+                        }`}>
+                          {["Absent (Rejected)", "Absent (Expired)", "Rejected", "Expired", "Pending Verification"].includes(String(log.status || "")) ||
+                          ["Rejected", "Expired", "Pending Verification"].includes(String(log.verification_status || "")) ||
+                          log.late === "00h 00m" || log.late === "00:00" || log.late === "--"
+                            ? "--"
+                            : log.late}
                         </TableCell>
                         <TableCell className="font-medium text-foreground">{log.distance ? `${log.distance} m` : "--"}</TableCell>
-                        <TableCell className="font-bold text-emerald-600 text-right pr-6">{log.duration || log.working_hours || "--"}</TableCell>
+                        <TableCell className={`font-bold text-right pr-6 ${
+                          ["Absent (Rejected)", "Absent (Expired)", "Rejected", "Expired", "Pending Verification"].includes(String(log.status || "")) ||
+                          ["Rejected", "Expired", "Pending Verification"].includes(String(log.verification_status || "")) ||
+                          (!log.duration && !log.working_hours) ||
+                          (log.duration || log.working_hours) === "--"
+                            ? "text-muted-foreground"
+                            : "text-emerald-600"
+                        }`}>
+                          {["Absent (Rejected)", "Absent (Expired)", "Rejected", "Expired", "Pending Verification"].includes(String(log.status || "")) ||
+                          ["Rejected", "Expired", "Pending Verification"].includes(String(log.verification_status || ""))
+                            ? "--"
+                            : (log.duration || log.working_hours || "--")}
+                        </TableCell>
                         {attendanceMode === 'multi' && (
                           <TableCell className="font-medium whitespace-nowrap">
                             {log.clock_in_location ? (

@@ -110,12 +110,21 @@ export function calculateLateWorkingHour(
     }
 
     const st = clockInVal.status;
+    const vs = clockInVal.verification_status;
     if (
       st === 'Approved Leave' ||
       st === 'Company Leave' ||
       st === 'Weekend' ||
       st === 'Rest Day' ||
       st === 'Absent' ||
+      st === 'Absent (Rejected)' ||
+      st === 'Absent (Expired)' ||
+      st === 'Rejected' ||
+      st === 'Expired' ||
+      st === 'Pending Verification' ||
+      vs === 'Rejected' ||
+      vs === 'Expired' ||
+      vs === 'Pending Verification' ||
       clockInVal.is_leave ||
       clockInVal.leave_type
     ) {
@@ -309,12 +318,21 @@ export function calculateTotalWorkingHoursFormatted(
 ): string {
   if (recordOrSessions && typeof recordOrSessions === 'object' && !(recordOrSessions instanceof Date)) {
     const st = recordOrSessions.status;
+    const vs = recordOrSessions.verification_status;
     if (
       st === 'Approved Leave' ||
       st === 'Company Leave' ||
       st === 'Weekend' ||
       st === 'Rest Day' ||
       st === 'Absent' ||
+      st === 'Absent (Rejected)' ||
+      st === 'Absent (Expired)' ||
+      st === 'Rejected' ||
+      st === 'Expired' ||
+      st === 'Pending Verification' ||
+      vs === 'Rejected' ||
+      vs === 'Expired' ||
+      vs === 'Pending Verification' ||
       recordOrSessions.is_leave ||
       recordOrSessions.is_company_leave ||
       recordOrSessions.is_weekend ||
@@ -582,6 +600,11 @@ const NON_WORKING_REST_STATUSES = new Set([
   'Weekend',
   'Rest Day',
   'Absent',
+  'Absent (Rejected)',
+  'Absent (Expired)',
+  'Rejected',
+  'Expired',
+  'Pending Verification',
   'Holiday',
   'N/A',
   'On Leave',
@@ -607,6 +630,7 @@ export function calculateDailyRestMinutesValue(recordOrSessions: any): number | 
     const st = recordOrSessions.status;
     if (
       NON_WORKING_REST_STATUSES.has(st) ||
+      NON_WORKING_REST_STATUSES.has(recordOrSessions.verification_status) ||
       recordOrSessions.is_leave ||
       recordOrSessions.is_on_leave ||
       recordOrSessions.is_company_leave ||
@@ -761,8 +785,13 @@ export function calculateMonthlyBreakMinutes(
 
     let dayRestMins = 0;
     if (!isNonWorkingDay) {
+      const isUnconfirmedVerif = (l: any) =>
+        ['Rejected', 'Expired', 'Pending Verification'].includes(String(l?.verification_status || '')) ||
+        ['Absent (Rejected)', 'Absent (Expired)', 'Rejected', 'Expired', 'Pending Verification'].includes(String(l?.status || ''));
+
       const daySessions: AttendanceSession[] = [];
       dayLogs.forEach((l) => {
+        if (isUnconfirmedVerif(l)) return;
         if (Array.isArray(l.sessions) && l.sessions.length > 0) {
           l.sessions.forEach((s: any) => {
             if (s && hasValidClockValue(s.clock_in || s.time_in)) {

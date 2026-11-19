@@ -9130,6 +9130,7 @@ app.get("/api/attendance-status", async (req, res) => {
       WHERE user_id = ?
       AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
       AND clock_out IS NULL
+      AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired')
       ORDER BY clock_in DESC
       LIMIT 1
       `, [empId]);
@@ -9705,6 +9706,7 @@ app.post("/api/attendance", async (req, res) => {
        WHERE user_id = ? 
        AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
        AND clock_out IS NULL
+       AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired')
        ORDER BY clock_in DESC 
        LIMIT 1`,
       [user_id]
@@ -9974,6 +9976,7 @@ app.post("/api/clock-out", async (req, res) => {
        WHERE user_id = ?
        AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
        AND clock_out IS NULL
+       AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired')
        ORDER BY clock_in DESC
        LIMIT 1`,
       [user_id]
@@ -10637,13 +10640,19 @@ app.get("/api/attendance/history", async (req, res) => {
       const lateH = workHours.off ? 23 : Math.floor(cutoffInfo.cutoffMins / 60);
       const lateM = workHours.off ? 59 : (cutoffInfo.cutoffMins % 60);
       
-      // First clock-in of the date determines the official attendance status and lateness
+      // First verified/valid clock-in of the date determines the official attendance status and lateness
       let dayIsLate = false;
       let dayLateFormatted = "0 Min";
+      let firstValidClockIdx = 0;
       if (clockRowsForDate.length > 0) {
         clockRowsForDate.sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
-        if (clockRowsForDate[0].clock_in) {
-          const { isLate, lateMinutes } = isAttendanceLate(clockRowsForDate[0].clock_in, empCompanyId, dateStr);
+        const foundValidIdx = clockRowsForDate.findIndex(
+          (r) => !['Rejected', 'Expired'].includes(String(r.verification_status || 'Approved'))
+        );
+        firstValidClockIdx = foundValidIdx >= 0 ? foundValidIdx : 0;
+        const primaryRow = clockRowsForDate[firstValidClockIdx];
+        if (primaryRow && primaryRow.clock_in) {
+          const { isLate, lateMinutes } = isAttendanceLate(primaryRow.clock_in, empCompanyId, dateStr);
           dayIsLate = isLate && !workHours.off;
           if (dayIsLate) {
             dayLateFormatted = `${lateMinutes} Min`;
@@ -10716,9 +10725,9 @@ app.get("/api/attendance/history", async (req, res) => {
         time_in = clockRow.time_in || "--";
         time_out = clockRow.time_out || "--";
         
-        // Status is always governed by the day's first clock-in (or Outstation if applicable)
+        // Status is always governed by the day's first valid clock-in (or Outstation if applicable)
         status = (matchingOutstation || isOutstationClock) ? "Outstation" : dayOfficialStatus;
-        if (idx === 0) {
+        if (idx === firstValidClockIdx) {
           is_late = dayIsLate;
           late = dayIsLate ? dayLateFormatted : "00h 00m";
         } else {
@@ -10739,7 +10748,7 @@ app.get("/api/attendance/history", async (req, res) => {
         if (clock_in) {
           const inD = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
           const rawInMins = inD.getUTCHours() * 60 + inD.getUTCMinutes();
-          const effInMins = idx === 0 ? Math.max(rawInMins, startMins) : rawInMins;
+          const effInMins = idx === firstValidClockIdx ? Math.max(rawInMins, startMins) : rawInMins;
 
           let effOutMins = rawInMins;
           if (clock_out) {
@@ -10780,6 +10789,16 @@ app.get("/api/attendance/history", async (req, res) => {
         : { verificationStatus: null, attendanceStatus: status };
       const finalStatus = clockRow ? verifSummary.attendanceStatus : status;
 
+      // Rejected, Expired, and Pending Verification punches must not accumulate working hours or lateness
+      if (
+        clockRow &&
+        ['Rejected', 'Expired', 'Pending Verification'].includes(String(verifSummary.verificationStatus || ''))
+      ) {
+        duration = "--";
+        late = "--";
+        is_late = false;
+      }
+
       return {
         attendance_id: clockRow ? clockRow.attendance_id : null,
         company_id: clockRow ? clockRow.company_id : null,
@@ -10819,8 +10838,8 @@ app.get("/api/attendance/history", async (req, res) => {
         longitude: clockRow ? clockRow.clock_in_longitude : null,
         clock_in_location: clockRow ? (clockRow.location || null) : null,
         attendance_type: clockRow ? (clockRow.attendance_type || null) : null,
-        is_first_clock_in: idx === 0,
-        is_subsequent: idx > 0
+        is_first_clock_in: idx === firstValidClockIdx,
+        is_subsequent: idx > firstValidClockIdx
       };
       };
 
@@ -12930,8 +12949,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         missing_clock_out: missingClockOut,
         is_early_leaver: isEarlyLeaver,
         is_overtime: isOvertime,
-        is_first_clock_in: idx === 0,
-        is_subsequent: idx > 0,
+        is_first_clock_in: idx === firstValidClockIdx,
+        is_subsequent: idx > firstValidClockIdx,
         late_working_hours: (clockRow && !isClockInConfirmed) ? "--" : ((idx === 0) ? lateWorkingHours : "—"),
         working_hours: (clockRow && (!isClockInConfirmed || (clock_out && !isClockOutConfirmed))) ? "--" : workingHours,
         rest_minutes: restMinutes,

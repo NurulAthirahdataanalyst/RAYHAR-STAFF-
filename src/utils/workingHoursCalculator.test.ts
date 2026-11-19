@@ -354,5 +354,35 @@ describe('workingHoursCalculator', () => {
       expect(calculateDayStatus({ status: 'Weekend' })).toBe('Weekend');
       expect(calculateDayStatus({ status: 'Rest Day' })).toBe('Weekend');
     });
+
+    it('Working Hours, Late Working Hour, and Rest must be -- for Rejected, Expired, and Pending Verification punches', () => {
+      const rejectedRec = {
+        status: 'Absent (Rejected)',
+        verification_status: 'Rejected',
+        clock_in: '10:22 AM',
+        clock_out: '05:30 PM',
+      };
+      expect(calculateLateWorkingHour(rejectedRec, '08:30')).toBe('--');
+      expect(calculateTotalWorkingHoursFormatted(rejectedRec, '08:30')).toBe('--');
+      expect(calculateTotalRestMinutes(rejectedRec)).toBe('--');
+
+      const expiredRec = {
+        status: 'Absent (Expired)',
+        verification_status: 'Expired',
+        clock_in: '10:22 AM',
+      };
+      expect(calculateLateWorkingHour(expiredRec, '08:30')).toBe('--');
+      expect(calculateTotalWorkingHoursFormatted(expiredRec, '08:30')).toBe('--');
+      expect(calculateTotalRestMinutes(expiredRec)).toBe('--');
+
+      const pendingRec = {
+        status: 'Pending Verification',
+        verification_status: 'Pending Verification',
+        clock_in: '10:22 AM',
+      };
+      expect(calculateLateWorkingHour(pendingRec, '08:30')).toBe('--');
+      expect(calculateTotalWorkingHoursFormatted(pendingRec, '08:30')).toBe('--');
+      expect(calculateTotalRestMinutes(pendingRec)).toBe('--');
+    });
   });
 });
