@@ -299,18 +299,18 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!submitting) onOpenChange(next); }}>
-      <DialogContent className="sm:max-w-lg p-4 sm:p-5">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base font-bold">
-            <Camera className="w-4 h-4 text-[#942392]" />
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 overflow-hidden sm:rounded-2xl border-border/50 [&>button]:text-white [&>button]:hover:bg-white/20">
+        <DialogHeader className="bg-[#942392] px-5 sm:px-6 py-4 sm:py-5 sm:rounded-t-2xl m-0 text-left shrink-0 border-b border-white/25 shadow-sm pr-12">
+          <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-tight text-white">
+            <Camera className="w-4 h-4 text-white shrink-0" />
             Rayhar Staff Portal — Live {actionType === "CLOCK IN" ? "Clock-In" : "Clock-Out"} Verification
           </DialogTitle>
-          <DialogDescription className="text-xs">
+          <DialogDescription className="text-xs font-medium text-white/85 mt-1">
             Capture a live photo to submit for HR verification. Gallery uploads are disabled.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-3 p-4 sm:p-5 overflow-y-auto">
           <div className="relative rounded-xl overflow-hidden border border-border bg-slate-950 min-h-[240px] max-h-[58vh] flex items-center justify-center">
             {cameraError ? (
               <div className="p-4 text-center space-y-2">
@@ -417,9 +417,10 @@ export const RayharCameraModal: React.FC<RayharCameraModalProps> = ({
                 <Button
                   type="button"
                   size="sm"
+                  variant="outline"
                   onClick={handleConfirm}
                   disabled={submitting}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                  className="border-2 border-emerald-300 dark:border-emerald-800/70 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 dark:hover:bg-emerald-600 dark:hover:text-white rounded-xl font-bold shadow-xs hover:shadow-md hover:shadow-emerald-600/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
                 >
                   {submitting ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />}
                   Submit Attendance
