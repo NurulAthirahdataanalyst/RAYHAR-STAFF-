@@ -1461,14 +1461,17 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                           <div className="flex items-start sm:items-center gap-3 w-full">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 flex-1">
                               <div>
-                                <div className="flex items-center gap-1.5 mb-1">
-                                  <Label className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">
+                                <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1 min-h-[20px]">
+                                  <Label className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider whitespace-nowrap">
                                     Step {sIdx + 1} Label
                                   </Label>
                                   {isLast && (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-xs uppercase tracking-wider">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[9px] font-bold border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 whitespace-nowrap"
+                                    >
                                       Highest Approval
-                                    </span>
+                                    </Badge>
                                   )}
                                 </div>
                                 <Input
@@ -1482,9 +1485,11 @@ export const ApprovalBuilder: React.FC<ApprovalBuilderProps> = ({ companyId, com
                               </div>
 
                               <div>
-                                <Label className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider block mb-1">
-                                  Approver Role (Step {sIdx + 1})
-                                </Label>
+                                <div className="flex items-center mb-1 min-h-[20px]">
+                                  <Label className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider whitespace-nowrap">
+                                    Approver Role (Step {sIdx + 1})
+                                  </Label>
+                                </div>
                                 <Select
                                   value={step.approver_role_id}
                                   onValueChange={(val) =>
