@@ -149,6 +149,7 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
   const [overrideReason, setOverrideReason] = useState("");
   const [previewPhoto, setPreviewPhoto] = useState<PhotoPreviewItem | null>(null);
   const [zoomed, setZoomed] = useState(false);
+  const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
 
   const loadDetails = async () => {
     if (!attendanceId) return;
@@ -173,6 +174,7 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
       setOverrideReason("");
       setPreviewPhoto(null);
       setZoomed(false);
+      setFailedPhotos({});
       void loadDetails();
     } else if (!open) {
       setPreviewPhoto(null);
@@ -288,6 +290,12 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
             <ImageOff className="w-5 h-5 opacity-60" />
             <span>Photo soft-deleted after retention window</span>
           </div>
+        ) : resolvedSrc && failedPhotos[resolvedSrc] ? (
+          <div className="h-36 rounded-lg border border-dashed border-border flex flex-col items-center justify-center text-center px-3 text-xs text-muted-foreground gap-1.5 bg-background/60">
+            <ImageOff className="w-5 h-5 opacity-60" />
+            <span className="font-medium text-foreground/80">Photo unavailable</span>
+            <span className="text-[11px]">The image file could not be loaded from storage.</span>
+          </div>
         ) : resolvedSrc ? (
           <button
             type="button"
@@ -309,6 +317,7 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
             <img
               src={resolvedSrc}
               alt={label}
+              onError={() => setFailedPhotos((prev) => ({ ...prev, [resolvedSrc]: true }))}
               className="w-full max-h-72 object-contain mx-auto transition-transform duration-200 group-hover:scale-[1.01]"
             />
             <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-slate-950/85 border border-white/25 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur-xs group-hover:bg-[#942392] transition-colors">
@@ -616,17 +625,26 @@ export const AttendanceVerificationModal: React.FC<AttendanceVerificationModalPr
         {previewPhoto && (
           <>
             <div className="flex-1 overflow-auto bg-black flex items-center justify-center p-2 sm:p-4">
-              <img
-                src={previewPhoto.src}
-                alt={previewPhoto.label}
-                onClick={() => setZoomed((z) => !z)}
-                className={
-                  zoomed
-                    ? "w-[175%] max-w-none h-auto rounded-lg cursor-zoom-out"
-                    : "max-h-[58vh] w-auto max-w-full object-contain rounded-lg cursor-zoom-in"
-                }
-                title={zoomed ? "Click to fit screen" : "Click to zoom in"}
-              />
+              {failedPhotos[previewPhoto.src] ? (
+                <div className="py-12 px-6 text-center text-slate-300 space-y-2">
+                  <ImageOff className="w-8 h-8 mx-auto opacity-70" />
+                  <div className="text-sm font-semibold">Photo unavailable</div>
+                  <div className="text-xs text-slate-400">The image file could not be loaded from storage.</div>
+                </div>
+              ) : (
+                <img
+                  src={previewPhoto.src}
+                  alt={previewPhoto.label}
+                  onError={() => setFailedPhotos((prev) => ({ ...prev, [previewPhoto.src]: true }))}
+                  onClick={() => setZoomed((z) => !z)}
+                  className={
+                    zoomed
+                      ? "w-[175%] max-w-none h-auto rounded-lg cursor-zoom-out"
+                      : "max-h-[58vh] w-auto max-w-full object-contain rounded-lg cursor-zoom-in"
+                  }
+                  title={zoomed ? "Click to fit screen" : "Click to zoom in"}
+                />
+              )}
             </div>
 
             {/* Marki-style Verification Metadata Bar */}

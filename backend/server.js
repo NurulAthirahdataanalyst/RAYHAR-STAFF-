@@ -1730,6 +1730,76 @@ async function uploadToSupabaseStorage(filePath, filename, mimeType) {
   }
 }
 
+async function uploadToSupabaseStorageAsync(filePath, filename, mimeType) {
+  const { supabaseUrl, supabaseKey } = getSupabaseConfig();
+  const https = require("https");
+
+  if (!supabaseUrl || !supabaseKey) return false;
+
+  try {
+    const fileContent = fs.readFileSync(filePath);
+    const encodedFilename = filename.split('/').map(segment => encodeURIComponent(segment)).join('/');
+    const urlObj = new URL(`${supabaseUrl}/storage/v1/object/mc-attachments/${encodedFilename}`);
+
+    const options = {
+      hostname: urlObj.hostname,
+      port: 443,
+      path: urlObj.pathname,
+      method: "POST",
+      headers: {
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+        "Content-Type": mimeType,
+        "Content-Length": fileContent.length,
+        "x-upsert": "true",
+      }
+    };
+
+    return await new Promise((resolve) => {
+      const req = https.request(options, (res) => {
+        let body = "";
+        res.on("data", (chunk) => body += chunk);
+        res.on("end", () => {
+          if (res.statusCode === 200 || res.statusCode === 201) {
+            console.log(`Successfully backed up ${filename} to Supabase Storage!`);
+            resolve(true);
+          } else {
+            console.error(`Supabase Storage upload failed with status ${res.statusCode}:`, body);
+            resolve(false);
+          }
+        });
+      });
+
+      req.setTimeout(10000, () => {
+        console.error(`Supabase Storage upload timed out for ${filename}`);
+        req.destroy();
+        resolve(false);
+      });
+
+      req.on("error", (err) => {
+        console.error("Error uploading to Supabase Storage:", err);
+        resolve(false);
+      });
+
+      req.write(fileContent);
+      req.end();
+    });
+  } catch (err) {
+    console.error("Failed to upload to Supabase Storage:", err);
+    return false;
+  }
+}
+
+async function saveAndBackupAttendancePhoto(photoData, userId, punchType = 'in') {
+  const photoUrl = attendanceVerificationService.saveProofPhotoFromDataUrl(photoData, userId, punchType);
+  const filename = path.basename(photoUrl);
+  const fullPath = path.join(attendanceVerificationService.PROOF_UPLOAD_DIR, filename);
+  const ext = path.extname(filename).toLowerCase();
+  const mimeType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+  await uploadToSupabaseStorageAsync(fullPath, `attendance_proofs/${filename}`, mimeType);
+  return photoUrl;
+}
+
 function formatApproverRole(role, department, branch) {
   if (!role) return "Approver";
   const normalized = role.toLowerCase().trim();
@@ -9757,7 +9827,7 @@ app.post("/api/attendance", async (req, res) => {
           error: 'Live camera verification photo is required for subsidiary attendance.',
         });
       }
-      photoUrl = attendanceVerificationService.saveProofPhotoFromDataUrl(photo_data, user_id, 'in');
+      photoUrl = await saveAndBackupAttendancePhoto(photo_data, user_id, 'in');
       const expDate = await attendanceVerificationService.computeApprovalExpiryTimestamp(
         pgPool,
         policy.company_id,
@@ -10020,7 +10090,7 @@ app.post("/api/clock-out", async (req, res) => {
           error: 'Live camera verification photo is required for subsidiary clock-out.',
         });
       }
-      outPhotoUrl = attendanceVerificationService.saveProofPhotoFromDataUrl(photo_data, user_id, 'out');
+      outPhotoUrl = await saveAndBackupAttendancePhoto(photo_data, user_id, 'out');
       const expDate = await attendanceVerificationService.computeApprovalExpiryTimestamp(
         pgPool,
         policy.company_id,
