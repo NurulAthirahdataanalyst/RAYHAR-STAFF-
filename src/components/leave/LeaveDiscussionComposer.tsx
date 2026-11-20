@@ -111,6 +111,10 @@ export const LeaveDiscussionComposer: React.FC<LeaveDiscussionComposerProps> = (
           maxLength={MAX_MESSAGE_LENGTH}
           disabled={disabled || submitting}
           rows={3}
+          data-ms-editor="false"
+          data-gramm="false"
+          data-gramm_editor="false"
+          data-enable-grammarly="false"
           className="min-h-[84px] resize-y rounded-2xl border-border/60 bg-muted/20 focus-visible:ring-[#942392] text-xs sm:text-sm"
         />
 
