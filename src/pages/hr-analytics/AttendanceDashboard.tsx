@@ -345,7 +345,21 @@ export default function AttendanceDashboard() {
     } catch (e) {
       console.error("Error loading system lists:", e);
     }
-  }, []);
+  }, [activeCompany?.id]);
+
+  useEffect(() => {
+    try {
+      const cachedDaily = sessionStorage.getItem(`attendance_dashboard_daily${companyCacheSuffix}`);
+      setDailyAttendance(cachedDaily ? JSON.parse(cachedDaily) : []);
+      const cachedAbsent = sessionStorage.getItem(`attendance_dashboard_absent${companyCacheSuffix}`);
+      setAbsentEmployees(cachedAbsent ? JSON.parse(cachedAbsent) : []);
+      hasLoadedRef.current = Boolean(cachedDaily);
+    } catch {
+      setDailyAttendance([]);
+      setAbsentEmployees([]);
+      hasLoadedRef.current = false;
+    }
+  }, [companyCacheSuffix]);
 
   useEffect(() => {
     fetchLists();
@@ -601,7 +615,7 @@ export default function AttendanceDashboard() {
     };
 
     return () => eventSource.close();
-  }, [activeTab, selectedMonth, selectedYear, selectedDate, role, userBranch, userDepartment, loading]);
+  }, [activeTab, selectedMonth, selectedYear, selectedDate, role, userBranch, userDepartment, loading, activeCompany?.id]);
 
   // Export CSV Handler
   const handleExport = () => {

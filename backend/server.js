@@ -12677,8 +12677,13 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const empCompanyId = p.company_id || getEmployeeCompanyId(uid);
 
       // Sort user's clock rows ascending by clock_in
+      let firstValidClockIdx = 0;
       if (clockRowsForUser.length > 0) {
         clockRowsForUser.sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+        const foundValidIdx = clockRowsForUser.findIndex(
+          (r) => !['Rejected', 'Expired'].includes(String(r.verification_status || 'Approved'))
+        );
+        firstValidClockIdx = foundValidIdx >= 0 ? foundValidIdx : 0;
       }
 
       const isOutstationUser = outstationMap.has(uid) || clockRowsForUser.some(c =>
@@ -12686,15 +12691,18 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         String(c.location || '').toUpperCase() === 'OUTSTATION'
       );
 
-      // First clock-in of the day determines whether the employee was late or on time
+      // First verified/valid clock-in of the day determines whether the employee was late or on time
       let dayIsLate = false;
-      if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
-        const { isLate } = isAttendanceLate(clockRowsForUser[0].clock_in, empCompanyId, queryDate);
+      const primaryClockRow = clockRowsForUser[firstValidClockIdx];
+      if (primaryClockRow && primaryClockRow.clock_in) {
+        const { isLate } = isAttendanceLate(primaryClockRow.clock_in, empCompanyId, queryDate);
         dayIsLate = isLate;
       }
 
-      // Check if user has ANY clock-out on this date
-      const hasAnyClockOut = clockRowsForUser.some(r => !!r.clock_out);
+      // Check if user has ANY confirmed clock-out on this date
+      const hasAnyClockOut = clockRowsForUser.some(r =>
+        !!r.clock_out && !['Rejected', 'Expired'].includes(String(r.verification_status || 'Approved'))
+      );
 
       const startMins = getLateCutoffForCompanyAndDate(empCompanyId, queryDate).startMins || 510;
       let lateWorkingHours = "--";
@@ -12702,8 +12710,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       let restMinutes = "0 Min";
       let totalActiveMins = 0;
 
-      if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
-        const firstInDate = new Date(clockRowsForUser[0].clock_in);
+      if (primaryClockRow && primaryClockRow.clock_in) {
+        const firstInDate = new Date(primaryClockRow.clock_in);
         const firstInMyt = new Date(firstInDate.getTime() + 8 * 60 * 60 * 1000);
         const firstInMins = firstInMyt.getUTCHours() * 60 + firstInMyt.getUTCMinutes();
         if (firstInMins <= startMins) {
@@ -12714,10 +12722,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         }
 
         clockRowsForUser.forEach((s, sIdx) => {
-          if (s.clock_in) {
+          if (s.clock_in && !['Rejected', 'Expired', 'Pending Verification'].includes(String(s.verification_status || 'Approved'))) {
             const sInD = new Date(new Date(s.clock_in).getTime() + 8 * 60 * 60 * 1000);
             const rawInMins = sInD.getUTCHours() * 60 + sInD.getUTCMinutes();
-            const effInMins = sIdx === 0 ? Math.max(rawInMins, startMins) : rawInMins;
+            const effInMins = sIdx === firstValidClockIdx ? Math.max(rawInMins, startMins) : rawInMins;
 
             let effOutMins = rawInMins;
             if (s.clock_out) {
@@ -12797,8 +12805,8 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         time_out = clockRow.time_out;
 
         const klTimeIn = new Date(new Date(clock_in).getTime() + 8 * 60 * 60 * 1000);
-        // Only the first clock-in of the day carries the is_late flag for KPIs
-        isLate = (idx === 0 && !isOutstationUser) ? dayIsLate : false;
+        // Only the first valid clock-in of the day carries the is_late flag for KPIs
+        isLate = (idx === firstValidClockIdx && !isOutstationUser) ? dayIsLate : false;
 
         if (isOutstationUser) {
           status = "Outstation";
@@ -12811,10 +12819,10 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
             missingClockOut = true;
             status = "Missing Clock-Out";
           } else {
-            status = (idx === 0 && dayIsLate) ? "Present (Late)" : "Present (On Time)";
+            status = (idx === firstValidClockIdx && dayIsLate) ? "Present (Late)" : "Present (On Time)";
           }
         } else {
-          status = (idx === 0 && dayIsLate) ? "Present (Late)" : "Present (On Time)";
+          status = (idx === firstValidClockIdx && dayIsLate) ? "Present (Late)" : "Present (On Time)";
           
           if (clock_out) {
             const klTimeOut = new Date(new Date(clock_out).getTime() + 8 * 60 * 60 * 1000);
@@ -12854,7 +12862,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       } else if (isOutstationUser) {
         statusClockIn = "Outstation";
         statusClockOut = "Outstation";
-      } else if (clockRowsForUser.length > 0 && clockRowsForUser[0].clock_in) {
+      } else if (primaryClockRow && primaryClockRow.clock_in) {
         statusClockIn = dayIsLate ? "Present (Late)" : "Present (On Time)";
         const lastClockRow = clockRowsForUser[clockRowsForUser.length - 1];
         const hasFinalOut = Boolean(lastClockRow && lastClockRow.clock_out);
@@ -12951,7 +12959,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
         is_overtime: isOvertime,
         is_first_clock_in: idx === firstValidClockIdx,
         is_subsequent: idx > firstValidClockIdx,
-        late_working_hours: (clockRow && !isClockInConfirmed) ? "--" : ((idx === 0) ? lateWorkingHours : "—"),
+        late_working_hours: (clockRow && !isClockInConfirmed) ? "--" : ((idx === firstValidClockIdx) ? lateWorkingHours : "—"),
         working_hours: (clockRow && (!isClockInConfirmed || (clock_out && !isClockOutConfirmed))) ? "--" : workingHours,
         rest_minutes: restMinutes,
         sessions: clockRowsForUser.map(c => ({
