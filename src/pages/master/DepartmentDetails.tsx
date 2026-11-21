@@ -208,7 +208,6 @@ export default function DepartmentDetails() {
             <Building2 className="w-6 h-6 text-primary" />
             {deptName}
           </h1>
-          <p className="text-sm text-foreground font-medium">Manage department details and personnel</p>
         </div>
       </div>
 
