@@ -979,16 +979,25 @@ export default function AttendanceDashboard() {
         const activeTemporary = uniqueDailyAttendance.filter(emp => {
           return emp.branch !== b.branch && emp.temp_branch === b.branch;
         });
+        const isUnconfirmedOrRejected = (emp: any) =>
+          ['Rejected', 'Expired', 'Pending Verification'].includes(String(emp.verification_status || '')) ||
+          ['Absent (Rejected)', 'Absent (Expired)', 'Rejected', 'Expired', 'Pending Verification'].includes(String(emp.status || ''));
+
         const isEmpOnTime = (emp: any) =>
-          emp.status === 'Present (On Time)' ||
-          emp.status === 'Present' ||
-          emp.status_clock_in === 'Present (On Time)' ||
-          ((emp.status === 'Missing Clock-Out' || emp.missing_clock_out || Boolean(emp.clock_in)) && !emp.is_late && emp.status !== 'Present (Late)' && emp.status_clock_in !== 'Present (Late)');
+          !isUnconfirmedOrRejected(emp) && (
+            emp.status === 'Present (On Time)' ||
+            emp.status === 'Present' ||
+            emp.status === 'Present (Override)' ||
+            emp.status_clock_in === 'Present (On Time)' ||
+            ((emp.status === 'Missing Clock-Out' || emp.missing_clock_out || Boolean(emp.clock_in)) && !emp.is_late && emp.status !== 'Present (Late)' && emp.status_clock_in !== 'Present (Late)')
+          );
 
         const isEmpLate = (emp: any) =>
-          emp.status === 'Present (Late)' ||
-          emp.status_clock_in === 'Present (Late)' ||
-          ((emp.status === 'Missing Clock-Out' || emp.missing_clock_out || Boolean(emp.clock_in)) && Boolean(emp.is_late));
+          !isUnconfirmedOrRejected(emp) && (
+            emp.status === 'Present (Late)' ||
+            emp.status_clock_in === 'Present (Late)' ||
+            ((emp.status === 'Missing Clock-Out' || emp.missing_clock_out || Boolean(emp.clock_in)) && Boolean(emp.is_late))
+          );
 
         const isEmpPresent = (emp: any) => isEmpOnTime(emp) || isEmpLate(emp);
 

@@ -3220,10 +3220,11 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
         outstationMap.set(r.user_id, r.destination);
     }
 
-    // All clock-ins today
+    // All clock-ins today (include verification status so Rejected/Expired/Pending punches never inflate Present/Late counts)
     const clockParams = [dateStr, ...paramsTotal];
     const [clockRows] = await pool.query(
-      `SELECT a.user_id, p.full_name, p.branch, p.department, p.role, a.clock_in, a.clock_out
+      `SELECT a.user_id, p.full_name, p.branch, p.department, p.role, a.clock_in, a.clock_out,
+              a.verification_status, a.clock_in_verification_status, a.clock_out_verification_status
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
        WHERE DATE(a.clock_in) = ?
@@ -3232,9 +3233,21 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
       clockParams
     );
 
-    // Deduplicate by user_id: keep FIRST (earliest) clock-in record per user
+    // Deduplicate by user_id: separate confirmed attendance from Pending Verification and Rejected/Expired
     const clockMap = {};
+    const pendingVerifIds = new Set();
+    const rejectedOrExpiredIds = new Set();
     for (const row of clockRows) {
+      const verifSummary = attendanceVerificationService.resolveVerificationSummary(row, 'Present');
+      const vStatus = verifSummary.verificationStatus;
+      if (vStatus === 'Rejected' || vStatus === 'Expired') {
+        rejectedOrExpiredIds.add(row.user_id);
+        continue;
+      }
+      if (vStatus === 'Pending Verification') {
+        pendingVerifIds.add(row.user_id);
+        continue;
+      }
       if (!clockMap[row.user_id]) {
         clockMap[row.user_id] = { ...row };
       } else if (row.clock_out) {
@@ -3324,7 +3337,7 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
       else if (onLeaveIds.has(uid)) {
         leaveList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'onLeave' });
       }
-      // 4. Clocked In
+      // 4. Confirmed Clocked In
       else if (clockMap[uid]) {
         const row = clockMap[uid];
         const empCompanyId = p.company_id || getEmployeeCompanyId(uid) || companyId;
@@ -3338,6 +3351,14 @@ async function getLiveAttendanceStats(queryDate, role, branch, department, compa
         const emp = { user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', role: p.role || '', clock_in: timeInFmt, clock_out: timeOutFmt, is_outstation: false };
         if (isLate) lateList.push({ ...emp, status: 'late', late_minutes: lateMinutes });
         else presentList.push({ ...emp, status: 'present', late_minutes: 0 });
+      }
+      // 4b. Pending Verification (awaiting photo review — not confirmed present and not absent)
+      else if (pendingVerifIds.has(uid)) {
+        // Intentionally neither present nor absent until HR approves/rejects
+      }
+      // 4c. Rejected or Expired attendance (explicitly Absent even on a weekend/rest day)
+      else if (rejectedOrExpiredIds.has(uid)) {
+        absentList.push({ user_id: uid, full_name: p.full_name, branch: p.branch || 'HQ', department: p.department || '—', clock_in: null, clock_out: null, status: 'absent' });
       }
       // 5. Weekend (zone-aware rest day)
       else if (checkIsWeekend(branchZoneMap.get(p.branch) || 'ZONE_B', dateObj)) {
@@ -3670,7 +3691,8 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department,
         MIN(a.clock_in) as first_clock_in
       FROM attendances a
       JOIN profiles p ON p.user_id = a.user_id
-      WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active' ${profileFilter}
+      WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active'
+        AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification') ${profileFilter}
       GROUP BY a.user_id, DATE(a.clock_in)
     )
     SELECT 
@@ -11082,6 +11104,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
         const [rawPresentRows] = await pool.query(
           `SELECT DISTINCT user_id FROM attendances 
            WHERE DATE(clock_in) = ${dateCondition} 
+           AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
            AND user_id NOT IN (SELECT user_id FROM outstation_assignments WHERE status != 'Cancelled' AND ${dateCondition} BETWEEN (start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND (end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date)
            ${attendanceFilter}`,
           presentParams
@@ -11101,6 +11124,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
              SELECT user_id, MIN(clock_in) AS first_clock_in
              FROM attendances
              WHERE DATE(clock_in) = ${dateCondition}
+               AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
              GROUP BY user_id
            )
            SELECT DISTINCT fc.user_id 
@@ -11195,10 +11219,22 @@ app.get("/api/dashboard-stats", async (req, res) => {
       );
 
       const [clockedInRows] = await pool.query(
-        `SELECT DISTINCT user_id FROM attendances WHERE DATE(clock_in) = ${dateCondition} ${attendanceFilter}`,
+        `SELECT user_id, verification_status, clock_in_verification_status, clock_out_verification_status
+         FROM attendances WHERE DATE(clock_in) = ${dateCondition} ${attendanceFilter}`,
         onLeaveParams
       );
-      const clockedInSet = new Set(clockedInRows.map(r => r.user_id));
+      const clockedInSet = new Set();
+      const rejectedOrExpiredSet = new Set();
+      clockedInRows.forEach(r => {
+        const verifSummary = attendanceVerificationService.resolveVerificationSummary(r, 'Present');
+        const vStatus = verifSummary.verificationStatus;
+        if (vStatus === 'Rejected' || vStatus === 'Expired') {
+          rejectedOrExpiredSet.add(r.user_id);
+        } else {
+          // Approved, Overridden, or Pending Verification (not absent)
+          clockedInSet.add(r.user_id);
+        }
+      });
 
       const personalLeaveSet = onLeaveUserIdsSet;
 
@@ -11215,13 +11251,14 @@ app.get("/api/dashboard-stats", async (req, res) => {
       allActiveProfiles.forEach(p => {
         const uid = p.user_id;
         const isClockedIn = clockedInSet.has(uid);
+        const isRejectedOrExpired = !isClockedIn && rejectedOrExpiredSet.has(uid);
         const isPersonalLeave = personalLeaveSet.has(uid);
         const isOutstation = outstationSet.has(uid);
         
         const userZone = branchZoneMap.get(p.branch) || 'ZONE_B';
         const isRestDay = checkIsWeekend(userZone, queryDateObj);
         
-        if (isRestDay && !isPersonalLeave && !isOutstation) {
+        if (isRestDay && !isPersonalLeave && !isOutstation && !isRejectedOrExpired) {
           restDayCount++;
         }
 
@@ -11247,8 +11284,10 @@ app.get("/api/dashboard-stats", async (req, res) => {
           }
         }
 
-        // Only count as absent if they are NOT on rest day, NOT clocked in, NOT on leave, NOT outstation, NOT company leave
-        if (!isRestDay && !isClockedIn && !isPersonalLeave && !isOutstation && !isCompanyLeave) {
+        // Count as absent if explicitly Rejected/Expired (even on rest day), OR if working day with no valid/pending clock-in, leave, outstation, or company leave
+        if (isRejectedOrExpired && !isPersonalLeave && !isOutstation && !isCompanyLeave) {
+          absentCount++;
+        } else if (!isRestDay && !isClockedIn && !isPersonalLeave && !isOutstation && !isCompanyLeave) {
           absentCount++;
         }
       });
@@ -11302,6 +11341,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
     const [todayRows] = await pool.query(
       `
       SELECT clock_in, clock_out, location, attendance_type, distance_meters, clock_in_latitude, clock_in_longitude, clock_out_latitude, clock_out_longitude,
+             verification_status, clock_in_verification_status, clock_out_verification_status,
              TO_CHAR(clock_in AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_in_time, 
              TO_CHAR(clock_out AT TIME ZONE 'Asia/Kuala_Lumpur', 'HH12:MI AM') AS clock_out_time
       FROM attendances WHERE user_id = ? ${personalCompUserFilter} AND DATE(clock_in) = ?::date ORDER BY clock_in DESC LIMIT 1
@@ -11374,6 +11414,12 @@ app.get("/api/dashboard-stats", async (req, res) => {
         todayStatus = isEarly ? "Clocked Out Early" : "Clocked Out";
         clockOutTime = record.clock_out_time || "--:--";
         todayStatusTime = clockOutTime;
+      }
+
+      const verifSummary = attendanceVerificationService.resolveVerificationSummary(record, todayStatus);
+      if (['Rejected', 'Expired', 'Pending Verification'].includes(verifSummary.verificationStatus)) {
+        todayStatus = verifSummary.attendanceStatus;
+        workingHours = "0 H 00 M";
       }
     }
 
@@ -11523,7 +11569,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
 
     // 2. MONTHLY ATTENDANCE RATE
     const [monthlyRows] = await pool.query(
-      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? ${personalCompUserFilter} AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ?::date) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ?::date)`,
+      `SELECT COUNT(DISTINCT DATE(clock_in)) AS days_present FROM attendances WHERE user_id = ? ${personalCompUserFilter} AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification') AND EXTRACT(YEAR FROM clock_in) = EXTRACT(YEAR FROM ?::date) AND EXTRACT(MONTH FROM clock_in) = EXTRACT(MONTH FROM ?::date)`,
       [userId, queryDate, queryDate]
     );
 
@@ -12019,11 +12065,12 @@ app.get("/api/reports/absent-employees", async (req, res) => {
         AND ?::date BETWEEN (ewa.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND COALESCE((ewa.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date, '2099-12-31'::date)
       WHERE p.status = 'Active'
       AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date)
-      -- 1. No attendance record today
+      -- 1. No valid (non-rejected/non-expired) attendance record today
       AND NOT EXISTS (
         SELECT 1 FROM attendances a 
         WHERE a.user_id = p.user_id 
         AND DATE(a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+        AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired')
       )
       -- 2. Not on company holiday today
       AND NOT EXISTS (
@@ -13489,6 +13536,7 @@ app.get("/api/workforce-stats", async (req, res) => {
        JOIN profiles p ON p.user_id = a.user_id
        WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
          AND (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+         AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
          AND p.status = 'Active' ${profileFilter}
        ORDER BY a.clock_in ASC`,
       [lateTimeStr, monthStartStr, monthEndStr, ...pFilterParams]
@@ -13733,6 +13781,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       `SELECT EXTRACT(MONTH FROM (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as m, EXTRACT(YEAR FROM (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as y, COUNT(DISTINCT (user_id, (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date)) as total_att
        FROM attendances
        WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') >= (DATE_TRUNC('month', ?::date) - INTERVAL '5 months')
+         AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
        GROUP BY y, m
        ORDER BY y, m`,
        [targetDateStr]
@@ -13845,7 +13894,9 @@ app.get("/api/workforce-stats", async (req, res) => {
         CASE WHEN (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END as is_late
        FROM attendances a
        JOIN profiles p ON p.user_id = a.user_id
-       WHERE a.clock_in >= ? AND a.clock_in <= ? AND p.status = 'Active' ${profileFilter}
+       WHERE a.clock_in >= ? AND a.clock_in <= ?
+         AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
+         AND p.status = 'Active' ${profileFilter}
        ORDER BY a.clock_in ASC`,
       [lateTimeStr, weekStartD.toISOString(), weekEndD.toISOString(), ...pFilterParams]
     );
@@ -14153,6 +14204,7 @@ app.get("/api/workforce-stats", async (req, res) => {
        JOIN profiles p ON p.user_id = a.user_id
        WHERE EXTRACT(MONTH FROM a.clock_in) = ? AND EXTRACT(YEAR FROM a.clock_in) = ? 
          AND a.clock_out IS NULL 
+         AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
          AND p.status = 'Active' ${profileFilter}`,
       [prevMonthStr, prevYearStr, ...pFilterParams]
     );
@@ -14255,6 +14307,7 @@ app.get("/api/workforce-stats", async (req, res) => {
        JOIN profiles p ON p.user_id = a.user_id
        WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date - INTERVAL '1 day'
          AND a.clock_out IS NULL
+         AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
          AND p.status = 'Active' ${profileFilter}
          AND NOT EXISTS (
            SELECT 1 FROM leave_requests lr 
