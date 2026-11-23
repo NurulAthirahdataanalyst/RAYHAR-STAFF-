@@ -1,11 +1,12 @@
+const path = require("path");
 const dotenv = require("dotenv");
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const express = require("express");
 const { Pool } = require("pg");
 const cors = require("cors");
 const multer = require("multer");
-const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const { sendNotificationEmail } = require("./mailer");
@@ -31,6 +32,7 @@ const {
   findStepIndexForStatus,
 } = require("./utils/leaveWorkflowResolver");
 const attendanceVerificationService = require("./services/attendanceVerificationService");
+const { sendNewLeaveRequestTelegramNotification } = require("./services/telegramService");
 
 const isString = (value) =>
   typeof value === "string";
@@ -6066,6 +6068,11 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
     res.status(201).json({ success: true, leaveRequest: leaveData });
     broadcastPresenceUpdate({ type: 'leave-status', leaveId: result.insertId, status: initialStatus, userId: user_id });
+
+    // --- SEND TELEGRAM NOTIFICATION TO HR GROUP (NOTIFICATION ONLY) ---
+    sendNewLeaveRequestTelegramNotification(leaveData).catch((tgErr) => {
+      console.error("Failed to send Telegram leave notification:", tgErr?.response?.data || tgErr.message);
+    });
     
     // Generate and save the leave form PDF locally and on Supabase Storage
     generateAndSaveLeaveFormPDF(result.insertId);
