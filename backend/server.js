@@ -5806,28 +5806,16 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
     // Validate Replacement Leave Dates
     if (cutiGantiData.length > 0) {
-      const branchZoneMap = await getBranchZoneMap();
-      const userZone = branchZoneMap.get(employeeBranch) || 'ZONE_B';
-
       for (const cg of cutiGantiData) {
         if (!cg.tarikhGanti) continue;
-        const leaveDate = new Date(cg.tarikhCuti || start_date);
-        const replaceDate = new Date(cg.tarikhGanti);
         
         // 0. Keterangan is required
         if (!cg.keterangan && !safeReason) {
            return res.status(400).json({ success: false, error: "Keterangan/Tugasan is required for Replacement Leave." });
         }
 
-        // 1. Replacement Date >= Leave Date (Wait, the user's example: Leave 16 Jul, Replace 31 Jul. So replaceDate >= leaveDate is correct, but actually replacement can be done before! E.g. working on a weekend to earn leave for later. I will remove this strict check as it's common to earn replacement leave in advance. Wait, the user didn't specify. I'll remove the strict check since the logic "Wait for attendance" applies to future dates, and past dates will instantly validate on cron run.)
-        // No strict check on Replacement Date >= Leave Date.
-
-        // 2. Replacement Date must be Weekend or Holiday
-        const isWeekend = checkIsWeekend(userZone, replaceDate);
-        const isHoliday = malaysiaHolidays.some(h => h.date === cg.tarikhGanti);
-        if (!isWeekend && !isHoliday) {
-          return res.status(400).json({ success: false, error: `Tarikh Ganti ${cg.tarikhGanti} must be a Weekend or Public Holiday.` });
-        }
+        // 1. No strict check on Replacement Date >= Leave Date.
+        // 2. No Weekend or Public Holiday restriction on Tarikh Ganti (any date is allowed).
         
         // 3. Not duplicated
         const [dupCheck] = await pool.query(`SELECT id FROM replacement_leave_requests WHERE employee_id = ? AND replacement_date = ? AND validation_status != 'Failed'`, [user_id, cg.tarikhGanti]);
