@@ -36,6 +36,7 @@ const {
   isAnnualOrEmergencyLeave,
   sendNewLeaveRequestTelegramNotification,
   sendLeaveStatusUpdateTelegramNotification,
+  sendStaffOnLeaveTodayTelegramNotification,
 } = require("./services/telegramService");
 
 const isString = (value) =>
@@ -5211,6 +5212,87 @@ setTimeout(() => {
   attendanceVerificationService.runPhotoRetentionCleanupJob(pgPool).catch(() => {});
 }, 10000);
 
+function getMalaysiaTodayDateStr() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kuala_Lumpur",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function toIsoDateOnly(value) {
+  if (!value) return "";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value.trim())) {
+    return value.trim().slice(0, 10);
+  }
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kuala_Lumpur",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+function isLeaveActiveOnDate(startDate, endDate, targetDateStr = getMalaysiaTodayDateStr()) {
+  const start = toIsoDateOnly(startDate);
+  const end = toIsoDateOnly(endDate) || start;
+  if (!start || !targetDateStr) return false;
+  return targetDateStr >= start && targetDateStr <= end;
+}
+
+async function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateStr()) {
+  try {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT ON (p.user_id)
+         p.user_id,
+         p.full_name,
+         p.branch,
+         COALESCE(c.company_name, '') AS company_name
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+       LEFT JOIN companies c ON c.id = (
+         CASE WHEN UPPER(COALESCE(p.branch, '')) LIKE 'RV%' THEN 3
+              ELSE COALESCE(
+                (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                b.company_id,
+                CASE WHEN UPPER(COALESCE(p.branch, '')) = 'RAYRENT' THEN 2 ELSE 1 END
+              )
+         END
+       )
+       WHERE lr.status = 'Approved'
+         AND ?::date BETWEEN lr.start_date::date AND lr.end_date::date
+       ORDER BY p.user_id, lr.leave_id DESC`,
+      [targetDateStr]
+    );
+
+    if (!rows || rows.length === 0) return { skipped: true, count: 0 };
+
+    const sorted = [...rows].sort((a, b) => {
+      const compCmp = String(a.company_name || "").localeCompare(String(b.company_name || ""));
+      if (compCmp !== 0) return compCmp;
+      return String(a.full_name || "").localeCompare(String(b.full_name || ""));
+    });
+
+    return await sendStaffOnLeaveTodayTelegramNotification(sorted, targetDateStr);
+  } catch (err) {
+    console.error("Failed to send Staff On Leave Today Telegram digest:", err?.response?.data || err.message);
+    return { error: err.message };
+  }
+}
+
+// Daily Staff On Leave Today Telegram summary: Runs at 08:30 AM Malaysia Time
+cron.schedule(
+  "30 8 * * *",
+  async () => {
+    await sendStaffOnLeaveTodayDigest();
+  },
+  { timezone: "Asia/Kuala_Lumpur" }
+);
+
 // Missing clock-in reminder: Runs at 09:15 AM Monday to Friday
 cron.schedule('15 9 * * 1-5', async () => {
   try {
@@ -6135,6 +6217,12 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
             [tgRes.messageId, result.insertId]
           ).catch(() => {});
         }
+        if (
+          String(initialStatus || "").trim().toLowerCase() === "approved" &&
+          isLeaveActiveOnDate(leaveData?.start_date, leaveData?.end_date)
+        ) {
+          await sendStaffOnLeaveTodayDigest();
+        }
       } catch (tgErr) {
         console.error("Failed to send Telegram leave notification:", tgErr?.response?.data || tgErr.message);
       }
@@ -6731,6 +6819,13 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
                 telegramMessageId: leaveData.telegram_message_id || null,
               }
             );
+
+            if (
+              String(nextStatus || "").trim().toLowerCase() === "approved" &&
+              isLeaveActiveOnDate(leaveData?.start_date, leaveData?.end_date)
+            ) {
+              await sendStaffOnLeaveTodayDigest();
+            }
           } catch (tgStatusErr) {
             console.error(
               "Failed to send Telegram leave status update:",

@@ -12,14 +12,14 @@ function formatTelegramDate(value) {
   if (!value) return "-";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-  return format(d, "dd MMM yyyy");
+  return format(d, "dd MMMM yyyy");
 }
 
-function formatDaysLabel(value) {
+function formatDaysTitleCase(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return "-";
   const formatted = Number.isInteger(num) ? String(num) : String(Number(num.toFixed(2)));
-  return `${formatted} ${num === 1 ? "day" : "days"}`;
+  return `${formatted} ${num === 1 ? "Day" : "Days"}`;
 }
 
 function isAnnualOrEmergencyLeave(leaveType) {
@@ -146,14 +146,15 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
   const leaveType = escapeTelegramHtml(leaveData?.leave_type || "Leave");
   const startDate = formatTelegramDate(leaveData?.start_date);
   const endDate = formatTelegramDate(leaveData?.end_date);
-  const totalDay = formatDaysLabel(leaveData?.days);
+  const leavePeriod = `${startDate} – ${endDate}`;
+  const totalLeave = formatDaysTitleCase(leaveData?.days);
   const statusLabel = escapeTelegramHtml(
     formatTelegramLeaveStatus(leaveData?.status, {
       isAutoApproved: Boolean(meta.isAutoApproved),
     })
   );
 
-  const header = meta.header || "🔔 <b>New Leave Request</b>";
+  const header = meta.header || "🔔 <b>New Leave Request Notification</b>";
 
   const lines = [
     header,
@@ -174,7 +175,7 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
       .map((v) => String(v || "").trim())
       .filter(Boolean);
     if (locationParts.length > 0) {
-      lines.push("", "<b>Branch / Dept:</b>", escapeTelegramHtml(locationParts.join(" • ")));
+      lines.push("", "<b>Branch / Department:</b>", escapeTelegramHtml(locationParts.join(" • ")));
     }
   }
 
@@ -188,23 +189,20 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
   ) {
     lines.push(
       "",
-      "<b>Balance Day (Baki Layak):</b>",
-      escapeTelegramHtml(formatDaysLabel(leaveData.balance_days))
+      "<b>Leave Balance:</b>",
+      `${escapeTelegramHtml(formatDaysTitleCase(leaveData.balance_days))} Remaining`
     );
   }
 
   lines.push(
     "",
-    "<b>Start Date:</b>",
-    escapeTelegramHtml(startDate),
+    "<b>Leave Period:</b>",
+    escapeTelegramHtml(leavePeriod),
     "",
-    "<b>End Date:</b>",
-    escapeTelegramHtml(endDate),
+    "<b>Total Leave:</b>",
+    escapeTelegramHtml(totalLeave),
     "",
-    "<b>Total Day:</b>",
-    escapeTelegramHtml(totalDay),
-    "",
-    "<b>Status:</b>",
+    "<b>Approval Status:</b>",
     statusLabel
   );
 
@@ -238,7 +236,7 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
 function buildNewLeaveRequestMessage(leaveData) {
   const isAutoApproved = String(leaveData?.status || "").trim().toLowerCase() === "approved";
   return buildLeaveRequestMessage(leaveData, {
-    header: "🔔 <b>New Leave Request</b>",
+    header: "🔔 <b>New Leave Request Notification</b>",
     isAutoApproved,
   });
 }
@@ -251,7 +249,7 @@ async function sendNewLeaveRequestTelegramNotification(leaveData) {
 
 /**
  * Sync HR Telegram group when a leave request is approved, rejected, or forwarded to the next stage:
- * 1. Edits the original Telegram message in place (if telegramMessageId exists) so Status stays live.
+ * 1. Edits the original Telegram message in place (if telegramMessageId exists) so Approval Status stays live.
  * 2. Sends a reply alert on final Approved / Rejected so HR receives an instant notification.
  */
 async function sendLeaveStatusUpdateTelegramNotification(
@@ -266,11 +264,11 @@ async function sendLeaveStatusUpdateTelegramNotification(
   };
   const statusLower = String(updatedData.status || "").trim().toLowerCase();
 
-  let header = "🔔 <b>New Leave Request</b>";
+  let header = "🔔 <b>New Leave Request Notification</b>";
   if (statusLower === "approved") {
-    header = "✅ <b>Leave Approved</b>";
+    header = "✅ <b>Leave Request Approved</b>";
   } else if (statusLower === "rejected") {
-    header = "❌ <b>Leave Rejected</b>";
+    header = "❌ <b>Leave Request Rejected</b>";
   }
 
   const formattedMessage = buildLeaveRequestMessage(updatedData, {
@@ -280,7 +278,7 @@ async function sendLeaveStatusUpdateTelegramNotification(
     remarks,
   });
 
-  // 1. Update original message in place so its Status is never stale
+  // 1. Update original message in place so its Approval Status is never stale
   if (telegramMessageId) {
     try {
       await editTelegramMessage(telegramMessageId, formattedMessage);
@@ -302,6 +300,42 @@ async function sendLeaveStatusUpdateTelegramNotification(
   return { updated: Boolean(telegramMessageId) };
 }
 
+/**
+ * Build the "Staff On Leave Today" digest message.
+ * @param {Array<{ full_name?: string, company_name?: string, branch?: string }>} staffList
+ * @param {string|Date} [dateValue]
+ */
+function buildStaffOnLeaveTodayMessage(staffList = [], dateValue = new Date()) {
+  if (!Array.isArray(staffList) || staffList.length === 0) return "";
+
+  const dateHeader = formatTelegramDate(dateValue);
+  const lines = [
+    "🏖️ <b>Staff On Leave Today</b>",
+    `<i>${escapeTelegramHtml(dateHeader)}</i>`,
+    "",
+  ];
+
+  for (const item of staffList) {
+    const name = escapeTelegramHtml(
+      String(item?.full_name || item?.employee_name || item?.user_id || "Unknown Staff").trim()
+    );
+    const company = String(item?.company_name || item?.branch || "").trim();
+    if (company) {
+      lines.push(`• ${name} • ${escapeTelegramHtml(company)}`);
+    } else {
+      lines.push(`• ${name}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+async function sendStaffOnLeaveTodayTelegramNotification(staffList = [], dateValue = new Date()) {
+  const message = buildStaffOnLeaveTodayMessage(staffList, dateValue);
+  if (!message) return { skipped: true };
+  return sendTelegramMessage(message);
+}
+
 module.exports = {
   isAnnualOrEmergencyLeave,
   sendTelegramMessage,
@@ -310,4 +344,6 @@ module.exports = {
   buildNewLeaveRequestMessage,
   sendNewLeaveRequestTelegramNotification,
   sendLeaveStatusUpdateTelegramNotification,
+  buildStaffOnLeaveTodayMessage,
+  sendStaffOnLeaveTodayTelegramNotification,
 };
