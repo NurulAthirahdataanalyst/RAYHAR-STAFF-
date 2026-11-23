@@ -35,17 +35,27 @@ function isAnnualOrEmergencyLeave(leaveType) {
 
 function formatTelegramLeaveStatus(status, { isAutoApproved = false } = {}) {
   const raw = String(status || "").trim();
-  if (!raw) return "Pending Approval";
-  if (raw.toLowerCase() === "approved") {
+  const lower = raw.toLowerCase();
+  if (!raw || lower.startsWith("pending")) return "Pending";
+  if (lower === "approved") {
     return isAutoApproved ? "Approved (Auto-Approved)" : "Approved";
   }
-  if (raw.toLowerCase() === "rejected") {
+  if (lower === "rejected") {
     return "Rejected";
   }
-  if (/^pending\b/i.test(raw) && !/approval$/i.test(raw)) {
-    return `${raw} Approval`;
+  if (lower === "cancelled" || lower === "canceled") {
+    return "Cancelled";
   }
   return raw;
+}
+
+function getTelegramLeaveHeader(status, { isUpdated = false } = {}) {
+  if (isUpdated) return "🔄 <b>Leave Request Updated</b>";
+  const lower = String(status || "").trim().toLowerCase();
+  if (lower === "approved") return "✅ <b>Leave Request Approved</b>";
+  if (lower === "rejected") return "❌ <b>Leave Request Rejected</b>";
+  if (lower === "cancelled" || lower === "canceled") return "⚪ <b>Leave Request Cancelled</b>";
+  return "🟡 <b>Leave Request Submitted</b>";
 }
 
 let migratedChatIdOverride = null;
@@ -188,7 +198,9 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
     })
   );
 
-  const header = meta.header || "🔔 <b>New Leave Request Notification</b>";
+  const header =
+    meta.header ||
+    getTelegramLeaveHeader(leaveData?.status, { isUpdated: Boolean(meta.isUpdated) });
 
   const lines = [
     header,
@@ -250,17 +262,11 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
 
   const statusLower = String(leaveData?.status || "").trim().toLowerCase();
   if (actorDisplay) {
-    if (statusLower === "approved") {
-      lines.push("", "<b>Approved By:</b>", escapeTelegramHtml(actorDisplay));
-    } else if (statusLower === "rejected") {
-      lines.push("", "<b>Rejected By:</b>", escapeTelegramHtml(actorDisplay));
-    } else if (statusLower.startsWith("pending")) {
-      lines.push("", "<b>Last Endorsed By:</b>", escapeTelegramHtml(actorDisplay));
-    }
+    lines.push("", "<b>Processed By:</b>", escapeTelegramHtml(actorDisplay));
   }
 
   const remarks = String(meta.remarks || "").trim();
-  if (remarks && statusLower === "rejected") {
+  if (remarks && (statusLower === "rejected" || statusLower === "cancelled" || statusLower === "canceled")) {
     lines.push("", "<b>Reason:</b>", escapeTelegramHtml(remarks));
   }
 
@@ -270,7 +276,7 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
 function buildNewLeaveRequestMessage(leaveData) {
   const isAutoApproved = String(leaveData?.status || "").trim().toLowerCase() === "approved";
   return buildLeaveRequestMessage(leaveData, {
-    header: "🔔 <b>New Leave Request Notification</b>",
+    header: getTelegramLeaveHeader(leaveData?.status),
     isAutoApproved,
   });
 }
@@ -282,13 +288,16 @@ async function sendNewLeaveRequestTelegramNotification(leaveData) {
 }
 
 /**
- * Sync HR Telegram group when a leave request is approved, rejected, or forwarded to the next stage:
- * 1. Edits the original Telegram message in place (if telegramMessageId exists) so Approval Status stays live.
- * 2. Sends a reply alert on final Approved / Rejected so HR receives an instant notification.
+ * Notify HR Telegram group when a leave request changes status:
+ * - On final Approved / Rejected / Cancelled (or Updated): keeps the original
+ *   "Leave Request Submitted" message untouched and sends a reply so HR gets
+ *   an instant alert without duplicating the card.
+ * - On intermediate multi-stage endorsement (still Pending next approver): updates the
+ *   original Pending message in place without sending an extra reply.
  */
 async function sendLeaveStatusUpdateTelegramNotification(
   leaveData,
-  { nextStatus, approverName = "", approverRole = "", remarks = "", telegramMessageId = null } = {}
+  { nextStatus, approverName = "", approverRole = "", remarks = "", telegramMessageId = null, isUpdated = false } = {}
 ) {
   if (!leaveData) return { skipped: true };
 
@@ -298,40 +307,47 @@ async function sendLeaveStatusUpdateTelegramNotification(
   };
   const statusLower = String(updatedData.status || "").trim().toLowerCase();
 
-  let header = "🔔 <b>New Leave Request Notification</b>";
-  if (statusLower === "approved") {
-    header = "✅ <b>Leave Request Approved</b>";
-  } else if (statusLower === "rejected") {
-    header = "❌ <b>Leave Request Rejected</b>";
+  // Final status or explicit update: keep original Submitted message as-is and reply to it
+  if (
+    isUpdated ||
+    statusLower === "approved" ||
+    statusLower === "rejected" ||
+    statusLower === "cancelled" ||
+    statusLower === "canceled"
+  ) {
+    const replyMessage = buildLeaveRequestMessage(updatedData, {
+      header: getTelegramLeaveHeader(updatedData.status, { isUpdated }),
+      approverName,
+      approverRole,
+      remarks,
+      isUpdated,
+    });
+
+    return sendTelegramMessage(replyMessage, {
+      replyToMessageId: telegramMessageId,
+    });
   }
 
-  const formattedMessage = buildLeaveRequestMessage(updatedData, {
-    header,
-    approverName,
-    approverRole,
-    remarks,
-  });
-
-  // 1. Update original message in place so its Approval Status is never stale
+  // Intermediate stage (still Pending next approver): update original Pending message in place
   if (telegramMessageId) {
+    const pendingMessage = buildLeaveRequestMessage(updatedData, {
+      header: getTelegramLeaveHeader(updatedData.status),
+      approverName,
+      approverRole,
+      remarks,
+    });
     try {
-      await editTelegramMessage(telegramMessageId, formattedMessage);
+      await editTelegramMessage(telegramMessageId, pendingMessage);
     } catch (editErr) {
       console.warn(
         "[Telegram] Could not edit original leave message:",
         editErr?.response?.data || editErr.message
       );
     }
+    return { updated: true };
   }
 
-  // 2. Send a live notification reply on final approval or rejection
-  if (statusLower === "approved" || statusLower === "rejected") {
-    return sendTelegramMessage(formattedMessage, {
-      replyToMessageId: telegramMessageId,
-    });
-  }
-
-  return { updated: Boolean(telegramMessageId) };
+  return { updated: false };
 }
 
 /**
@@ -372,6 +388,8 @@ async function sendStaffOnLeaveTodayTelegramNotification(staffList = [], dateVal
 
 module.exports = {
   isAnnualOrEmergencyLeave,
+  formatTelegramLeaveStatus,
+  getTelegramLeaveHeader,
   sendTelegramMessage,
   editTelegramMessage,
   buildLeaveRequestMessage,

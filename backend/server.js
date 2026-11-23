@@ -447,6 +447,87 @@ async function resolveApproverCategoryFromDb(approverId, fallbackRole) {
   return classifyRoleCategory(fallbackRole, null, null, null);
 }
 
+function formatRealRoleDisplayLabel(rawRole, fallbackRole = "") {
+  const cleaned = String(rawRole || "").trim();
+  if (!cleaned) {
+    return fallbackRole ? formatLeaveStageRoleLabel(fallbackRole) : "";
+  }
+  const lower = cleaned.toLowerCase();
+  const isLegacyCode =
+    cleaned.includes("_") ||
+    ["hr", "md", "hod", "admin", "superadmin", "staff", "user", "employee"].includes(lower);
+  if (isLegacyCode) {
+    return formatLeaveStageRoleLabel(cleaned);
+  }
+  return cleaned;
+}
+
+async function resolveApproverDisplayInfo(approverId, fallbackRole = "", preferredCompanyId = null) {
+  let approverName = "";
+  let approverRole = "";
+
+  try {
+    if (approverId) {
+      const parsedCompId =
+        preferredCompanyId !== null &&
+        preferredCompanyId !== undefined &&
+        !isNaN(parseInt(preferredCompanyId, 10))
+          ? parseInt(preferredCompanyId, 10)
+          : null;
+      const result = await pgPool.query(
+        `SELECT p.full_name,
+                COALESCE(
+                  r_cur.name,
+                  r_p.name,
+                  r_ur.name,
+                  NULLIF(TRIM(ur.role), ''),
+                  NULLIF(TRIM(p.role), '')
+                ) AS real_role_name
+         FROM profiles p
+         LEFT JOIN LATERAL (
+           SELECT cur1.role_id
+           FROM company_user_roles cur1
+           WHERE cur1.user_id = p.user_id AND cur1.status = 'active'
+           ORDER BY
+             CASE WHEN $1::int IS NOT NULL AND cur1.company_id = $1::int THEN 0 ELSE 1 END,
+             cur1.company_id DESC,
+             cur1.is_default DESC
+           LIMIT 1
+         ) cur ON TRUE
+         LEFT JOIN roles r_cur ON r_cur.id = cur.role_id
+         LEFT JOIN roles r_p ON r_p.id = p.role_id
+         LEFT JOIN LATERAL (
+           SELECT ur1.role, ur1.role_id
+           FROM user_role ur1
+           WHERE ur1.user_id = p.user_id
+           ORDER BY ur1.id DESC
+           LIMIT 1
+         ) ur ON TRUE
+         LEFT JOIN roles r_ur ON r_ur.id = ur.role_id
+         WHERE p.user_id = $2
+         LIMIT 1`,
+        [parsedCompId, approverId]
+      );
+      const rows = result?.rows || [];
+      if (rows.length > 0) {
+        approverName = String(rows[0].full_name || "").trim() || approverId;
+        approverRole = formatRealRoleDisplayLabel(rows[0].real_role_name, fallbackRole);
+      } else {
+        approverName = approverId;
+      }
+    }
+  } catch (err) {
+    console.warn("resolveApproverDisplayInfo warning:", err.message);
+    if (approverId && !approverName) approverName = approverId;
+  }
+
+  if (!approverRole) {
+    approverRole = formatLeaveStageRoleLabel(fallbackRole);
+  }
+
+  return { approverName, approverRole };
+}
+
 global.loadLeaveWorkflowContext = loadLeaveWorkflowContext;
 global.buildCompanyWorkflowResolution = buildCompanyWorkflowResolution;
 global.findStepIndexForStatus = findStepIndexForStatus;
@@ -6730,7 +6811,8 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
     // Log System Activity to leave_discussions (keeps approval remarks strictly separate)
     try {
-      const actorLabel = formatLeaveStageRoleLabel(role);
+      const { approverRole: resolvedActorLabel } = await resolveApproverDisplayInfo(approver_id, role);
+      const actorLabel = resolvedActorLabel || formatLeaveStageRoleLabel(role);
       if (nextStatus === 'Rejected') {
         await logLeaveDiscussionSystemActivity(leaveId, `${actorLabel} rejected the leave.`);
         await logLeaveDiscussionSystemActivity(leaveId, `Leave request closed.`);
@@ -6770,9 +6852,10 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
         // --- UPDATE & NOTIFY HR TELEGRAM GROUP ON STATUS CHANGE ---
         (async () => {
           try {
+            let companyId = null;
             let companyName = "";
             const [compRows] = await pool.query(
-              `SELECT c.company_name
+              `SELECT c.id AS company_id, c.company_name
                FROM profiles p
                LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
                LEFT JOIN companies c ON c.id = (
@@ -6788,16 +6871,14 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
                LIMIT 1`,
               [leaveData.user_id]
             );
+            companyId = compRows?.[0]?.company_id || null;
             companyName = compRows?.[0]?.company_name || "";
 
-            let approverName = "";
-            if (approver_id) {
-              const [appRows] = await pool.query(
-                `SELECT full_name FROM profiles WHERE user_id = ? LIMIT 1`,
-                [approver_id]
-              );
-              approverName = appRows?.[0]?.full_name || approver_id;
-            }
+            const { approverName, approverRole } = await resolveApproverDisplayInfo(
+              approver_id,
+              role,
+              companyId
+            );
 
             let balanceDays = null;
             if (isAnnualOrEmergencyLeave(leaveData.leave_type)) {
@@ -6814,7 +6895,7 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
               {
                 nextStatus,
                 approverName,
-                approverRole: formatLeaveStageRoleLabel(role),
+                approverRole,
                 remarks: remarks || approver_note || "",
                 telegramMessageId: leaveData.telegram_message_id || null,
               }
