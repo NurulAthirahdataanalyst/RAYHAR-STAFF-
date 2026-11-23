@@ -30,8 +30,8 @@ function formatTelegramLeaveStatus(status) {
  * @param {string} message
  */
 async function sendTelegramMessage(message) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const token = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatId = String(process.env.TELEGRAM_CHAT_ID || "").trim();
 
   if (!token || !chatId) {
     console.warn(
@@ -53,6 +53,7 @@ async function sendTelegramMessage(message) {
     { timeout: 10000 }
   );
 
+  console.log(`[Telegram] Notification sent to chat ${chatId} (message_id: ${response.data?.result?.message_id ?? "ok"})`);
   return response.data;
 }
 
@@ -84,6 +85,10 @@ function buildNewLeaveRequestMessage(leaveData) {
     "<b>Employee:</b>",
     employeeName,
   ];
+
+  if (leaveData?.company_name && String(leaveData.company_name).trim()) {
+    lines.push("", "<b>Company:</b>", escapeTelegramHtml(String(leaveData.company_name).trim()));
+  }
 
   if (leaveData?.branch || leaveData?.department) {
     const locationParts = [leaveData.branch, leaveData.department]

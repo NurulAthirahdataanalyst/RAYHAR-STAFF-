@@ -2494,7 +2494,7 @@ const pool = {
         // Handle RETURNING for INSERT
         let isInsert = /^\s*INSERT\s+/i.test(sql);
         if (isInsert && !/RETURNING/i.test(sql)) {
-          sql = sql + " RETURNING *";
+          sql = sql.replace(/;\s*$/, "") + " RETURNING *";
         }
         try {
           const res = await client.query(sql, params);
@@ -2524,7 +2524,7 @@ const pool = {
     // Handle returning insert id automatically if it's an INSERT query without RETURNING
     let isInsert = /^\s*INSERT\s+/i.test(sql);
     if (isInsert && !/RETURNING/i.test(sql)) {
-      sql = sql + " RETURNING *";
+      sql = sql.replace(/;\s*$/, "") + " RETURNING *";
     }
     try {
       const res = await pgPool.query(sql, params);
@@ -2837,7 +2837,7 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
           WHERE ld.leave_request_id = lr.leave_id
             AND ld.message_type = 'system'
             AND ld.message = 'Leave request submitted.'
-        );
+        )
       `);
       console.log('✅ Auto-migration for leave_discussions & leave_discussion_reads completed.');
     } catch (discMigErr) {
@@ -6070,9 +6070,24 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
     broadcastPresenceUpdate({ type: 'leave-status', leaveId: result.insertId, status: initialStatus, userId: user_id });
 
     // --- SEND TELEGRAM NOTIFICATION TO HR GROUP (NOTIFICATION ONLY) ---
-    sendNewLeaveRequestTelegramNotification(leaveData).catch((tgErr) => {
-      console.error("Failed to send Telegram leave notification:", tgErr?.response?.data || tgErr.message);
-    });
+    (async () => {
+      try {
+        let companyName = "";
+        if (applicantCompanyId) {
+          const [compRows] = await pool.query(
+            `SELECT company_name FROM companies WHERE id = ? LIMIT 1`,
+            [applicantCompanyId]
+          );
+          companyName = compRows?.[0]?.company_name || "";
+        }
+        await sendNewLeaveRequestTelegramNotification({
+          ...leaveData,
+          company_name: companyName,
+        });
+      } catch (tgErr) {
+        console.error("Failed to send Telegram leave notification:", tgErr?.response?.data || tgErr.message);
+      }
+    })();
     
     // Generate and save the leave form PDF locally and on Supabase Storage
     generateAndSaveLeaveFormPDF(result.insertId);
