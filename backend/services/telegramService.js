@@ -48,14 +48,17 @@ function formatTelegramLeaveStatus(status, { isAutoApproved = false } = {}) {
   return raw;
 }
 
+let migratedChatIdOverride = null;
+
 function getTelegramConfig() {
   const token = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
-  const chatId = String(process.env.TELEGRAM_CHAT_ID || "").trim();
+  const chatId = migratedChatIdOverride || String(process.env.TELEGRAM_CHAT_ID || "").trim();
   return { token, chatId };
 }
 
 /**
  * Send a raw HTML-formatted message to the configured HR Telegram group.
+ * Automatically retries with `migrate_to_chat_id` if Telegram upgraded the group to a supergroup.
  * @param {string} message
  * @param {{ replyToMessageId?: number|string|null }} [options]
  */
@@ -70,26 +73,45 @@ async function sendTelegramMessage(message, options = {}) {
   }
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  const payload = {
-    chat_id: chatId,
-    text: message,
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
+  const buildPayload = (targetChatId) => {
+    const payload = {
+      chat_id: targetChatId,
+      text: message,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    };
+    const replyId = Number(options?.replyToMessageId);
+    if (Number.isFinite(replyId) && replyId > 0) {
+      payload.reply_parameters = {
+        message_id: replyId,
+        allow_sending_without_reply: true,
+      };
+    }
+    return payload;
   };
 
-  const replyId = Number(options?.replyToMessageId);
-  if (Number.isFinite(replyId) && replyId > 0) {
-    payload.reply_parameters = {
-      message_id: replyId,
-      allow_sending_without_reply: true,
-    };
+  let response;
+  let activeChatId = chatId;
+  try {
+    response = await axios.post(url, buildPayload(activeChatId), { timeout: 10000 });
+  } catch (err) {
+    const migratedId = err?.response?.data?.parameters?.migrate_to_chat_id;
+    if (migratedId && String(migratedId) !== String(activeChatId)) {
+      console.warn(
+        `[Telegram] Group ${activeChatId} migrated to supergroup ${migratedId}; retrying automatically.`
+      );
+      migratedChatIdOverride = String(migratedId);
+      activeChatId = migratedChatIdOverride;
+      response = await axios.post(url, buildPayload(activeChatId), { timeout: 10000 });
+    } else {
+      throw err;
+    }
   }
 
-  const response = await axios.post(url, payload, { timeout: 10000 });
   const messageId = response.data?.result?.message_id ?? null;
 
   console.log(
-    `[Telegram] Notification sent to chat ${chatId} (message_id: ${messageId ?? "ok"})`
+    `[Telegram] Notification sent to chat ${activeChatId} (message_id: ${messageId ?? "ok"})`
   );
   return { ...response.data, messageId };
 }
@@ -108,11 +130,11 @@ async function editTelegramMessage(messageId, message) {
   }
 
   const url = `https://api.telegram.org/bot${token}/editMessageText`;
-  try {
-    const response = await axios.post(
+  const postEdit = (targetChatId) =>
+    axios.post(
       url,
       {
-        chat_id: chatId,
+        chat_id: targetChatId,
         message_id: numericMessageId,
         text: message,
         parse_mode: "HTML",
@@ -120,9 +142,21 @@ async function editTelegramMessage(messageId, message) {
       },
       { timeout: 10000 }
     );
+
+  try {
+    const response = await postEdit(chatId);
     console.log(`[Telegram] Updated message ${numericMessageId} in chat ${chatId}`);
     return response.data;
   } catch (err) {
+    const migratedId = err?.response?.data?.parameters?.migrate_to_chat_id;
+    if (migratedId && String(migratedId) !== String(chatId)) {
+      migratedChatIdOverride = String(migratedId);
+      const response = await postEdit(migratedChatIdOverride);
+      console.log(
+        `[Telegram] Updated message ${numericMessageId} in migrated chat ${migratedChatIdOverride}`
+      );
+      return response.data;
+    }
     const desc = String(err?.response?.data?.description || "");
     if (desc.toLowerCase().includes("message is not modified")) {
       return { ok: true, unmodified: true };
