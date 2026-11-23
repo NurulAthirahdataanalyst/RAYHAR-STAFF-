@@ -32,7 +32,11 @@ const {
   findStepIndexForStatus,
 } = require("./utils/leaveWorkflowResolver");
 const attendanceVerificationService = require("./services/attendanceVerificationService");
-const { sendNewLeaveRequestTelegramNotification } = require("./services/telegramService");
+const {
+  isAnnualOrEmergencyLeave,
+  sendNewLeaveRequestTelegramNotification,
+  sendLeaveStatusUpdateTelegramNotification,
+} = require("./services/telegramService");
 
 const isString = (value) =>
   typeof value === "string";
@@ -4942,6 +4946,53 @@ app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
   }
 });
 
+async function getAnnualLeaveBalanceForUser(userId) {
+  if (!userId) return null;
+  try {
+    const [profile] = await pool.query(
+      `SELECT ${getEffectiveAnnualEntitlementSql("p")} AS annual_leave_entitlement FROM profiles p WHERE p.user_id = ? LIMIT 1`,
+      [userId]
+    );
+    if (!profile.length) return null;
+
+    const baseAnnual = parseFloat(profile[0].annual_leave_entitlement ?? 14);
+
+    const [adjustments] = await pool.query(
+      `SELECT leave_type, SUM(adjustment_days) AS total_adj
+       FROM leave_balance_adjustments
+       WHERE employee_id = ?
+       GROUP BY leave_type`,
+      [userId]
+    );
+    let annualAdj = 0;
+    for (const row of adjustments) {
+      if (['Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan'].includes(row.leave_type)) {
+        annualAdj += parseFloat(row.total_adj || 0);
+      }
+    }
+
+    const [usedLeaves] = await pool.query(
+      `SELECT leave_type, SUM(days) AS total_used
+       FROM leave_requests
+       WHERE user_id = ? AND status = 'Approved'
+         AND EXTRACT(YEAR FROM start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+       GROUP BY leave_type`,
+      [userId]
+    );
+    let annualUsed = 0;
+    for (const row of usedLeaves) {
+      if (['Annual Leave', 'Annual & Emergency Leave', 'Annual/Emergency Leave', 'Cuti Tahunan'].includes(row.leave_type)) {
+        annualUsed += parseFloat(row.total_used || 0);
+      }
+    }
+
+    return Math.max(baseAnnual + annualAdj - annualUsed, 0);
+  } catch (err) {
+    console.warn("getAnnualLeaveBalanceForUser warning:", err.message);
+    return null;
+  }
+}
+
 app.get(["/api/profiles/:userId/leave-balance", "/api/leave-balance/:userId"], async (req, res) => {
   const userId = safeString(req.params.userId);
   try {
@@ -5990,6 +6041,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
       await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
       await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS created_by VARCHAR(100)`);
       await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS employee_id VARCHAR(100)`);
+      await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS telegram_message_id BIGINT`);
     } catch(migErr) {}
 
     const [result] = await pool.query(
@@ -6068,10 +6120,21 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
           );
           companyName = compRows?.[0]?.company_name || "";
         }
-        await sendNewLeaveRequestTelegramNotification({
+        let balanceDays = null;
+        if (isAnnualOrEmergencyLeave(leaveData?.leave_type)) {
+          balanceDays = await getAnnualLeaveBalanceForUser(leaveData.user_id);
+        }
+        const tgRes = await sendNewLeaveRequestTelegramNotification({
           ...leaveData,
           company_name: companyName,
+          balance_days: balanceDays,
         });
+        if (tgRes?.messageId) {
+          await pool.query(
+            `UPDATE leave_requests SET telegram_message_id = ? WHERE leave_id = ?`,
+            [tgRes.messageId, result.insertId]
+          ).catch(() => {});
+        }
       } catch (tgErr) {
         console.error("Failed to send Telegram leave notification:", tgErr?.response?.data || tgErr.message);
       }
@@ -6615,6 +6678,67 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
 
       if (fullLeaveRows.length > 0) {
         const leaveData = fullLeaveRows[0];
+
+        // --- UPDATE & NOTIFY HR TELEGRAM GROUP ON STATUS CHANGE ---
+        (async () => {
+          try {
+            let companyName = "";
+            const [compRows] = await pool.query(
+              `SELECT c.company_name
+               FROM profiles p
+               LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+               LEFT JOIN companies c ON c.id = (
+                 CASE WHEN UPPER(COALESCE(p.branch, '')) LIKE 'RV%' THEN 3
+                      ELSE COALESCE(
+                        (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                        b.company_id,
+                        CASE WHEN UPPER(COALESCE(p.branch, '')) = 'RAYRENT' THEN 2 ELSE 1 END
+                      )
+                 END
+               )
+               WHERE p.user_id = ?
+               LIMIT 1`,
+              [leaveData.user_id]
+            );
+            companyName = compRows?.[0]?.company_name || "";
+
+            let approverName = "";
+            if (approver_id) {
+              const [appRows] = await pool.query(
+                `SELECT full_name FROM profiles WHERE user_id = ? LIMIT 1`,
+                [approver_id]
+              );
+              approverName = appRows?.[0]?.full_name || approver_id;
+            }
+
+            let balanceDays = null;
+            if (isAnnualOrEmergencyLeave(leaveData.leave_type)) {
+              balanceDays = await getAnnualLeaveBalanceForUser(leaveData.user_id);
+            }
+
+            await sendLeaveStatusUpdateTelegramNotification(
+              {
+                ...leaveData,
+                full_name: leaveData.employee_name,
+                company_name: companyName,
+                balance_days: balanceDays,
+              },
+              {
+                nextStatus,
+                approverName,
+                approverRole: formatLeaveStageRoleLabel(role),
+                remarks: remarks || approver_note || "",
+                telegramMessageId: leaveData.telegram_message_id || null,
+              }
+            );
+          } catch (tgStatusErr) {
+            console.error(
+              "Failed to send Telegram leave status update:",
+              tgStatusErr?.response?.data || tgStatusErr.message
+            );
+          }
+        })();
+
         let targetEmail = null;
         let targetUserId = null;
         let subject = "";
