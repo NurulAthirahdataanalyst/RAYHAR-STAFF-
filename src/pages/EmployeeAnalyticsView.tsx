@@ -306,7 +306,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     
   // Add temporary deductions for Replacement Leaves
   const pendingReplacementDeduction = replacementLeaves
-    .filter(r => ['Pending', 'Approved', 'Waiting for Replacement Date', 'Failed'].includes(r.validation_status))
+    .filter(r => ['Pending', 'Approved', 'Awaiting Replacement Date', 'Waiting for Replacement Date', 'Failed'].includes(r.validation_status))
     .length; // Assuming each replacement day corresponds to 1 day of leave (since required_hours is usually for a day, but ideally it should check the main leave_request's days or we just count rows if 1 row = 1 day. Wait, days is in leaveRequests).
 
   quotaLeavesUsed += pendingReplacementDeduction;
@@ -1885,13 +1885,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                         <td className="py-3 border-b border-border/30 text-xs text-muted-foreground">{rl.description || "-"}</td>
                         <td className="py-3 border-b border-border/30">
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md 
-                            ${rl.validation_status === 'Validated' ? 'bg-emerald-500/10 text-emerald-600' :
+                            ${rl.validation_status === 'Passed' || rl.validation_status === 'Validated' ? 'bg-emerald-500/10 text-emerald-600' :
                               rl.validation_status === 'Failed' ? 'bg-rose-500/10 text-rose-600' :
                               rl.validation_status === 'Cancelled' ? 'bg-slate-500/10 text-slate-600' :
                               rl.validation_status === 'Approved' ? 'bg-blue-500/10 text-blue-600' :
-                              rl.validation_status === 'Waiting for Replacement Date' ? 'bg-purple-500/10 text-purple-600' :
+                              rl.validation_status === 'Awaiting Replacement Date' || rl.validation_status === 'Waiting for Replacement Date' ? 'bg-purple-500/10 text-purple-600' :
                               'bg-amber-500/10 text-amber-600'}`}>
-                            {rl.validation_status}
+                            {rl.validation_status === 'Validated' ? 'Passed' : rl.validation_status}
                           </span>
                         </td>
                       </tr>

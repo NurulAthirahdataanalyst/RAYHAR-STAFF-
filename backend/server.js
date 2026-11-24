@@ -34,9 +34,14 @@ const {
 const attendanceVerificationService = require("./services/attendanceVerificationService");
 const {
   isAnnualOrEmergencyLeave,
+  isReplacementLeave,
+  formatWorkingHoursDuration,
   sendNewLeaveRequestTelegramNotification,
+  sendLeaveMcAttachmentTelegramNotification,
   sendLeaveStatusUpdateTelegramNotification,
+  sendReplacementLeaveValidationTelegramNotification,
   sendStaffOnLeaveTodayTelegramNotification,
+  unpinTelegramMessage,
 } = require("./services/telegramService");
 
 const isString = (value) =>
@@ -2782,12 +2787,39 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
         required_hours DECIMAL(4,2) DEFAULT 4.00,
         actual_hours DECIMAL(4,2),
         validation_status VARCHAR(50) DEFAULT 'Pending',
-        validated_at TIMESTAMP,
+        working_hours_formatted VARCHAR(50),
+        clock_in_at TIMESTAMP WITH TIME ZONE,
+        clock_out_at TIMESTAMP WITH TIME ZONE,
+        attendance_status VARCHAR(50),
+        validation_notes TEXT,
+        telegram_notified_status VARCHAR(50),
+        validated_at TIMESTAMP WITH TIME ZONE,
         validated_by VARCHAR(100) DEFAULT 'System',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    await connection.query(`ALTER TABLE replacement_leave_requests ADD COLUMN IF NOT EXISTS working_hours_formatted VARCHAR(50)`).catch(() => {});
+    await connection.query(`ALTER TABLE replacement_leave_requests ADD COLUMN IF NOT EXISTS clock_in_at TIMESTAMP WITH TIME ZONE`).catch(() => {});
+    await connection.query(`ALTER TABLE replacement_leave_requests ADD COLUMN IF NOT EXISTS clock_out_at TIMESTAMP WITH TIME ZONE`).catch(() => {});
+    await connection.query(`ALTER TABLE replacement_leave_requests ADD COLUMN IF NOT EXISTS attendance_status VARCHAR(50)`).catch(() => {});
+    await connection.query(`ALTER TABLE replacement_leave_requests ADD COLUMN IF NOT EXISTS validation_notes TEXT`).catch(() => {});
+    await connection.query(`ALTER TABLE replacement_leave_requests ADD COLUMN IF NOT EXISTS telegram_notified_status VARCHAR(50)`).catch(() => {});
+    await connection.query(`ALTER TABLE replacement_leave_requests ALTER COLUMN validated_at TYPE TIMESTAMP WITH TIME ZONE USING validated_at AT TIME ZONE 'Asia/Kuala_Lumpur'`).catch(() => {});
+    await connection.query(`ALTER TABLE replacement_leave_requests ALTER COLUMN required_hours SET DEFAULT 4.00`).catch(() => {});
+    // Standardize legacy replacement validation statuses safely
+    await connection.query(`UPDATE replacement_leave_requests SET validation_status = 'Passed' WHERE validation_status = 'Validated'`).catch(() => {});
+    await connection.query(`UPDATE replacement_leave_requests SET validation_status = 'Awaiting Replacement Date' WHERE validation_status = 'Waiting for Replacement Date'`).catch(() => {});
     console.log('✅ Auto-migration for replacement_leave_requests completed.');
+
+    // Auto-migrate telegram_daily_digests table (tracks pinned Staff On Leave Today message per day)
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS telegram_daily_digests (
+        digest_key VARCHAR(100) PRIMARY KEY,
+        digest_date DATE NOT NULL,
+        telegram_message_id BIGINT NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `).catch(() => {});
 
     // Auto-migrate activity_logs table
     await connection.query(`
@@ -5199,58 +5231,295 @@ app.get("/api/replacement-leaves", async (req, res) => {
   }
 });
 
-// Run this job daily at midnight or when explicitly requested
+// Run this job daily at 00:05 MYT or when explicitly requested
 app.post("/api/replacement-leaves/validate", async (req, res) => {
   try {
-    await validateReplacementLeaves();
-    res.json({ success: true, message: "Validation triggered successfully" });
+    const summary = await validateReplacementLeaves();
+    res.json({
+      success: true,
+      message: "Validation triggered successfully",
+      processed_count: summary.processed,
+      validated_count: summary.passed,
+      passed_count: summary.passed,
+      failed_count: summary.failed,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: "Validation failed" });
   }
 });
 
-async function validateReplacementLeaves() {
-  console.log("Running replacement leave validation...");
-  const [rows] = await pool.query(
-    `SELECT * FROM replacement_leave_requests WHERE validation_status IN ('Pending', 'Waiting for Replacement Date') AND replacement_date <= CURRENT_DATE`
-  );
-  
-  for (const r of rows) {
-    // Check attendance for this day
-    const [att] = await pool.query(
-      `SELECT clock_in, clock_out, working_hours FROM attendances WHERE user_id = ? AND DATE(clock_in) = ?`,
-      [r.employee_id, r.replacement_date]
+async function resolveCompanyNameForEmployee(userId) {
+  try {
+    const [compRows] = await pool.query(
+      `SELECT c.company_name
+       FROM profiles p
+       LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+       LEFT JOIN companies c ON c.id = (
+         CASE WHEN UPPER(COALESCE(p.branch, '')) LIKE 'RV%' THEN 3
+              ELSE COALESCE(
+                (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                b.company_id,
+                CASE WHEN UPPER(COALESCE(p.branch, '')) = 'RAYRENT' THEN 2 ELSE 1 END
+              )
+         END
+       )
+       WHERE p.user_id = ?
+       LIMIT 1`,
+      [userId]
     );
+    return compRows?.[0]?.company_name || "";
+  } catch (_err) {
+    return "";
+  }
+}
 
-    let actualHours = 0;
-    if (att.length > 0) {
-      if (att[0].working_hours) {
-        actualHours = parseFloat(att[0].working_hours);
-      } else if (att[0].clock_in && att[0].clock_out) {
-        const ci = new Date(att[0].clock_in);
-        const co = new Date(att[0].clock_out);
-        actualHours = (co.getTime() - ci.getTime()) / (1000 * 60 * 60);
+async function fetchReplacementMetaForLeave(leaveId, fallbackLeaveData = null) {
+  try {
+    const [repRows] = await pool.query(
+      `SELECT replacement_date, validation_status
+       FROM replacement_leave_requests
+       WHERE leave_request_id = ?
+       ORDER BY replacement_date ASC`,
+      [leaveId]
+    );
+    if (repRows && repRows.length > 0) {
+      const replacement_dates = repRows
+        .map((r) => toDateStr(r.replacement_date))
+        .filter(Boolean);
+      const statuses = repRows.map((r) => String(r.validation_status || "").trim());
+      const lowerSet = new Set(statuses.map((s) => s.toLowerCase()));
+      let replacement_validation_status = statuses[0] || "Pending";
+      if (lowerSet.has("failed")) {
+        replacement_validation_status = "Failed";
+      } else if (
+        statuses.length > 0 &&
+        statuses.every((s) => ["passed", "validated"].includes(s.toLowerCase()))
+      ) {
+        replacement_validation_status = "Passed";
+      } else if (
+        statuses.length > 0 &&
+        statuses.every((s) => ["cancelled", "canceled"].includes(s.toLowerCase()))
+      ) {
+        replacement_validation_status = "Cancelled";
+      } else if (
+        lowerSet.has("awaiting replacement date") ||
+        lowerSet.has("waiting for replacement date") ||
+        lowerSet.has("pending")
+      ) {
+        replacement_validation_status = "Pending";
       }
+      return { replacement_dates, replacement_validation_status };
     }
+  } catch (err) {
+    console.warn("Could not fetch replacement leave metadata:", err.message);
+  }
+  const fallbackStatus = String(fallbackLeaveData?.status || "").trim().toLowerCase();
+  return {
+    replacement_dates: [],
+    replacement_validation_status:
+      fallbackStatus === "rejected" || fallbackStatus === "cancelled" ? "Cancelled" : "Pending",
+  };
+}
 
-    if (actualHours >= r.required_hours) {
-      // Validate
+/**
+ * Independently evaluates a single replacement_leave_requests row against Malaysia-time attendance.
+ * Never mutates leave_requests.status (Approval Status remains independent of Replacement Validation).
+ */
+async function evaluateAndNotifyReplacementLeave(repRow, { allowFailWithoutClockOut = false } = {}) {
+  if (!repRow || !repRow.id) return { skipped: true };
+
+  let parentLeave = null;
+  if (repRow.leave_request_id) {
+    const [lrRows] = await pool.query(
+      `SELECT lr.leave_id, lr.status, lr.telegram_message_id, p.full_name, p.branch, p.department
+       FROM leave_requests lr
+       JOIN profiles p ON p.user_id = lr.user_id
+       WHERE lr.leave_id = ?
+       LIMIT 1`,
+      [repRow.leave_request_id]
+    );
+    parentLeave = lrRows?.[0] || null;
+    const parentStatusLower = String(parentLeave?.status || "").trim().toLowerCase();
+    if (parentStatusLower === "rejected" || parentStatusLower === "cancelled" || parentStatusLower === "canceled") {
       await pool.query(
-        `UPDATE replacement_leave_requests SET validation_status = 'Validated', actual_hours = ? WHERE id = ?`,
-        [actualHours, r.id]
+        `UPDATE replacement_leave_requests SET validation_status = 'Cancelled' WHERE id = ?`,
+        [repRow.id]
       );
-      
-      const repDateStr = r.replacement_date instanceof Date ? r.replacement_date.toISOString().split('T')[0] : String(r.replacement_date).split('T')[0];
+      return { skipped: true, reason: "parent_leave_not_active" };
+    }
+  }
+
+  let empProfile = parentLeave;
+  if (!empProfile) {
+    const [pRows] = await pool.query(
+      `SELECT full_name, branch, department FROM profiles WHERE user_id = ? LIMIT 1`,
+      [repRow.employee_id]
+    );
+    empProfile = pRows?.[0] || {};
+  }
+
+  const repDateStr = toDateStr(repRow.replacement_date);
+  if (!repDateStr) return { skipped: true };
+
+  const [attRows] = await pool.query(
+    `SELECT clock_in, clock_out
+     FROM attendances
+     WHERE user_id = ?
+       AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = ?::date
+     ORDER BY clock_in ASC`,
+    [repRow.employee_id, repDateStr]
+  );
+
+  const completedRows = (attRows || []).filter((a) => a.clock_in && a.clock_out);
+  if (completedRows.length === 0 && !allowFailWithoutClockOut) {
+    return { skipped: true, reason: "awaiting_clock_out" };
+  }
+
+  const earliestClockIn = attRows && attRows.length > 0 ? attRows[0].clock_in : null;
+  let latestClockOut = null;
+  let totalMs = 0;
+  for (const row of completedRows) {
+    const ciMs = new Date(row.clock_in).getTime();
+    const coMs = new Date(row.clock_out).getTime();
+    if (Number.isFinite(ciMs) && Number.isFinite(coMs) && coMs > ciMs) {
+      totalMs += coMs - ciMs;
+    }
+    if (!latestClockOut || new Date(row.clock_out) > new Date(latestClockOut)) {
+      latestClockOut = row.clock_out;
+    }
+  }
+
+  const rawHours = totalMs / (1000 * 60 * 60);
+  const actualHours = Number(rawHours.toFixed(2));
+  const workingHoursFormatted = formatWorkingHoursDuration(rawHours);
+  const reqNum = Number(repRow.required_hours);
+  const requiredHours = Number.isFinite(reqNum) && reqNum > 0 ? reqNum : 4;
+  const reqDisplayNum = Number.isInteger(requiredHours)
+    ? String(requiredHours)
+    : String(Number(requiredHours.toFixed(2)));
+
+  let attendanceStatus = "Absent";
+  if (completedRows.length > 0) {
+    attendanceStatus = "Present";
+  } else if (attRows && attRows.length > 0) {
+    attendanceStatus = "Clocked In (No Clock Out)";
+  }
+
+  const isPassed = rawHours >= requiredHours;
+  const nextValidationStatus = isPassed ? "Passed" : "Failed";
+  let validationNotes = null;
+  if (!isPassed) {
+    if (attendanceStatus === "Absent") {
+      validationNotes = `Staff did not clock in on the Replacement Date (minimum ${reqDisplayNum} working hours required for Replacement Leave).`;
+    } else if (attendanceStatus === "Clocked In (No Clock Out)") {
+      validationNotes = `Staff clocked in without clocking out on the Replacement Date (minimum ${reqDisplayNum} working hours required for Replacement Leave).`;
     } else {
-      // Fail
-      // If it's today, we might want to wait for clock-out, but if cron runs at midnight, the day is over.
-      await pool.query(
-        `UPDATE replacement_leave_requests SET validation_status = 'Failed', actual_hours = ? WHERE id = ?`,
-        [actualHours, r.id]
+      validationNotes = `Staff did not fulfill the minimum ${reqDisplayNum} working hours required for Replacement Leave.`;
+    }
+  }
+
+  await pool.query(
+    `UPDATE replacement_leave_requests
+     SET validation_status = ?,
+         actual_hours = ?,
+         working_hours_formatted = ?,
+         clock_in_at = ?,
+         clock_out_at = ?,
+         attendance_status = ?,
+         validation_notes = ?,
+         validated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [
+      nextValidationStatus,
+      actualHours,
+      workingHoursFormatted,
+      earliestClockIn,
+      latestClockOut,
+      attendanceStatus,
+      validationNotes,
+      repRow.id,
+    ]
+  );
+
+  // Send Telegram compliance notification if outcome changed or hasn't been sent yet
+  const prevNotified = String(repRow.telegram_notified_status || "").trim().toLowerCase();
+  if (prevNotified !== nextValidationStatus.toLowerCase()) {
+    try {
+      const companyName = await resolveCompanyNameForEmployee(repRow.employee_id);
+      const tgRes = await sendReplacementLeaveValidationTelegramNotification(
+        {
+          employee_id: repRow.employee_id,
+          full_name: empProfile?.full_name || repRow.employee_id,
+          company_name: companyName,
+          branch: empProfile?.branch || "",
+          department: empProfile?.department || "",
+          replacement_date: repDateStr,
+          attendance_status: attendanceStatus,
+          clock_in_at: earliestClockIn,
+          clock_out_at: latestClockOut,
+          actual_hours: actualHours,
+          working_hours_formatted: workingHoursFormatted,
+          required_hours: requiredHours,
+          validation_status: nextValidationStatus,
+          validation_notes: validationNotes,
+          telegram_message_id: parentLeave?.telegram_message_id || null,
+        },
+        { replyToMessageId: parentLeave?.telegram_message_id || null }
+      );
+      if (tgRes && !tgRes.skipped) {
+        await pool.query(
+          `UPDATE replacement_leave_requests SET telegram_notified_status = ? WHERE id = ?`,
+          [nextValidationStatus, repRow.id]
+        ).catch(() => {});
+      }
+    } catch (tgErr) {
+      console.error(
+        "Failed to send Replacement Leave validation Telegram alert:",
+        tgErr?.response?.data || tgErr.message
       );
     }
   }
+
+  return {
+    id: repRow.id,
+    validation_status: nextValidationStatus,
+    actual_hours: actualHours,
+    working_hours_formatted: workingHoursFormatted,
+  };
+}
+
+async function validateReplacementLeaves() {
+  console.log("Running end-of-day replacement leave validation (MYT)...");
+  // Only evaluate past replacement dates (< today MYT) so staff are never falsely failed mid-day
+  const [rows] = await pool.query(
+    `SELECT *
+     FROM replacement_leave_requests
+     WHERE validation_status IN ('Pending', 'Awaiting Replacement Date', 'Waiting for Replacement Date')
+       AND replacement_date < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date`
+  );
+
+  let processed = 0;
+  let passed = 0;
+  let failed = 0;
+
+  for (const r of rows) {
+    try {
+      const res = await evaluateAndNotifyReplacementLeave(r, { allowFailWithoutClockOut: true });
+      if (!res?.skipped) {
+        processed++;
+        if (res.validation_status === "Passed") passed++;
+        else if (res.validation_status === "Failed") failed++;
+      }
+    } catch (rowErr) {
+      console.error(`Failed to validate replacement leave #${r.id}:`, rowErr.message);
+    }
+  }
+
+  console.log(
+    `Replacement leave validation finished: processed=${processed}, passed=${passed}, failed=${failed}`
+  );
+  return { processed, passed, failed };
 }
 
 // Scheduled Cron Job
@@ -5264,17 +5533,23 @@ async function autoRejectPendingLeaves() {
         status = 'Rejected', 
         approver_note = 'Automatically rejected: Leave start date reached without approval',
         updated_at = NOW()
-      WHERE status LIKE 'Pending%' AND start_date <= CURRENT_DATE
+      WHERE status LIKE 'Pending%' AND start_date <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
     `);
   } catch (error) {
     console.error('Error auto-rejecting pending leaves:', error);
   }
 }
 
-cron.schedule('0 0 * * *', async () => {
-  await validateReplacementLeaves();
-  await autoRejectPendingLeaves();
-});
+// End-of-day validation runs at 00:05 Malaysia Time (next day) to prevent false mid-day failures
+cron.schedule(
+  '5 0 * * *',
+  async () => {
+    await validateReplacementLeaves();
+    await autoRejectPendingLeaves();
+    await clearStaleStaffOnLeavePin();
+  },
+  { timezone: 'Asia/Kuala_Lumpur' }
+);
 
 // Subsidiary Attendance Verification Jobs:
 // 1) Auto-Expire unapproved Pending Verification submissions (every 5 minutes)
@@ -5324,8 +5599,61 @@ function isLeaveActiveOnDate(startDate, endDate, targetDateStr = getMalaysiaToda
   return targetDateStr >= start && targetDateStr <= end;
 }
 
+async function ensureTelegramDailyDigestsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS telegram_daily_digests (
+      digest_key VARCHAR(100) PRIMARY KEY,
+      digest_date DATE NOT NULL,
+      telegram_message_id BIGINT NOT NULL,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    )
+  `).catch(() => {});
+}
+
+async function clearStaleStaffOnLeavePin(currentDateStr = getMalaysiaTodayDateStr()) {
+  try {
+    await ensureTelegramDailyDigestsTable();
+    const [existingRows] = await pool.query(
+      `SELECT digest_date, telegram_message_id FROM telegram_daily_digests WHERE digest_key = 'staff_on_leave_today' LIMIT 1`
+    );
+    const existing = existingRows?.[0];
+    if (!existing) return { skipped: true };
+
+    const storedDate = toIsoDateOnly(existing.digest_date);
+    if (storedDate && storedDate < currentDateStr && existing.telegram_message_id) {
+      await unpinTelegramMessage(existing.telegram_message_id);
+      await pool.query(
+        `DELETE FROM telegram_daily_digests WHERE digest_key = 'staff_on_leave_today'`
+      ).catch(() => {});
+      return { unpinned: true, messageId: existing.telegram_message_id };
+    }
+    return { skipped: true };
+  } catch (err) {
+    console.warn("Could not clear stale Staff On Leave Today pin:", err.message);
+    return { error: err.message };
+  }
+}
+
 async function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateStr()) {
   try {
+    await ensureTelegramDailyDigestsTable();
+
+    let existingDigest = null;
+    try {
+      const [digestRows] = await pool.query(
+        `SELECT digest_date, telegram_message_id FROM telegram_daily_digests WHERE digest_key = 'staff_on_leave_today' LIMIT 1`
+      );
+      existingDigest = digestRows?.[0] || null;
+    } catch (_digestReadErr) {}
+
+    const existingDigestDate = existingDigest ? toIsoDateOnly(existingDigest.digest_date) : "";
+    const existingMessageId =
+      existingDigestDate === targetDateStr ? existingDigest?.telegram_message_id || null : null;
+    const previousMessageId =
+      existingDigestDate && existingDigestDate !== targetDateStr
+        ? existingDigest?.telegram_message_id || null
+        : null;
+
     const [rows] = await pool.query(
       `SELECT DISTINCT ON (p.user_id)
          p.user_id,
@@ -5350,7 +5678,15 @@ async function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateS
       [targetDateStr]
     );
 
-    if (!rows || rows.length === 0) return { skipped: true, count: 0 };
+    if (!rows || rows.length === 0) {
+      if (existingDigest?.telegram_message_id) {
+        await unpinTelegramMessage(existingDigest.telegram_message_id);
+        await pool.query(
+          `DELETE FROM telegram_daily_digests WHERE digest_key = 'staff_on_leave_today'`
+        ).catch(() => {});
+      }
+      return { skipped: true, count: 0 };
+    }
 
     const sorted = [...rows].sort((a, b) => {
       const compCmp = String(a.company_name || "").localeCompare(String(b.company_name || ""));
@@ -5358,7 +5694,25 @@ async function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateS
       return String(a.full_name || "").localeCompare(String(b.full_name || ""));
     });
 
-    return await sendStaffOnLeaveTodayTelegramNotification(sorted, targetDateStr);
+    const tgRes = await sendStaffOnLeaveTodayTelegramNotification(sorted, targetDateStr, {
+      autoPin: true,
+      existingMessageId,
+      previousMessageId,
+    });
+
+    if (tgRes?.messageId) {
+      await pool.query(
+        `INSERT INTO telegram_daily_digests (digest_key, digest_date, telegram_message_id, updated_at)
+         VALUES ('staff_on_leave_today', ?::date, ?, CURRENT_TIMESTAMP)
+         ON CONFLICT (digest_key) DO UPDATE
+         SET digest_date = EXCLUDED.digest_date,
+             telegram_message_id = EXCLUDED.telegram_message_id,
+             updated_at = CURRENT_TIMESTAMP`,
+        [targetDateStr, tgRes.messageId]
+      ).catch(() => {});
+    }
+
+    return tgRes;
   } catch (err) {
     console.error("Failed to send Staff On Leave Today Telegram digest:", err?.response?.data || err.message);
     return { error: err.message };
@@ -5598,7 +5952,13 @@ app.get("/api/leave-requests", async (req, res) => {
               'replacement_date', rlr.replacement_date,
               'required_hours', rlr.required_hours,
               'actual_hours', rlr.actual_hours,
-              'validation_status', rlr.validation_status
+              'validation_status', rlr.validation_status,
+              'working_hours_formatted', rlr.working_hours_formatted,
+              'clock_in_at', rlr.clock_in_at,
+              'clock_out_at', rlr.clock_out_at,
+              'attendance_status', rlr.attendance_status,
+              'validation_notes', rlr.validation_notes,
+              'validated_at', rlr.validated_at
             )
           ) FROM replacement_leave_requests rlr WHERE rlr.leave_request_id = lr.leave_id
         ) AS replacement_validations,
@@ -5838,7 +6198,7 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
   const leaveId = safeString(req.params.id);
   try {
     const [rows] = await pool.query(`
-      SELECT l.*, p.full_name AS name, p.branch 
+      SELECT l.*, p.full_name AS name, p.branch, p.department
       FROM leave_requests l 
       JOIN profiles p ON l.user_id = p.user_id 
       WHERE l.leave_id = ?
@@ -5920,7 +6280,52 @@ app.post("/api/leave-requests/:id/upload-mc", uploadLimiter, upload.single("lamp
         [mc_file_url, leaveId]
       );
 
-      return res.json({ success: true, mc_file_url });
+      res.json({ success: true, mc_file_url });
+
+      // --- SEND UPLOADED MC FILE TO HR TELEGRAM GROUP ---
+      (async () => {
+        try {
+          let companyName = "";
+          const [compRows] = await pool.query(
+            `SELECT c.company_name
+             FROM profiles p
+             LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
+             LEFT JOIN companies c ON c.id = (
+               CASE WHEN UPPER(COALESCE(p.branch, '')) LIKE 'RV%' THEN 3
+                    ELSE COALESCE(
+                      (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = p.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
+                      b.company_id,
+                      CASE WHEN UPPER(COALESCE(p.branch, '')) = 'RAYRENT' THEN 2 ELSE 1 END
+                    )
+               END
+             )
+             WHERE p.user_id = ?
+             LIMIT 1`,
+            [leaveRequest.user_id]
+          );
+          companyName = compRows?.[0]?.company_name || "";
+
+          await sendLeaveMcAttachmentTelegramNotification(
+            {
+              ...leaveRequest,
+              full_name: employeeName,
+              branch: employeeBranch,
+              company_name: companyName,
+              mc_file_url,
+              mc_file_path: resolvedPath,
+              mc_mime_type: req.file.mimetype || null,
+              mc_original_name: req.file.originalname || null,
+            },
+            { replyToMessageId: leaveRequest.telegram_message_id || null }
+          );
+        } catch (tgMcErr) {
+          console.error(
+            "Failed to send Telegram MC attachment notification:",
+            tgMcErr?.response?.data || tgMcErr.message
+          );
+        }
+      })();
+      return;
     } else {
       return res.status(400).json({ success: false, error: "No file uploaded" });
     }
@@ -6046,7 +6451,12 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
     }
 
     let mc_file_url = null;
+    let mcLocalFilePath = null;
+    let mcMimeType = null;
+    let mcOriginalName = null;
     if (req.file) {
+      mcMimeType = req.file.mimetype || null;
+      mcOriginalName = req.file.originalname || null;
       const fileCheck = validateUploadedFile(req.file);
       if (!fileCheck.valid) {
         return res.status(400).json({ success: false, error: fileCheck.error });
@@ -6110,6 +6520,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
 
         // Store relative path URL
         mc_file_url = `/uploads/${folderName}/${filename}`;
+        mcLocalFilePath = resolvedPath;
 
         // Backup to Supabase with folder structure
         const supabaseStoragePath = `${folderName}/${filename}`;
@@ -6131,6 +6542,7 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
           if (fs.existsSync(resolvedSource)) {
             fs.renameSync(resolvedSource, resolvedFallback);
             mc_file_url = `/uploads/${fallbackFilename}`;
+            mcLocalFilePath = resolvedFallback;
             uploadToSupabaseStorage(resolvedFallback, fallbackFilename, req.file.mimetype);
           }
         } catch (fallbackErr) {
@@ -6287,10 +6699,18 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
         if (isAnnualOrEmergencyLeave(leaveData?.leave_type)) {
           balanceDays = await getAnnualLeaveBalanceForUser(leaveData.user_id);
         }
+        let replacementMeta = {};
+        if (isReplacementLeave(leaveData?.leave_type)) {
+          replacementMeta = await fetchReplacementMetaForLeave(result.insertId, leaveData);
+        }
         const tgRes = await sendNewLeaveRequestTelegramNotification({
           ...leaveData,
           company_name: companyName,
           balance_days: balanceDays,
+          ...replacementMeta,
+          mc_file_path: mcLocalFilePath,
+          mc_mime_type: mcMimeType,
+          mc_original_name: mcOriginalName,
         });
         if (tgRes?.messageId) {
           await pool.query(
@@ -6790,10 +7210,10 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
       [nextStatus, approver_id || null, remarks || approver_note || null, leaveId]
     );
 
-    // Sync replacement leave status
+    // Sync replacement leave status (independent of leave_requests.status)
     if (nextStatus === 'Approved') {
       await pool.query(
-        `UPDATE replacement_leave_requests SET validation_status = 'Waiting for Replacement Date' WHERE leave_request_id = ? AND validation_status = 'Pending'`,
+        `UPDATE replacement_leave_requests SET validation_status = 'Awaiting Replacement Date' WHERE leave_request_id = ? AND validation_status = 'Pending'`,
         [leaveId]
       );
     } else if (nextStatus === 'Rejected') {
@@ -6885,12 +7305,21 @@ app.patch("/api/leave-requests/:leaveId/status", async (req, res) => {
               balanceDays = await getAnnualLeaveBalanceForUser(leaveData.user_id);
             }
 
+            let replacementMeta = {};
+            if (isReplacementLeave(leaveData.leave_type)) {
+              replacementMeta = await fetchReplacementMetaForLeave(leaveId, {
+                ...leaveData,
+                status: nextStatus,
+              });
+            }
+
             await sendLeaveStatusUpdateTelegramNotification(
               {
                 ...leaveData,
                 full_name: leaveData.employee_name,
                 company_name: companyName,
                 balance_days: balanceDays,
+                ...replacementMeta,
               },
               {
                 nextStatus,
@@ -8548,7 +8977,7 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
     const [companyLeaves] = await pool.query(`SELECT * FROM company_leave_calendar WHERE status = 'Active' AND EXTRACT(YEAR FROM start_date) IN (${yearPlaceholders})`, yearsToFetch);
     
     // Fetch earned replacement leaves
-    const [earnedRlRows] = await pool.query(`SELECT SUM(CASE WHEN validation_status = 'Validated' THEN 1 ELSE 0 END) as earned FROM replacement_leave_requests WHERE employee_id = ?`, [userId]);
+    const [earnedRlRows] = await pool.query(`SELECT SUM(CASE WHEN validation_status IN ('Passed', 'Validated') THEN 1 ELSE 0 END) as earned FROM replacement_leave_requests WHERE employee_id = ?`, [userId]);
     const replacementEarned = parseInt(earnedRlRows[0]?.earned || 0);
 
     // Fetch leave balance adjustments for this employee
@@ -9786,7 +10215,7 @@ try {
   // 6. Replacement leave validations
   const [rlRows] = await pool.query(`
     SELECT replacement_date FROM replacement_leave_requests
-    WHERE employee_id = ? AND validation_status = 'Validated'
+    WHERE employee_id = ? AND validation_status IN ('Passed', 'Validated')
   `, [String(userId)]);
   (rlRows || []).forEach(r => {
     if (!r.replacement_date) return;
@@ -10483,44 +10912,16 @@ app.post("/api/clock-out", async (req, res) => {
     // REPLACEMENT LEAVE AUTO-VALIDATION
     // ==========================================
     try {
-      // 1. Calculate total working hours for today
-      const [allToday] = await pool.query(`
-        SELECT clock_in, clock_out 
-        FROM attendances 
-        WHERE user_id = ? 
-        AND (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date 
-        AND clock_out IS NOT NULL
-      `, [user_id]);
-      
-      let totalMs = 0;
-      for (const a of allToday) {
-        totalMs += (new Date(a.clock_out).getTime() - new Date(a.clock_in).getTime());
-      }
-      const totalHours = totalMs / (1000 * 60 * 60);
-
-      // 2. Check if today is a replacement date
       const [pendingReps] = await pool.query(`
-        SELECT id, required_hours 
-        FROM replacement_leave_requests 
-        WHERE employee_id = ? 
-        AND replacement_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date 
-        AND validation_status IN ('Pending', 'Failed')
+        SELECT *
+        FROM replacement_leave_requests
+        WHERE employee_id = ?
+          AND replacement_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+          AND validation_status IN ('Pending', 'Awaiting Replacement Date', 'Waiting for Replacement Date', 'Failed')
       `, [user_id]);
 
       for (const rep of pendingReps) {
-        if (totalHours >= parseFloat(rep.required_hours || 4)) {
-          await pool.query(`
-            UPDATE replacement_leave_requests 
-            SET validation_status = 'Validated', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
-            WHERE id = ?
-          `, [totalHours, rep.id]);
-        } else {
-          await pool.query(`
-            UPDATE replacement_leave_requests 
-            SET validation_status = 'Failed', actual_hours = ?, validated_at = CURRENT_TIMESTAMP 
-            WHERE id = ?
-          `, [totalHours, rep.id]);
-        }
+        await evaluateAndNotifyReplacementLeave(rep, { allowFailWithoutClockOut: false });
       }
     } catch (valErr) {
       console.error("Replacement leave validation error:", valErr);
@@ -18131,79 +18532,16 @@ app.get('/api/workforce-calendar/stream', (req, res) => {
 // --- CUTI GANTI / REPLACEMENT LEAVE VALIDATION ---
 app.post("/api/cron/validate-replacement-leaves", async (req, res) => {
   try {
-    // 1. Move Approved -> Waiting for Replacement Date when the date is today or passed
-    await pool.query(
-      `UPDATE replacement_leave_requests 
-       SET validation_status = 'Waiting for Replacement Date', updated_at = CURRENT_TIMESTAMP
-       WHERE validation_status = 'Approved' 
-       AND replacement_date <= CURRENT_DATE`
-    );
-
-    // 2. Validate those that are Waiting for Replacement Date and the date is in the past (so attendance is finalized)
-    // Or if it's today and they have clocked out.
-    const [pendingRequests] = await pool.query(
-      `SELECT r.*, p.full_name 
-       FROM replacement_leave_requests r
-       JOIN profiles p ON p.user_id = r.employee_id
-       WHERE r.validation_status = 'Waiting for Replacement Date'
-       AND r.replacement_date <= CURRENT_DATE`
-    );
-
-    let processed = 0;
-    for (const request of pendingRequests) {
-      // Find attendance for this user and date
-      const [att] = await pool.query(
-        `SELECT id, working_hours, clock_in, clock_out FROM attendances 
-         WHERE employee_id = ? AND date = ?`,
-        [request.employee_id, request.replacement_date]
-      );
-      
-      let newStatus = null;
-      let actualHours = 0;
-      let attId = null;
-
-      if (att.length > 0) {
-        attId = att[0].id;
-        const clockOut = att[0].clock_out;
-        const whStr = att[0].working_hours; // e.g., "8h 30m"
-        
-        // Only validate if date is past, OR they have clocked out today
-        const isPast = new Date(request.replacement_date) < new Date(new Date().toDateString());
-        if (isPast || clockOut) {
-          if (whStr) {
-            const hMatch = whStr.match(/(\d+)h/);
-            const mMatch = whStr.match(/(\d+)m/);
-            const h = hMatch ? parseInt(hMatch[1]) : 0;
-            const m = mMatch ? parseInt(mMatch[1]) : 0;
-            actualHours = h + (m / 60);
-          }
-          if (actualHours >= request.required_hours) {
-            newStatus = 'Validated';
-          } else {
-            newStatus = 'Failed';
-          }
-        }
-      } else {
-        // No attendance record found
-        const isPast = new Date(request.replacement_date) < new Date(new Date().toDateString());
-        if (isPast) {
-          newStatus = 'Failed'; // Absent
-        }
-      }
-
-      if (newStatus) {
-        await pool.query(
-          `UPDATE replacement_leave_requests 
-           SET validation_status = ?, actual_hours = ?, attendance_id = ?, validated_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-           WHERE id = ?`,
-          [newStatus, actualHours, attId, request.id]
-        );
-        processed++;
-      }
-    }
-
-    res.json({ success: true, message: `Validated ${processed} replacement leave requests.` });
-  } catch(e) {
+    const summary = await validateReplacementLeaves();
+    res.json({
+      success: true,
+      message: `Validated ${summary.processed} replacement leave requests.`,
+      processed_count: summary.processed,
+      validated_count: summary.passed,
+      passed_count: summary.passed,
+      failed_count: summary.failed,
+    });
+  } catch (e) {
     console.error("Replacement leave validation error:", e);
     res.status(500).json({ success: false, error: e.message });
   }
@@ -18236,7 +18574,7 @@ app.get("/api/employees/:userId/replacement-leaves", async (req, res) => {
         description: 'Manual HR Adjustment',
         required_hours: 8,
         actual_hours: 8,
-        validation_status: 'Validated'
+        validation_status: 'Passed'
       });
     }
 
@@ -18610,11 +18948,11 @@ app.get("/api/replacement-leave-stats", async (req, res) => {
     const compFilter = getCompanyUserSqlFilter(req, "employee_id");
     const [rows] = await pool.query(`
       SELECT 
-        SUM(CASE WHEN validation_status = 'Validated' THEN 1 ELSE 0 END) as earned,
+        SUM(CASE WHEN validation_status IN ('Passed', 'Validated') THEN 1 ELSE 0 END) as earned,
         SUM(CASE WHEN leave_request_id IS NOT NULL AND leave_request_id NOT IN (
           SELECT leave_id FROM leave_requests WHERE status IN ('Rejected', 'Cancelled')
         ) THEN 1 ELSE 0 END) as used,
-        MAX(CASE WHEN validation_status = 'Validated' THEN replacement_date ELSE NULL END) as latest_earned
+        MAX(CASE WHEN validation_status IN ('Passed', 'Validated') THEN replacement_date ELSE NULL END) as latest_earned
       FROM replacement_leave_requests 
       WHERE employee_id = ? ${compFilter}
     `, [user_id]);

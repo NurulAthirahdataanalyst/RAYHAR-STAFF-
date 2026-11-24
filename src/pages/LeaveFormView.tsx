@@ -948,7 +948,7 @@ export default function LeaveFormView() {
                                     return valDateStr === rowDateStr;
                                   });
                                   if (val) {
-                                    if (val.validation_status === "Validated" || val.validation_status === "Failed" || val.validation_status === "Completed" || (val.actual_hours !== null && val.actual_hours > 0)) {
+                                    if (val.validation_status === "Passed" || val.validation_status === "Validated" || val.validation_status === "Failed" || val.validation_status === "Completed" || (val.actual_hours !== null && val.actual_hours > 0)) {
                                       actualHours = val.actual_hours;
                                       hasCalculated = true;
                                     }

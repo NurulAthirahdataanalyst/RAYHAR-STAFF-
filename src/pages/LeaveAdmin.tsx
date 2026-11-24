@@ -143,7 +143,20 @@ type LeaveRequest = {
     replacement_date: string;
     required_hours: string | number;
     actual_hours: string | number | null;
-    validation_status: "Pending" | "Validated" | "Failed";
+    validation_status:
+      | "Pending"
+      | "Awaiting Replacement Date"
+      | "Waiting for Replacement Date"
+      | "Passed"
+      | "Validated"
+      | "Failed"
+      | "Cancelled";
+    working_hours_formatted?: string | null;
+    clock_in_at?: string | null;
+    clock_out_at?: string | null;
+    attendance_status?: string | null;
+    validation_notes?: string | null;
+    validated_at?: string | null;
   }[];
   workflowSteps?: {
     step_order?: number;

@@ -2657,12 +2657,12 @@ function ReplacementLeaveValidationForm({ employees, onCancel }: { employees: an
                     <td className="p-3 text-xs font-medium">{r.required_hours}h</td>
                     <td className="p-3">
                       <span className={`text-[10px] font-bold px-2 py-1 rounded-md 
-                        ${r.validation_status === 'Validated' ? 'bg-emerald-500/10 text-emerald-600' :
+                        ${r.validation_status === 'Passed' || r.validation_status === 'Validated' ? 'bg-emerald-500/10 text-emerald-600' :
                           r.validation_status === 'Failed' ? 'bg-rose-500/10 text-rose-600' :
                           r.validation_status === 'Cancelled' ? 'bg-slate-500/10 text-slate-600' :
-                          r.validation_status === 'Waiting for Replacement Date' ? 'bg-purple-500/10 text-purple-600' :
+                          r.validation_status === 'Awaiting Replacement Date' || r.validation_status === 'Waiting for Replacement Date' ? 'bg-purple-500/10 text-purple-600' :
                           'bg-amber-500/10 text-amber-600'}`}>
-                        {r.validation_status}
+                        {r.validation_status === 'Validated' ? 'Passed' : r.validation_status}
                       </span>
                     </td>
                   </tr>

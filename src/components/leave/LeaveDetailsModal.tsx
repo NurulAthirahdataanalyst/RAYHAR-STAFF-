@@ -406,10 +406,16 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                               
                               let statusBadge = null;
                               if (validation) {
-                                if (validation.validation_status === 'Pending') {
-                                  statusBadge = <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
-                                } else if (validation.validation_status === 'Validated') {
-                                  statusBadge = <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Validated</Badge>;
+                                if (
+                                  validation.validation_status === 'Pending' ||
+                                  validation.validation_status === 'Awaiting Replacement Date' ||
+                                  validation.validation_status === 'Waiting for Replacement Date'
+                                ) {
+                                  statusBadge = <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">{validation.validation_status === 'Pending' ? 'Pending' : 'Awaiting Replacement Date'}</Badge>;
+                                } else if (validation.validation_status === 'Passed' || validation.validation_status === 'Validated') {
+                                  statusBadge = <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Passed</Badge>;
+                                } else if (validation.validation_status === 'Cancelled') {
+                                  statusBadge = <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">Cancelled</Badge>;
                                 } else {
                                   statusBadge = <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Failed</Badge>;
                                 }
