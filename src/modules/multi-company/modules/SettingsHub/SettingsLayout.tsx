@@ -106,7 +106,7 @@ export const SettingsLayout: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-16 w-full">
+    <div className="space-y-6 sm:space-y-8 pb-16 w-full">
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -132,7 +132,7 @@ export const SettingsLayout: React.FC = () => {
       {/* 2-COLUMN ENTERPRISE LAYOUT: ASIDE TABS ON LEFT, ACTIVE CARD ON RIGHT */}
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
         {/* ASIDE NAVIGATION TABS (Collapsible, Rayhar Purple Gradient, Yellow Active Accent) */}
-        <aside className={`w-full shrink-0 lg:sticky lg:top-4 z-10 transition-all duration-300 ${
+        <aside className={`w-full shrink-0 lg:sticky lg:top-20 lg:self-start z-10 transition-all duration-300 ${
           isCollapsed ? 'lg:w-20' : 'lg:w-64 xl:w-72'
         }`}>
           <div className="bg-gradient-to-b from-[#800A7A] via-[#942392] to-[#3d0052] p-2.5 sm:p-3 rounded-2xl shadow-lg border border-[#942392]/20 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible scrollbar-none">

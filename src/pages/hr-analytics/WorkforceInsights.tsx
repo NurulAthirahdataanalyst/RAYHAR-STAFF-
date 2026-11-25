@@ -3100,8 +3100,8 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {currentRole !== 'branch_leader' && (
-/* Department Workforce Distribution */
-           <Card className="lg:col-span-5 p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           /* Department Workforce Distribution */
+           <Card className="lg:col-span-6 p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
@@ -3114,6 +3114,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
              
              <div className={`space-y-4 flex-1 pr-2 ${topDepartments.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                {topDepartments.sort((a:any, b:any) => b.attendanceRate - a.attendanceRate).map((dept: any, idx: number) => {
+                 const deptRate = Math.max(0, Math.min(100, Number(dept.attendanceRate) || 0));
                  return (
                    <div key={idx} className="flex flex-col gap-1">
                      <div className="flex justify-between items-end">
@@ -3121,10 +3122,10 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                          <span className="text-[11px] font-bold text-[#1A1F36] dark:text-gray-200">{dept.name}</span>
                          <span className="text-[9px] text-foreground">{dept.count} Employees</span>
                        </div>
-                       <span className={`text-[10px] font-black ${dept.attendanceRate >= 95 ? 'text-emerald-500' : 'text-amber-500'}`}>{dept.attendanceRate}%</span>
+                       <span className={`text-[10px] font-black ${deptRate >= 90 ? 'text-emerald-500' : deptRate >= 75 ? 'text-amber-500' : 'text-red-500'}`}>{deptRate}%</span>
                      </div>
-                     <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-2">
-                       <div className="h-full bg-[#FF5722] rounded-full" style={{ width: `${dept.attendanceRate}%` }}></div>
+                     <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 flex overflow-hidden">
+                       <div className={`h-full transition-all duration-500 ${deptRate >= 90 ? 'bg-emerald-500' : deptRate >= 75 ? 'bg-amber-500' : 'bg-[#ef4444]'}`} style={{ width: `${deptRate}%` }}></div>
                      </div>
                    </div>
                  );
@@ -3133,7 +3134,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
              
              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                <p className="text-[10px] font-semibold text-foreground flex items-center gap-1.5">
-                 <span className="w-1.5 h-1.5 rounded-full bg-[#FF5722]"></span>
+                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                  HQ operations represent {(departmentMetrics.reduce((sum:number,d:any)=>sum+d.value,0)/topKpi.totalHeadcount*100 || 0).toFixed(0)}% of workforce
                </p>
                <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
@@ -3142,7 +3143,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 )}
 
         {/* Branch Workforce Distribution */}
-        <Card className={`border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden ${currentRole === "branch_leader" ? "lg:col-span-12" : "lg:col-span-7"} flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+        <Card className={`border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden ${currentRole === "branch_leader" ? "lg:col-span-12" : "lg:col-span-6"} flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <div className="flex flex-col">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Average Attendance by Branch</CardTitle>
