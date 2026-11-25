@@ -2313,38 +2313,37 @@ function getCompanyUserSqlFilterById(companyId, columnExpr = "user_id") {
     return " AND 1=0";
   }
   return ` AND (
-    EXISTS (
-      SELECT 1 FROM company_user_roles cur_s
-      WHERE cur_s.user_id = ${col} AND cur_s.company_id = ${token} AND cur_s.status = 'active'
+    ${col} IN (
+      SELECT cur_s.user_id
+      FROM company_user_roles cur_s
+      WHERE cur_s.company_id = ${token} AND cur_s.status = 'active'
     )
     OR (
-      NOT EXISTS (
-        SELECT 1 FROM company_user_roles cur_a
-        WHERE cur_a.user_id = ${col} AND cur_a.status = 'active'
+      ${col} NOT IN (
+        SELECT cur_a.user_id
+        FROM company_user_roles cur_a
+        WHERE cur_a.status = 'active' AND cur_a.user_id IS NOT NULL
       )
-      AND COALESCE(
-        (
-          SELECT cur_i.company_id
-          FROM company_user_roles cur_i
-          WHERE cur_i.user_id = ${col}
-          ORDER BY cur_i.is_default DESC, cur_i.updated_at DESC NULLS LAST, cur_i.id DESC
-          LIMIT 1
-        ),
-        (
-          SELECT b_s.company_id
-          FROM profiles p_s
-          JOIN branches b_s ON UPPER(TRIM(b_s.code)) = UPPER(TRIM(p_s.branch))
-          WHERE p_s.user_id = ${col} AND b_s.company_id IS NOT NULL
-          LIMIT 1
-        ),
-        (
-          SELECT CASE WHEN UPPER(TRIM(COALESCE(p_s2.branch, ''))) = 'RAYRENT' THEN 2 ELSE 1 END
-          FROM profiles p_s2
-          WHERE p_s2.user_id = ${col}
-          LIMIT 1
-        ),
-        1
-      ) = (${token})::int
+      AND ${col} IN (
+        SELECT p_fb.user_id
+        FROM profiles p_fb
+        WHERE COALESCE(
+          (
+            SELECT cur_i.company_id
+            FROM company_user_roles cur_i
+            WHERE cur_i.user_id = p_fb.user_id
+            ORDER BY cur_i.is_default DESC, cur_i.updated_at DESC NULLS LAST, cur_i.id DESC
+            LIMIT 1
+          ),
+          (
+            SELECT b_s.company_id
+            FROM branches b_s
+            WHERE UPPER(TRIM(b_s.code)) = UPPER(TRIM(p_fb.branch)) AND b_s.company_id IS NOT NULL
+            LIMIT 1
+          ),
+          CASE WHEN UPPER(TRIM(COALESCE(p_fb.branch, ''))) = 'RAYRENT' THEN 2 ELSE 1 END
+        ) = (${token})::int
+      )
     )
   )`;
 }
