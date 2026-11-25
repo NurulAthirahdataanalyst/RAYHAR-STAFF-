@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -77,6 +77,7 @@ export const TabPersonnelEntity: React.FC = () => {
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(activeCompany?.id || 1);
   const [personnel, setPersonnel] = useState<PersonnelMember[]>([]);
   const [loading, setLoading] = useState(false);
+  const activeFetchSeqRef = useRef(0);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,22 +137,25 @@ export const TabPersonnelEntity: React.FC = () => {
 
   // Fetch personnel and company metadata whenever selectedCompanyId changes
   useEffect(() => {
+    const seq = ++activeFetchSeqRef.current;
     setSearchTerm('');
     setPositionFilter('ALL');
     setBranchFilter('ALL');
     setDepartmentFilter('ALL');
     setStatusFilter('ALL');
-    void fetchPersonnel(selectedCompanyId);
-    void fetchCompanyMetadata(selectedCompanyId);
+    void fetchPersonnel(selectedCompanyId, seq);
+    void fetchCompanyMetadata(selectedCompanyId, seq);
   }, [selectedCompanyId]);
 
-  const fetchCompanyMetadata = async (companyId: number) => {
+  const fetchCompanyMetadata = async (companyId: number, seq?: number) => {
+    const requestSeq = seq ?? activeFetchSeqRef.current;
     try {
       const [bRes, dRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/branches?company_id=${companyId}`),
         fetch(`${API_BASE_URL}/api/departments?company_id=${companyId}`),
       ]);
       const [bData, dData] = await Promise.all([bRes.json(), dRes.json()]);
+      if (requestSeq !== activeFetchSeqRef.current) return;
       if (bData.success && Array.isArray(bData.branches)) {
         setCompanyBranches(bData.branches);
       } else {
@@ -167,11 +171,13 @@ export const TabPersonnelEntity: React.FC = () => {
     }
   };
 
-  const fetchPersonnel = async (companyId: number) => {
+  const fetchPersonnel = async (companyId: number, seq?: number) => {
+    const requestSeq = seq ?? ++activeFetchSeqRef.current;
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/employees?company_id=${companyId}`);
       const data = await res.json();
+      if (requestSeq !== activeFetchSeqRef.current) return;
       if (data.success && Array.isArray(data.employees)) {
         const rawList = data.employees.map((e: any) => ({
           user_id: e.user_id || e.id,
@@ -195,10 +201,13 @@ export const TabPersonnelEntity: React.FC = () => {
         setPersonnel([]);
       }
     } catch (err) {
+      if (requestSeq !== activeFetchSeqRef.current) return;
       console.error('Error fetching personnel for company:', err);
       toast.error('Failed to load personnel list');
     } finally {
-      setLoading(false);
+      if (requestSeq === activeFetchSeqRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -511,7 +520,9 @@ export const TabPersonnelEntity: React.FC = () => {
 
       const matchStatus =
         statusFilter === 'ALL' ||
-        p.status.toLowerCase() === statusFilter.toLowerCase();
+        (statusFilter === 'Inactive'
+          ? p.status.toLowerCase() !== 'active'
+          : p.status.toLowerCase() === statusFilter.toLowerCase());
 
       return matchSearch && matchPosition && matchBranch && matchDepartment && matchStatus;
     });

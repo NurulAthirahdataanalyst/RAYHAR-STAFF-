@@ -1,7 +1,7 @@
 import AppSidebar from "./AppSidebar";
 import PresenceFeed from "../PresenceFeed";
 import NotificationBell from "../NotificationBell";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import rayharLogo from "@/assets/rayhar-logo.png";
@@ -116,6 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [currentUserId, currentUserEmail]);
 
   const [pendingApprovals, setPendingApprovals] = useState(0);
+  const pendingFetchSeqRef = useRef(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -133,9 +134,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     window.dispatchEvent(new Event("presenceSidebarCollapsedChanged"));
   }, [sidebarCollapsed]);
 
-  const fetchPendingApprovals = async () => {
+  const fetchPendingApprovals = async (seq?: number) => {
     const dashboardUserId = user?.user_id || user?.id;
     if (!dashboardUserId) return;
+    const requestSeq = seq ?? ++pendingFetchSeqRef.current;
 
     try {
       const params = new URLSearchParams({
@@ -150,6 +152,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         `${API_BASE_URL}/api/dashboard-stats?${params}`
       );
       const data = await response.json();
+
+      if (requestSeq !== pendingFetchSeqRef.current) return;
 
       if (response.ok && data.success) {
         setPendingApprovals(
@@ -190,8 +194,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    void fetchPendingApprovals();
-    const interval = setInterval(fetchPendingApprovals, 10000);
+    const seq = ++pendingFetchSeqRef.current;
+    void fetchPendingApprovals(seq);
+    const interval = setInterval(() => {
+      void fetchPendingApprovals();
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [resolvedRole, user?.id, user?.user_id, userBranch, userDepartment, activeCompany?.id]);

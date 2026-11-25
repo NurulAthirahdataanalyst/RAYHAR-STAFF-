@@ -1650,7 +1650,7 @@ app.delete("/api/roles/:id", async (req, res) => {
     // Safe to delete: clean up child references first to prevent foreign key constraint violations
     await pgPool.query("UPDATE user_role SET role = 'Employee', role_id = NULL WHERE role_id = $1 OR LOWER(role) = LOWER($2)", [id, role.name]);
     await pgPool.query("UPDATE profiles SET role = 'Employee', role_id = NULL WHERE role_id = $1", [id]);
-    await pgPool.query("DELETE FROM company_user_roles WHERE role_id = $1", [id]);
+    await pgPool.query("UPDATE company_user_roles SET role_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE role_id = $1", [id]);
     await pgPool.query("DELETE FROM role_permissions WHERE role_id = $1", [id]);
     await pgPool.query("DELETE FROM approval_workflow WHERE approver_role_id = $1", [id]);
     await pgPool.query("DELETE FROM roles WHERE id = $1", [id]);
@@ -2307,15 +2307,46 @@ function getCompanyUserSqlFilterById(companyId, columnExpr = "user_id") {
   if (cid === null) return "";
   // Negative / out-of-range IDs can never match a company; keep the "match nothing" behaviour.
   if (cid < 0) return " AND 1=0";
-  if (cid === 1) {
-    return ` AND (${col} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = 1 AND cur_s.status = 'active') OR ${col} NOT IN (SELECT cur_s2.user_id FROM company_user_roles cur_s2 WHERE cur_s2.status = 'active'))`;
-  }
   const token = companyIdParamToken(cid);
   if (token === null) {
     // Slot table exhausted (only possible under abuse): fail closed rather than widen access.
     return " AND 1=0";
   }
-  return ` AND ${col} IN (SELECT cur_s.user_id FROM company_user_roles cur_s WHERE cur_s.company_id = ${token} AND cur_s.status = 'active')`;
+  return ` AND (
+    EXISTS (
+      SELECT 1 FROM company_user_roles cur_s
+      WHERE cur_s.user_id = ${col} AND cur_s.company_id = ${token} AND cur_s.status = 'active'
+    )
+    OR (
+      NOT EXISTS (
+        SELECT 1 FROM company_user_roles cur_a
+        WHERE cur_a.user_id = ${col} AND cur_a.status = 'active'
+      )
+      AND COALESCE(
+        (
+          SELECT cur_i.company_id
+          FROM company_user_roles cur_i
+          WHERE cur_i.user_id = ${col}
+          ORDER BY cur_i.is_default DESC, cur_i.updated_at DESC NULLS LAST, cur_i.id DESC
+          LIMIT 1
+        ),
+        (
+          SELECT b_s.company_id
+          FROM profiles p_s
+          JOIN branches b_s ON UPPER(TRIM(b_s.code)) = UPPER(TRIM(p_s.branch))
+          WHERE p_s.user_id = ${col} AND b_s.company_id IS NOT NULL
+          LIMIT 1
+        ),
+        (
+          SELECT CASE WHEN UPPER(TRIM(COALESCE(p_s2.branch, ''))) = 'RAYRENT' THEN 2 ELSE 1 END
+          FROM profiles p_s2
+          WHERE p_s2.user_id = ${col}
+          LIMIT 1
+        ),
+        1
+      ) = (${token})::int
+    )
+  )`;
 }
 
 function getCompanyUserSqlFilter(req, columnExpr = "user_id") {
@@ -5821,14 +5852,10 @@ app.get("/api/leave-requests", async (req, res) => {
       ["hr_admin", "hr", "admin", "managing_director", "md", "superadmin"].includes(effectiveViewerRole);
 
     if (companyId && !userId) {
-      filters.push(`(
-        EXISTS (SELECT 1 FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' AND cur.company_id = ?)
-        OR (
-          NOT EXISTS (SELECT 1 FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active')
-          AND COALESCE(b_comp.company_id, CASE WHEN UPPER(p.branch) LIKE 'RV%' THEN 3 WHEN UPPER(p.branch) = 'RAYRENT' THEN 2 ELSE 1 END)::int = ?
-        )
-      )`);
-      params.push(companyId, companyId);
+      const leaveCompanyFilter = getCompanyUserSqlFilterById(companyId, "lr.user_id");
+      if (leaveCompanyFilter) {
+        filters.push(leaveCompanyFilter.replace(/^\s*AND\s+/i, ""));
+      }
     } else if (normRole.includes("assure") && !userId) {
       filters.push(`COALESCE(
         (SELECT cur.company_id FROM company_user_roles cur WHERE cur.user_id = lr.user_id AND cur.status = 'active' ORDER BY cur.company_id DESC LIMIT 1),
@@ -9201,7 +9228,14 @@ app.get("/api/employees", async (req, res) => {
         today.attendance_type AS today_attendance_type,
         today.location AS today_location
       FROM profiles p
-      ${companyId ? "LEFT JOIN company_user_roles cur_scope ON cur_scope.user_id = p.user_id AND cur_scope.company_id = ? AND cur_scope.status = 'active' LEFT JOIN roles r_comp ON r_comp.id = cur_scope.role_id" : ""}
+      ${companyId ? `LEFT JOIN LATERAL (
+        SELECT cur_sc.branch_id, cur_sc.department_id, cur_sc.role_id
+        FROM company_user_roles cur_sc
+        WHERE cur_sc.user_id = p.user_id AND cur_sc.company_id = ?
+        ORDER BY (CASE WHEN cur_sc.status = 'active' THEN 0 ELSE 1 END) ASC, cur_sc.is_default DESC, cur_sc.updated_at DESC NULLS LAST, cur_sc.id DESC
+        LIMIT 1
+      ) cur_scope ON true
+      LEFT JOIN roles r_comp ON r_comp.id = cur_scope.role_id` : ""}
       LEFT JOIN LATERAL (
         SELECT ur.role, ur.role_id, ur.department
         FROM user_role ur
@@ -9393,7 +9427,43 @@ app.post("/api/employees/status", async (req, res) => {
       if (status === "Inactive" || status === "Deleted") {
         await pool.query("UPDATE company_user_roles SET status = 'inactive', updated_at = CURRENT_TIMESTAMP WHERE user_id = ?", [user_id]);
       } else if (status === "Active") {
-        await pool.query("UPDATE company_user_roles SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND is_default = TRUE", [user_id]);
+        const [reactivated] = await pool.query(
+          "UPDATE company_user_roles SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND is_default = TRUE RETURNING id",
+          [user_id]
+        );
+        if (!reactivated || reactivated.length === 0) {
+          const [latestReactivated] = await pool.query(
+            `UPDATE company_user_roles
+             SET status = 'active', is_default = TRUE, updated_at = CURRENT_TIMESTAMP
+             WHERE id = (
+               SELECT id FROM company_user_roles
+               WHERE user_id = ?
+               ORDER BY updated_at DESC NULLS LAST, id DESC
+               LIMIT 1
+             )
+             RETURNING id`,
+            [user_id]
+          );
+          if (!latestReactivated || latestReactivated.length === 0) {
+            const [profRows] = await pool.query(
+              `SELECT p.branch, p.department, p.role_id,
+                      COALESCE(
+                        (SELECT b.company_id FROM branches b WHERE UPPER(TRIM(b.code)) = UPPER(TRIM(p.branch)) AND b.company_id IS NOT NULL LIMIT 1),
+                        CASE WHEN UPPER(TRIM(COALESCE(p.branch, ''))) = 'RAYRENT' THEN 2 ELSE 1 END
+                      ) AS resolved_company_id
+               FROM profiles p WHERE p.user_id = ? LIMIT 1`,
+              [user_id]
+            );
+            if (profRows && profRows.length > 0) {
+              const pr = profRows[0];
+              await pool.query(
+                `INSERT INTO company_user_roles (user_id, company_id, role_id, branch_id, department_id, is_default, status, updated_at)
+                 VALUES (?, ?, ?, ?, ?, TRUE, 'active', CURRENT_TIMESTAMP)`,
+                [user_id, pr.resolved_company_id, pr.role_id || null, pr.branch || null, pr.department || null]
+              );
+            }
+          }
+        }
       }
     } catch (curStatusErr) {
       console.warn("company_user_roles status sync warning:", curStatusErr.message);
@@ -11861,11 +11931,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
           );
         } else if (role === "managing_director") {
           [pendingRows] = await pool.query(
-            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending MD%' OR lr.status LIKE 'Pending Managing Director%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending MD%' OR lr.status LIKE 'Pending Managing Director%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active') ${companyLrFilter}`
           );
         } else if (role === "operation_manager" || role === "finance_manager") {
           [pendingRows] = await pool.query(
-            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending Operation%' OR lr.status LIKE 'Pending Finance%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE (lr.status LIKE 'Pending Operation%' OR lr.status LIKE 'Pending Finance%') AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active') ${companyLrFilter}`
           );
         } else if (role === "assure_leader") {
           [pendingRows] = await pool.query(
@@ -11873,7 +11943,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           );
         } else if (role === "hr_admin") {
           [pendingRows] = await pool.query(
-            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE lr.status LIKE 'Pending%' AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active')`
+            `SELECT COUNT(*) AS pending_approvals FROM leave_requests lr WHERE lr.status LIKE 'Pending%' AND lr.user_id IN (SELECT p_s.user_id FROM profiles p_s WHERE p_s.status = 'Active') ${companyLrFilter}`
           );
         } else {
           [pendingRows] = await pool.query(
@@ -12467,11 +12537,10 @@ app.get("/api/dashboard-stats", async (req, res) => {
           teamParams = [department];
         }
       }
-      const isGroupWideRole = ["hr_admin", "managing_director", "operation_manager", "finance_manager"].includes(role);
       const teamFilterP = `${teamCompanyP} ${teamFilter}`;
       const teamFilterEmp = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
-      const teamLeaveFilterEmp = `${isGroupWideRole ? "" : teamCompanyEmp} ${teamFilter.replace(/p\./g, 'emp.')}`;
-      const teamFilterOa = `${teamCompanyEmp} ${teamFilter.replace(/p\./g, 'oa.')}`;
+      const teamLeaveFilterEmp = teamFilterEmp;
+      const teamFilterOa = teamFilterEmp;
 
       const [teamRows] = await pool.query(
         `WITH team_acts AS (
@@ -12626,6 +12695,11 @@ app.get("/api/dashboard-stats", async (req, res) => {
         sysParams.push(`%${department}%`);
       }
 
+      const sysAlCompanyFilter = getCompanyUserSqlFilterById(companyId, "al.user_id");
+      const sysAlCompanyClause = sysAlCompanyFilter
+        ? `AND (al.user_id IS NULL OR (${sysAlCompanyFilter.replace(/^\s*AND\s+/i, "")}))`
+        : "";
+
       const [sysRows] = await pool.query(
         `WITH sys_acts AS (
           SELECT 'system' AS type,
@@ -12656,6 +12730,7 @@ app.get("/api/dashboard-stats", async (req, res) => {
           FROM activity_logs al
           WHERE al.type = 'system'
             AND DATE(al.created_at AT TIME ZONE 'Asia/Kuala_Lumpur') = ?::date
+            ${sysAlCompanyClause}
         )
         SELECT type, actor, action, target, context, time, TO_CHAR(sort_time, 'DD Mon YYYY') AS date, badge
         FROM sys_acts
@@ -15422,19 +15497,24 @@ app.post("/api/outstation/log-location", async (req, res) => {
 
 app.get("/api/outstation/today", async (req, res) => {
   try {
+    const companyFilterP = getCompanyUserSqlFilter(req, "p.user_id");
     const [rows] = await pool.query(`
       SELECT a.attendance_id, a.user_id, p.full_name, p.department, a.clock_in, a.clock_out, a.attendance_type
       FROM attendances a
       JOIN profiles p ON p.user_id = a.user_id
-      WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date AND a.attendance_type = 'OUTSTATION'
+      WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+        AND a.attendance_type = 'OUTSTATION'
+        ${companyFilterP}
     `);
     
-    // Postgres specific: getting latest row per user
+    // Postgres specific: getting latest row per user (scoped to active company)
     const [logs] = await pool.query(`
-      SELECT DISTINCT ON (COALESCE(user_id, employee_id)) COALESCE(user_id, employee_id) as employee_id, latitude, longitude, accuracy, recorded_at, location_type
-      FROM employee_location_logs
-      WHERE (recorded_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
-      ORDER BY COALESCE(user_id, employee_id), recorded_at DESC
+      SELECT DISTINCT ON (COALESCE(ell.user_id, ell.employee_id)) COALESCE(ell.user_id, ell.employee_id) as employee_id, ell.latitude, ell.longitude, ell.accuracy, ell.recorded_at, ell.location_type
+      FROM employee_location_logs ell
+      JOIN profiles p ON p.user_id = COALESCE(ell.user_id, ell.employee_id)
+      WHERE (ell.recorded_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Kuala_Lumpur')::date
+        ${companyFilterP}
+      ORDER BY COALESCE(ell.user_id, ell.employee_id), ell.recorded_at DESC
     `);
     
     res.json({ success: true, attendances: rows, latest_locations: logs });

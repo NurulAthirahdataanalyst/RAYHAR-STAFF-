@@ -1582,7 +1582,7 @@ function createMultiCompanyRouter(pgPool) {
       // Clean up any historical/inactive references before deleting role to avoid foreign key violations
       await pgPool.query("UPDATE user_role SET role = 'Employee', role_id = NULL WHERE role_id = $1 OR LOWER(role) = LOWER($2)", [roleId, role.name]);
       await pgPool.query("UPDATE profiles SET role = 'Employee', role_id = NULL WHERE role_id = $1", [roleId]);
-      await pgPool.query('DELETE FROM company_user_roles WHERE role_id = $1', [roleId]);
+      await pgPool.query('UPDATE company_user_roles SET role_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE role_id = $1', [roleId]);
       await pgPool.query('DELETE FROM role_permissions WHERE role_id = $1', [roleId]);
       await pgPool.query('DELETE FROM approval_workflow WHERE approver_role_id = $1', [roleId]);
       await pgPool.query('DELETE FROM roles WHERE id = $1', [roleId]);
