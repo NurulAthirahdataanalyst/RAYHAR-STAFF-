@@ -329,6 +329,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           ],
         },
         { title: "Employee Directory", icon: Users, path: "/employees", permission: "employee.directory" },
+        { title: "Temporary Assignments", icon: Building2, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
         {
           id: "admin_outstation",
           title: "Outstation Operations",
@@ -341,7 +342,6 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
             { title: "Outstation Analytics", icon: BarChart3, path: "/outstation/analytics", permission: "outstation.analytics" },
           ],
         },
-        { title: "Temporary Assignments", icon: Building2, path: "/branches/temporary-assignments", permission: "employee.temporary_assignment" },
         {
           title: "Workforce Analytics",
           icon: PieChart,
