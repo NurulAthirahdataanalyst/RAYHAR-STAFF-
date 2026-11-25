@@ -17660,6 +17660,9 @@ app.post('/api/outstation', async (req, res) => {
     if (!destination || !start_date || !end_date) {
       return res.status(400).json({ success: false, error: 'Destination, start date, and end date are required' });
     }
+    if (end_date.slice(0, 10) < start_date.slice(0, 10)) {
+      return res.status(400).json({ success: false, error: 'End Date must be equal to or later than Start Date' });
+    }
 
     const formatApproverRole = (r) => {
       const safeR = safeString(r);
@@ -17802,6 +17805,10 @@ app.put('/api/outstation/:id', async (req, res) => {
     const end_time = safeString(req.body?.end_time);
     const total_days = req.body?.total_days;
     const status = safeString(req.body?.status);
+
+    if (start_date && end_date && end_date.slice(0, 10) < start_date.slice(0, 10)) {
+      return res.status(400).json({ success: false, error: 'End Date must be equal to or later than Start Date' });
+    }
 
     const [rows] = await pool.query(
       `UPDATE outstation_assignments 
@@ -18868,6 +18875,10 @@ app.post("/api/work-assignments", async (req, res) => {
     const start_date = safeString(req.body?.start_date);
     const end_date = safeString(req.body?.end_date);
     const status = safeString(req.body?.status);
+
+    if (start_date && end_date && end_date.slice(0, 10) < start_date.slice(0, 10)) {
+      return res.status(400).json({ success: false, error: 'End Date must be equal to or later than Start Date' });
+    }
     const purpose = safeString(req.body?.purpose);
     const remarks = safeString(req.body?.remarks);
     const assigned_by = safeString(req.body?.assigned_by);
@@ -18910,6 +18921,10 @@ app.put("/api/work-assignments/:id", async (req, res) => {
     const start_date = safeString(req.body?.start_date);
     const end_date = safeString(req.body?.end_date);
     const status = safeString(req.body?.status);
+
+    if (start_date && end_date && end_date.slice(0, 10) < start_date.slice(0, 10)) {
+      return res.status(400).json({ success: false, error: 'End Date must be equal to or later than Start Date' });
+    }
     const purpose = safeString(req.body?.purpose);
     const remarks = safeString(req.body?.remarks);
     const assigned_by = safeString(req.body?.assigned_by);

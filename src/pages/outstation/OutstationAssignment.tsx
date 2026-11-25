@@ -56,6 +56,7 @@ function calcTotalDays(start: string, end: string): number {
   if (!start || !end) return 0;
   const s = new Date(start.slice(0, 10));
   const e = new Date(end.slice(0, 10));
+  if (e.getTime() < s.getTime()) return 0;
   const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   return Math.max(1, diff);
 }
@@ -539,6 +540,10 @@ export default function OutstationAssignment() {
       toast.error("Start and end dates are required");
       return;
     }
+    if (editForm.end_date.slice(0, 10) < editForm.start_date.slice(0, 10)) {
+      toast.error("End Date must be equal to or later than Start Date");
+      return;
+    }
     if (editParticipants.length === 0) {
       toast.error("At least one staff participant is required for the assignment");
       return;
@@ -643,6 +648,10 @@ export default function OutstationAssignment() {
     if (newSelectedEmps.length === 0) { toast.error("Select at least one employee"); return; }
     if (!newForm.destination) { toast.error("Destination is required"); return; }
     if (!newForm.start_date || !newForm.end_date) { toast.error("Start and end dates are required"); return; }
+    if (newForm.end_date.slice(0, 10) < newForm.start_date.slice(0, 10)) {
+      toast.error("End Date must be equal to or later than Start Date");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -1356,7 +1365,13 @@ export default function OutstationAssignment() {
                     <div className="relative flex-1">
                       <CustomDatePicker
                         value={editForm.start_date}
-                        onChange={(d) => setEditForm(f => ({ ...f, start_date: d }))}
+                        onChange={(d) =>
+                          setEditForm((f) => ({
+                            ...f,
+                            start_date: d,
+                            end_date: f.end_date && d && f.end_date.slice(0, 10) < d.slice(0, 10) ? "" : f.end_date,
+                          }))
+                        }
                         placeholder="dd/mm/yyyy"
                         displayFormat="DD/MM/YYYY"
                         className="w-full"
@@ -1380,6 +1395,7 @@ export default function OutstationAssignment() {
                     <div className="relative flex-1">
                       <CustomDatePicker
                         value={editForm.end_date}
+                        minDate={editForm.start_date || undefined}
                         onChange={(d) => setEditForm(f => ({ ...f, end_date: d }))}
                         placeholder="dd/mm/yyyy"
                         displayFormat="DD/MM/YYYY"
@@ -1397,7 +1413,7 @@ export default function OutstationAssignment() {
                   </div>
                 </div>
               </div>
-              {editForm.start_date && editForm.end_date && (
+              {editForm.start_date && editForm.end_date && editTotalDays > 0 && (
                 <div className="flex items-center gap-2 bg-pink-50 dark:bg-pink-950/30 border border-pink-100 dark:border-pink-900/40 rounded-lg px-3 py-2">
                   <Calendar className="w-3.5 h-3.5 text-pink-500" />
                   <span className="text-[11px] font-black text-pink-700 dark:text-pink-300">
@@ -1698,7 +1714,13 @@ export default function OutstationAssignment() {
                     <div className="relative flex-1">
                       <CustomDatePicker
                         value={newForm.start_date}
-                        onChange={(d) => setNewForm(f => ({ ...f, start_date: d }))}
+                        onChange={(d) =>
+                          setNewForm((f) => ({
+                            ...f,
+                            start_date: d,
+                            end_date: f.end_date && d && f.end_date.slice(0, 10) < d.slice(0, 10) ? "" : f.end_date,
+                          }))
+                        }
                         placeholder="dd/mm/yyyy"
                         displayFormat="DD/MM/YYYY"
                         className="w-full"
@@ -1722,6 +1744,7 @@ export default function OutstationAssignment() {
                     <div className="relative flex-1">
                       <CustomDatePicker
                         value={newForm.end_date}
+                        minDate={newForm.start_date || undefined}
                         onChange={(d) => setNewForm(f => ({ ...f, end_date: d }))}
                         placeholder="dd/mm/yyyy"
                         displayFormat="DD/MM/YYYY"
@@ -1739,7 +1762,7 @@ export default function OutstationAssignment() {
                   </div>
                 </div>
               </div>
-              {newForm.start_date && newForm.end_date && (
+              {newForm.start_date && newForm.end_date && newTotalDays > 0 && (
                 <div className="flex items-center gap-2 bg-pink-50 dark:bg-pink-950/30 border border-pink-100 dark:border-pink-900/40 rounded-lg px-3 py-2">
                   <Calendar className="w-3.5 h-3.5 text-pink-500" />
                   <span className="text-[11px] font-black text-pink-700 dark:text-pink-300">

@@ -95,6 +95,27 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c;
 }
 
+function formatJoiningDate(dateVal?: string | Date | null): string {
+  if (!dateVal) return "—";
+  if (typeof dateVal === "string") {
+    const trimmed = dateVal.trim();
+    if (!trimmed || trimmed === "—" || trimmed === "-") return "—";
+    const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateOnlyMatch && !trimmed.includes("T") && !trimmed.includes(" ")) {
+      const year = parseInt(dateOnlyMatch[1], 10);
+      const monthIndex = parseInt(dateOnlyMatch[2], 10) - 1;
+      const day = parseInt(dateOnlyMatch[3], 10);
+      const d = new Date(year, monthIndex, day);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      }
+    }
+  }
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 export default function Employees() {
   const navigate = useNavigate();
 
@@ -517,8 +538,8 @@ export default function Employees() {
     }
   };
 
-  const fetchEmployees = async (companyId?: number) => {
-    setLoading(true);
+  const fetchEmployees = async (companyId?: number, silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const cId = companyId || activeCompany?.id || 1;
       const params = new URLSearchParams({
@@ -598,7 +619,7 @@ export default function Employees() {
     } catch (error) {
       console.error("Error fetching employees:", error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -660,9 +681,14 @@ export default function Employees() {
   }, [availableRoles, dbEmployees]);
 
   const filtered = dbEmployees.filter((e) => {
+    const q = search.toLowerCase();
     const matchesSearch = checkedEmployees.length > 0
         ? checkedEmployees.includes(e.id?.toString() || e.user_id || e.name)
-        : (!search || e.name.toLowerCase().includes(search.toLowerCase()) || e.position?.toLowerCase().includes(search.toLowerCase()));
+        : (!search ||
+           e.name.toLowerCase().includes(q) ||
+           e.position?.toLowerCase().includes(q) ||
+           String(e.user_id || e.id || "").toLowerCase().includes(q) ||
+           String(e.email || "").toLowerCase().includes(q));
     const matchesBranch = selectedBranch === "All" || e.branch === selectedBranch;
     const normUserDept = (userDepartment || "").toLowerCase().replace(/\bdepartment\b/g, "").trim();
     const normEmpDept = (e.department || "").toLowerCase().replace(/\bdepartment\b/g, "").trim();
@@ -1001,10 +1027,12 @@ export default function Employees() {
           onClose={() => {
             setSelectedEmployeeDetailId(null);
             setSelectedEmployee(null);
+            void fetchEmployees(activeCompany?.id || 1, true);
           }}
           onBack={() => {
             setSelectedEmployeeDetailId(null);
             setSelectedEmployee(null);
+            void fetchEmployees(activeCompany?.id || 1, true);
           }}
         />
       </div>
@@ -1290,19 +1318,20 @@ export default function Employees() {
                       <TableHead className="py-4 px-6">Staff Member</TableHead>
                       <TableHead className="py-4 px-6">Position</TableHead>
                       <TableHead className="py-4 px-6">Branch</TableHead>
+                      <TableHead className="py-4 px-6">Joining Date</TableHead>
                       <TableHead className="py-4 px-6">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-border/50">
                     {([
-                      { nameW: "w-44", emailW: "w-32", posW: "w-28", branchW: "w-24" },
-                      { nameW: "w-36", emailW: "w-40", posW: "w-24", branchW: "w-32" },
-                      { nameW: "w-52", emailW: "w-36", posW: "w-32", branchW: "w-20" },
-                      { nameW: "w-40", emailW: "w-28", posW: "w-20", branchW: "w-28" },
-                      { nameW: "w-48", emailW: "w-36", posW: "w-28", branchW: "w-24" },
-                      { nameW: "w-32", emailW: "w-32", posW: "w-24", branchW: "w-36" },
-                      { nameW: "w-44", emailW: "w-40", posW: "w-32", branchW: "w-20" },
-                      { nameW: "w-36", emailW: "w-28", posW: "w-24", branchW: "w-28" },
+                      { nameW: "w-44", emailW: "w-32", posW: "w-28", branchW: "w-24", joinW: "w-24" },
+                      { nameW: "w-36", emailW: "w-40", posW: "w-24", branchW: "w-32", joinW: "w-20" },
+                      { nameW: "w-52", emailW: "w-36", posW: "w-32", branchW: "w-20", joinW: "w-24" },
+                      { nameW: "w-40", emailW: "w-28", posW: "w-20", branchW: "w-28", joinW: "w-20" },
+                      { nameW: "w-48", emailW: "w-36", posW: "w-28", branchW: "w-24", joinW: "w-24" },
+                      { nameW: "w-32", emailW: "w-32", posW: "w-24", branchW: "w-36", joinW: "w-20" },
+                      { nameW: "w-44", emailW: "w-40", posW: "w-32", branchW: "w-20", joinW: "w-24" },
+                      { nameW: "w-36", emailW: "w-28", posW: "w-24", branchW: "w-28", joinW: "w-20" },
                     ]).map((rowCfg, idx) => (
                       <TableRow key={idx}>
                         <TableCell className="py-4 px-6">
@@ -1319,6 +1348,9 @@ export default function Employees() {
                         </TableCell>
                         <TableCell className="py-4 px-6">
                           <Skeleton className={`h-3.5 ${rowCfg.branchW} rounded`} />
+                        </TableCell>
+                        <TableCell className="py-4 px-6">
+                          <Skeleton className={`h-3.5 ${rowCfg.joinW} rounded`} />
                         </TableCell>
                         <TableCell className="py-4 px-6">
                           <div className="flex items-center gap-2">
@@ -1357,6 +1389,7 @@ export default function Employees() {
                       <TableHead className="py-4 px-6">Staff Member</TableHead>
                       <TableHead className="py-4 px-6">Position</TableHead>
                       <TableHead className="py-4 px-6">Branch</TableHead>
+                      <TableHead className="py-4 px-6">Joining Date</TableHead>
                       <TableHead className="py-4 px-6">Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1375,7 +1408,9 @@ export default function Employees() {
                               </div>
                               <div className="min-w-0">
                                 <p className="font-bold text-foreground group-hover:text-[#942392] transition-colors">{emp.name}</p>
-                                <p className="text-[8px] print:text-[13px] text-foreground truncate font-medium">{emp.email}</p>
+                                <p className="text-[8px] print:text-[13px] text-foreground truncate font-medium">
+                                  {[emp.user_id || emp.id, emp.email].filter(Boolean).join(" • ")}
+                                </p>
                               </div>
                             </div>
                           </TableCell>
@@ -1402,6 +1437,11 @@ export default function Employees() {
                                 </div>
                               )}
                             </div>
+                          </TableCell>
+                          <TableCell className="py-4 px-6 whitespace-nowrap">
+                            <span className="text-xs print:text-[11px] font-bold text-foreground">
+                              {formatJoiningDate(emp.join_date)}
+                            </span>
                           </TableCell>
                           <TableCell className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
@@ -1445,7 +1485,7 @@ export default function Employees() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="py-12 text-center text-foreground italic font-medium">No employees found matching your search.</TableCell>
+                        <TableCell colSpan={5} className="py-12 text-center text-foreground italic font-medium">No employees found matching your search.</TableCell>
                       </TableRow>
                     )}
                   </TableBody>
@@ -1465,7 +1505,7 @@ export default function Employees() {
                         {String(emp.name).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
                           <p className="font-black text-sm text-foreground truncate">{emp.name}</p>
                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] print:text-[13px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20' : emp.status === 'Inactive' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20' : 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20'}`}>
@@ -1493,12 +1533,21 @@ export default function Employees() {
                                 )}
                               </div>
                         </div>
+                        <p className="text-[10px] text-foreground/80 truncate font-medium mb-1">
+                          {[emp.user_id || emp.id, emp.email].filter(Boolean).join(" • ")}
+                        </p>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] print:text-[13px] font-bold text-foreground uppercase tracking-wider">
                           <span className="truncate max-w-[100px]">
                             {emp.position === "Finance Manager" || emp.position === "finance_manager" ? "Operation Manager" : emp.position.replace(/_/g, ' ')}
                           </span>
                           <span className="opacity-30">•</span>
                           <span>{emp.branch}</span>
+                          {emp.join_date && (
+                            <>
+                              <span className="opacity-30">•</span>
+                              <span>{formatJoiningDate(emp.join_date)}</span>
+                            </>
+                          )}
                           {emp.tempBranch && (
                             <>
                               <span className="opacity-30">•</span>

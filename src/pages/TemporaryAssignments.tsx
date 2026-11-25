@@ -150,6 +150,10 @@ const TemporaryAssignments = () => {
       toast.error("Please select an employee and target branch.");
       return;
     }
+    if (assignForm.start_date && assignForm.end_date && assignForm.end_date < assignForm.start_date) {
+      toast.error("End Date must be equal to or later than Start Date");
+      return;
+    }
     setSubmittingAssign(true);
     try {
       const url = editId 
@@ -644,11 +648,11 @@ const TemporaryAssignments = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-bold uppercase tracking-widest text-foreground mb-2 block">Start Date</Label>
-                <DatePickerInput value={assignForm.start_date} onChange={(val) => setAssignForm({...assignForm, start_date: val})} />
+                <DatePickerInput value={assignForm.start_date} onChange={(val) => setAssignForm({...assignForm, start_date: val, end_date: assignForm.end_date && val && assignForm.end_date < val ? "" : assignForm.end_date})} />
               </div>
               <div>
                 <Label className="text-xs font-bold uppercase tracking-widest text-foreground mb-2 block">End Date</Label>
-                <DatePickerInput value={assignForm.end_date} onChange={(val) => setAssignForm({...assignForm, end_date: val})} />
+                <DatePickerInput value={assignForm.end_date} minDate={assignForm.start_date || undefined} onChange={(val) => setAssignForm({...assignForm, end_date: val})} />
               </div>
             </div>
             <div>

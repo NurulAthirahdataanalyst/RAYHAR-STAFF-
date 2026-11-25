@@ -7,6 +7,53 @@ import { buttonVariants } from "@/components/ui/button";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
+function isSameCalendarDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function normalizeDayStart(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0).getTime();
+}
+
+function isDateDisabled(date: Date, disabledProp?: CalendarProps["disabled"]): boolean {
+  if (!disabledProp) return false;
+  if (typeof disabledProp === "boolean") return disabledProp;
+  if (typeof disabledProp === "function") return Boolean(disabledProp(date));
+  if (disabledProp instanceof Date) return isSameCalendarDay(date, disabledProp);
+  if (Array.isArray(disabledProp)) {
+    return disabledProp.some((matcher) => isDateDisabled(date, matcher as any));
+  }
+  if (typeof disabledProp === "object") {
+    const targetTime = normalizeDayStart(date);
+    if ("before" in disabledProp && "after" in disabledProp && disabledProp.before && disabledProp.after) {
+      const beforeT = normalizeDayStart(disabledProp.before);
+      const afterT = normalizeDayStart(disabledProp.after);
+      return beforeT <= afterT
+        ? targetTime < beforeT || targetTime > afterT
+        : targetTime < beforeT && targetTime > afterT;
+    }
+    if ("before" in disabledProp && disabledProp.before) {
+      return targetTime < normalizeDayStart(disabledProp.before);
+    }
+    if ("after" in disabledProp && disabledProp.after) {
+      return targetTime > normalizeDayStart(disabledProp.after);
+    }
+    if ("from" in disabledProp && disabledProp.from) {
+      const fromT = normalizeDayStart(disabledProp.from);
+      const toT = disabledProp.to ? normalizeDayStart(disabledProp.to) : fromT;
+      return targetTime >= fromT && targetTime <= toT;
+    }
+    if ("dayOfWeek" in disabledProp && Array.isArray(disabledProp.dayOfWeek)) {
+      return disabledProp.dayOfWeek.includes(date.getDay());
+    }
+  }
+  return false;
+}
+
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   const getInitialDate = () => {
     if (props.selected instanceof Date && !isNaN(props.selected.getTime())) {
@@ -55,8 +102,12 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       const y = selDate.getFullYear();
       setDateInputStr(`${d}/${m}/${y}`);
       setCurrentMonth(new Date(selDate.getFullYear(), selDate.getMonth(), 1));
+    } else if (props.defaultMonth instanceof Date && !isNaN(props.defaultMonth.getTime())) {
+      setCurrentMonth(new Date(props.defaultMonth.getFullYear(), props.defaultMonth.getMonth(), 1));
     }
-  }, [props.selected]);
+  }, [props.selected, props.defaultMonth]);
+
+  const todayDisabled = isDateDisabled(new Date(), props.disabled);
 
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -72,6 +123,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
     e.preventDefault();
     e.stopPropagation();
     const today = new Date();
+    if (isDateDisabled(today, props.disabled)) return;
     const d = String(today.getDate()).padStart(2, "0");
     const m = String(today.getMonth() + 1).padStart(2, "0");
     const y = today.getFullYear();
@@ -91,8 +143,10 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   };
 
   const handleDaySelect = (day: any, selectedDay: any, activeModifiers: any, e: any) => {
+    if (activeModifiers?.disabled) return;
     let selDate: Date | undefined;
     if (day instanceof Date && !isNaN(day.getTime())) {
+      if (isDateDisabled(day, props.disabled)) return;
       selDate = day;
     } else if (day && typeof day === "object" && "from" in day && day.from instanceof Date) {
       selDate = day.from;
@@ -134,6 +188,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 1900 && year <= 2100) {
           const target = new Date(year, month - 1, day, 12, 0, 0);
           if (target.getFullYear() === year && target.getMonth() === month - 1 && target.getDate() === day) {
+            if (isDateDisabled(target, props.disabled)) return;
             const newMonth = new Date(year, month - 1, 1);
             setCurrentMonth(newMonth);
             props.onMonthChange?.(newMonth);
@@ -163,7 +218,13 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         </button>
         <button
           onClick={handleToday}
-          className="text-xs font-bold text-[#942392] dark:text-[#f885d5] hover:text-[#5e0080] transition-colors py-0.5 px-1.5 rounded hover:bg-[#942392]/10 cursor-pointer bg-transparent border-none"
+          disabled={todayDisabled}
+          className={cn(
+            "text-xs font-bold text-[#942392] dark:text-[#f885d5] transition-colors py-0.5 px-1.5 rounded bg-transparent border-none",
+            todayDisabled
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:text-[#5e0080] hover:bg-[#942392]/10 cursor-pointer"
+          )}
           type="button"
         >
           Today
