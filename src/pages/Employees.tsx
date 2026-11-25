@@ -2276,89 +2276,208 @@ export default function Employees() {
       </Dialog>
 
       
-            {/* Status Confirmation Modal */}
+      {/* Status Confirmation Modal */}
       <Dialog open={!!statusConfirmEmp} onOpenChange={(open) => !open && setStatusConfirmEmp(null)}>
-        <DialogContent className={`sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl ${
-          statusConfirmEmp?.status === "Active"
-            ? "bg-[#faf5fc] dark:bg-slate-900 [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:top-4 [&>button]:right-4"
-            : "[&>button]:text-emerald-600 [&>button]:hover:text-emerald-700"
-        }`}>
-          <DialogHeader className={`p-5 ${
-            statusConfirmEmp?.status === "Active"
-              ? "bg-[#942392] border-b-2 border-[#7a1d79]"
-              : "bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-100 dark:border-emerald-900/30"
-          }`}>
-            <DialogTitle className={`text-xl font-black ${
-              statusConfirmEmp?.status === "Active" ? "text-white" : "text-emerald-600 dark:text-emerald-400"
-            }`}>
-              {statusConfirmEmp?.status === "Active" ? "Inactive Employee?" : "Reactivate Employee?"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-5 space-y-4">
-            <p className={`text-sm ${statusConfirmEmp?.status === "Active" ? "text-[#942392] font-semibold dark:text-purple-200" : "text-foreground dark:text-slate-300"}`}>
-              {statusConfirmEmp?.status === "Active" 
-                ? <>Are you sure you want to mark <strong>{statusConfirmEmp?.name}</strong> as Inactive?</>
-                : <>Are you sure you want to reactivate <strong>{statusConfirmEmp?.name}</strong>?</>}
-            </p>
-            <div className={`border rounded-lg p-3 ${
-              statusConfirmEmp?.status === "Active" 
-                ? "bg-[#942392]/5 border-[#942392]/30" 
-                : "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
-            }`}>
-              <p className={`text-xs font-medium leading-relaxed ${
-                statusConfirmEmp?.status === "Active" 
-                  ? "text-[#942392] dark:text-purple-300" 
-                  : "text-emerald-600 dark:text-emerald-400"
-              }`}>
-                {statusConfirmEmp?.status === "Active" 
-                  ? "This action is temporary and can be reversed later. The employee's records will be retained." 
-                  : "This action will restore the employee's active status and grant them system access."}
-              </p>
+        <DialogContent className="sm:max-w-[420px] p-6 sm:p-7 border border-slate-100 dark:border-slate-800 bg-white dark:bg-card shadow-2xl rounded-xl [&>button]:hidden">
+          {statusConfirmEmp?.status === "Active" ? (
+            <div className="flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-xl bg-[#ffffe0] border border-[#ffff00]/60 flex items-center justify-center mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 28 24"
+                  className="w-8 h-7 drop-shadow-[0_0.5px_0.75px_rgba(161,98,7,0.45)]"
+                  aria-hidden="true"
+                >
+                  <defs>
+                    <mask id="inactive-users-mask">
+                      <rect width="28" height="24" fill="white" />
+                      {/* Separation halo around center person */}
+                      <circle cx="12.5" cy="7.5" r="4.3" fill="black" />
+                      <path d="M5.4 19.5c0-3.9 3.1-6.5 7.1-6.5s7.1 2.6 7.1 6.5" fill="black" />
+                      {/* Redraw center person inside halo */}
+                      <circle cx="12.5" cy="7.5" r="3.3" fill="white" />
+                      <path d="M6.6 19.5c0-3.2 2.6-5.4 5.9-5.4s5.9 2.2 5.9 5.4" fill="white" />
+                      {/* Separation halo around bottom-right X badge */}
+                      <circle cx="20.5" cy="17.5" r="5.3" fill="black" />
+                      {/* Redraw badge circle */}
+                      <circle cx="20.5" cy="17.5" r="4.3" fill="white" />
+                      {/* Cutout X inside badge */}
+                      <path
+                        d="M18.9 15.9l3.2 3.2M22.1 15.9l-3.2 3.2"
+                        stroke="black"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                      />
+                    </mask>
+                  </defs>
+                  <g fill="#ffff00" mask="url(#inactive-users-mask)">
+                    {/* Left person */}
+                    <circle cx="6" cy="9.2" r="2.6" />
+                    <path d="M1.5 18.2c0-2.6 2-4.4 4.5-4.4s4.5 1.8 4.5 4.4" />
+                    {/* Right person */}
+                    <circle cx="19" cy="9.2" r="2.6" />
+                    <path d="M14.5 18.2c0-2.6 2-4.4 4.5-4.4s4.5 1.8 4.5 4.4" />
+                    {/* Center person */}
+                    <circle cx="12.5" cy="7.5" r="3.3" />
+                    <path d="M6.6 19.5c0-3.2 2.6-5.4 5.9-5.4s5.9 2.2 5.9 5.4" />
+                    {/* Bottom-right X badge */}
+                    <circle cx="20.5" cy="17.5" r="4.3" />
+                  </g>
+                </svg>
+              </div>
+
+              <DialogHeader className="space-y-2 text-center sm:text-center">
+                <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white text-center">
+                  Inactive Employee?
+                </DialogTitle>
+                <DialogDescription asChild>
+                  <div className="space-y-2 text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Are you sure you want to mark{" "}
+                      <strong className="font-semibold text-slate-900 dark:text-white">
+                        {statusConfirmEmp?.name}
+                      </strong>{" "}
+                      as Inactive?
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      This action is temporary and can be reversed later. The employee&apos;s records will be retained.
+                    </p>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex items-center justify-center gap-3 mt-6 w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStatusConfirmEmp(null)}
+                  className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={confirmToggleStatus}
+                  className="bg-[#ffff00] hover:bg-[#e6e600] text-slate-900 font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
+                >
+                  Yes, Inactive
+                </Button>
+              </div>
             </div>
-          </div>
-          <DialogFooter className="p-5 pt-0">
-            <Button 
-              variant="outline" 
-              onClick={() => setStatusConfirmEmp(null)}
-              className={statusConfirmEmp?.status === "Active" ? "border-[#942392] text-[#942392] hover:bg-[#942392]/10 hover:text-[#942392]" : ""}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant={statusConfirmEmp?.status === "Active" ? "default" : "default"} 
-              onClick={confirmToggleStatus} 
-              className={statusConfirmEmp?.status === "Active" ? "bg-[#942392] hover:bg-[#7a1d79] text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
-            >
-              {statusConfirmEmp?.status === "Active" ? "Inactive" : "Reactivate"}
-            </Button>
-          </DialogFooter>
+          ) : (
+            <div className="flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center mb-4">
+                <Users className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+              </div>
+
+              <DialogHeader className="space-y-2 text-center sm:text-center">
+                <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white text-center">
+                  Reactivate Employee?
+                </DialogTitle>
+                <DialogDescription asChild>
+                  <div className="space-y-2 text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Are you sure you want to reactivate{" "}
+                      <strong className="font-semibold text-slate-900 dark:text-white">
+                        {statusConfirmEmp?.name}
+                      </strong>
+                      ?
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      This action will restore the employee&apos;s active status and grant them system access.
+                    </p>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex items-center justify-center gap-3 mt-6 w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStatusConfirmEmp(null)}
+                  className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={confirmToggleStatus}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
+                >
+                  Yes, Reactivate
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteConfirmEmp} onOpenChange={(open) => !open && setDeleteConfirmEmp(null)}>
-        <DialogContent className="sm:max-w-[425px] overflow-hidden p-0 border-0 border-none shadow-2xl rounded-2xl [&>button]:text-[#ff0000] [&>button]:hover:text-[#cc0000]">
-          <DialogHeader className="bg-rose-50 dark:bg-rose-950/40 p-5 border-b border-rose-100 dark:border-rose-900/30">
-            <DialogTitle className="text-xl font-black text-[#ff0000]">Delete Employee?</DialogTitle>
-          </DialogHeader>
-          <div className="p-5 space-y-4">
-            <p className="text-sm text-foreground dark:text-slate-300">
-              Are you sure you want to permanently delete <strong>{deleteConfirmEmp?.name}</strong> from <strong>{deleteConfirmEmp?.branch}</strong>?
-            </p>
-            <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3">
-              <p className="text-xs text-[#ff0000] font-medium leading-relaxed">
-                ⚠️ This action is permanent and cannot be undone or recovered. All employee records associated with this account will be deleted.
-              </p>
+        <DialogContent className="sm:max-w-[420px] p-6 sm:p-7 border border-slate-100 dark:border-slate-800 bg-white dark:bg-card shadow-2xl rounded-xl [&>button]:hidden">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-xl bg-[#FDECEB] dark:bg-red-950/40 flex items-center justify-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#E70D0D"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-7 h-7"
+                aria-hidden="true"
+              >
+                <path d="M4 7h16" />
+                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                <path d="M10 12l4 4m0 -4l-4 4" />
+              </svg>
+            </div>
+
+            <DialogHeader className="space-y-2 text-center sm:text-center">
+              <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white text-center">
+                Confirm Delete Employee?
+              </DialogTitle>
+              <DialogDescription asChild>
+                <div className="space-y-2 text-center">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Are you sure you want to permanently delete{" "}
+                    <strong className="font-semibold text-slate-900 dark:text-white">
+                      {deleteConfirmEmp?.name}
+                    </strong>{" "}
+                    from{" "}
+                    <strong className="font-semibold text-slate-900 dark:text-white">
+                      {deleteConfirmEmp?.branch}
+                    </strong>
+                    ?
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    This action is permanent and cannot be undone or recovered. All employee records associated with this account will be deleted.
+                  </p>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex items-center justify-center gap-3 mt-6 w-full">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDeleteConfirmEmp(null)}
+                className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDeleteEmployee}
+                className="bg-[#E70D0D] hover:bg-[#c80b0b] text-white font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
+              >
+                Yes, Delete
+              </Button>
             </div>
           </div>
-          <DialogFooter className="p-5 pt-0">
-            <Button variant="outline" onClick={() => setDeleteConfirmEmp(null)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteEmployee} className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
-              Delete Permanently
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
