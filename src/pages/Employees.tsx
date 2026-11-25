@@ -2281,11 +2281,11 @@ export default function Employees() {
         <DialogContent className="sm:max-w-[420px] p-6 sm:p-7 border border-slate-100 dark:border-slate-800 bg-white dark:bg-card shadow-2xl rounded-xl [&>button]:hidden">
           {statusConfirmEmp?.status === "Active" ? (
             <div className="flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-xl bg-[#ffffe0] border border-[#ffff00]/60 flex items-center justify-center mb-4">
+              <div className="w-14 h-14 rounded-xl bg-[#FEF3C7] dark:bg-amber-950/40 flex items-center justify-center mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 28 24"
-                  className="w-8 h-7 drop-shadow-[0_0.5px_0.75px_rgba(161,98,7,0.45)]"
+                  className="w-8 h-7"
                   aria-hidden="true"
                 >
                   <defs>
@@ -2310,7 +2310,7 @@ export default function Employees() {
                       />
                     </mask>
                   </defs>
-                  <g fill="#ffff00" mask="url(#inactive-users-mask)">
+                  <g fill="#D97706" mask="url(#inactive-users-mask)">
                     {/* Left person */}
                     <circle cx="6" cy="9.2" r="2.6" />
                     <path d="M1.5 18.2c0-2.6 2-4.4 4.5-4.4s4.5 1.8 4.5 4.4" />
@@ -2328,7 +2328,7 @@ export default function Employees() {
 
               <DialogHeader className="space-y-2 text-center sm:text-center">
                 <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white text-center">
-                  Inactive Employee?
+                  Mark Employee as Inactive?
                 </DialogTitle>
                 <DialogDescription asChild>
                   <div className="space-y-2 text-center">
@@ -2336,6 +2336,10 @@ export default function Employees() {
                       Are you sure you want to mark{" "}
                       <strong className="font-semibold text-slate-900 dark:text-white">
                         {statusConfirmEmp?.name}
+                      </strong>{" "}
+                      from{" "}
+                      <strong className="font-semibold text-slate-900 dark:text-white">
+                        {statusConfirmEmp?.branch}
                       </strong>{" "}
                       as Inactive?
                     </p>
@@ -2346,21 +2350,21 @@ export default function Employees() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex items-center justify-center gap-3 mt-6 w-full">
+              <div className="grid grid-cols-2 gap-3 mt-6 w-full">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setStatusConfirmEmp(null)}
-                  className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
+                  className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 w-full font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
                   onClick={confirmToggleStatus}
-                  className="bg-[#ffff00] hover:bg-[#e6e600] text-slate-900 font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
+                  className="bg-[#D97706] hover:bg-[#B45309] text-white w-full font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
                 >
-                  Yes, Inactive
+                  Yes, Mark Inactive
                 </Button>
               </div>
             </div>
@@ -2390,19 +2394,19 @@ export default function Employees() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex items-center justify-center gap-3 mt-6 w-full">
+              <div className="grid grid-cols-2 gap-3 mt-6 w-full">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setStatusConfirmEmp(null)}
-                  className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
+                  className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 w-full font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
                   onClick={confirmToggleStatus}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white w-full font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
                 >
                   Yes, Reactivate
                 </Button>
@@ -2459,12 +2463,12 @@ export default function Employees() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex items-center justify-center gap-3 mt-6 w-full">
+            <div className="grid grid-cols-2 gap-3 mt-6 w-full">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setDeleteConfirmEmp(null)}
-                className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
+                className="bg-[#F8F9FA] hover:bg-slate-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 w-full font-semibold text-sm px-5 h-10 rounded-lg shadow-none"
               >
                 Cancel
               </Button>
@@ -2472,7 +2476,7 @@ export default function Employees() {
                 type="button"
                 variant="destructive"
                 onClick={handleDeleteEmployee}
-                className="bg-[#E70D0D] hover:bg-[#c80b0b] text-white font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
+                className="bg-[#E70D0D] hover:bg-[#c80b0b] text-white w-full font-semibold text-sm px-5 h-10 rounded-lg shadow-sm"
               >
                 Yes, Delete
               </Button>
