@@ -671,33 +671,35 @@ export default function WorkforceInsights() {
           </div>
         </div>
 
-        {/* Redesigned Top Section: 5-column layout */}
+        {/* Redesigned Top Section: Responsive Compact KPI Grid */}
         {viewMode === 'day' ? (
           <>
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-5">
           
-          {/* 7 KPI Cards (Replaces old Attendance Overview + 4 Grid) */}
-          <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} flex flex-col gap-4`}>
-            {/* Top Row: 4 Cards (25% each) */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 7 Compact KPI Cards */}
+          <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} flex flex-col gap-3`}>
+            {/* Top Row: 2 cols on mobile, 4 cols on md+ */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             
-                        {/* 1. Present Today */}
-            <Card className={`group border border-emerald-100 dark:border-emerald-900/40 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300`}>
+            {/* 1. Present Today */}
+            <Card className={`group border border-emerald-100 dark:border-emerald-900/40 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.emerald} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="flex justify-between items-start mb-2">
-                  <div className="w-10 h-10 rounded-full border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                    <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                      <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <p className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider truncate">Present Today</p>
                   </div>
-                  {feedConnected && <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-bold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
+                  {feedConnected && <span className="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full shrink-0"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
                 </div>
-                <p className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2 mt-2">Present Today</p>
-                <div className="flex flex-col items-center justify-center mt-2">
-                  <h3 className="text-5xl font-black text-slate-800 dark:text-white leading-none tracking-tight">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
-                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                <div className="flex items-baseline gap-1.5 mt-2.5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none tracking-tight">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
+                  <span className="text-[11px] font-semibold text-foreground">Employees</span>
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-3 border-t border-slate-100 dark:border-slate-800 pt-3">
-                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+              <div className="mt-2.5 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-2">
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                   {Math.round(((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%
                 </span>
                 <div className="w-full bg-emerald-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -706,8 +708,8 @@ export default function WorkforceInsights() {
                     style={{ width: `${Math.min(100, ((feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present) / (data.topKpi.activeEmployees || 1)) * 100)}%` }}
                   />
                 </div>
-                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                  {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present} / {data.topKpi.activeEmployees}
+                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  {feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}/{data.topKpi.activeEmployees}
                 </span>
               </div>
             </Card>
@@ -728,128 +730,144 @@ export default function WorkforceInsights() {
               }
               
               return (
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.orange} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.orange} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-orange-100 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <Clock className="w-5 h-5 text-orange-500 dark:text-orange-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg border border-orange-100 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <Clock className="w-4 h-4 text-orange-500 dark:text-orange-400" />
+                  </div>
+                  <p className="text-[10px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider truncate">Late Arrival</p>
                 </div>
-                <p className="text-[11px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-2">Late Arrival</p>
-                <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late}</h3>
-                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                <div className="flex items-baseline gap-1.5 mt-2.5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && lateList.length > 0 ? lateList.length : data.teamAvailability.late}</h3>
+                  <span className="text-[11px] font-semibold text-foreground">Employees</span>
                 </div>
               </div>
-              <div className="mt-2">
-                <p className="text-[11px] font-bold text-foreground mb-3">Highest: <span className="text-orange-500 dark:text-orange-400">{highestLateTime}</span></p>
+              <div className="mt-2.5 border-t border-slate-100 dark:border-slate-800 pt-2">
+                <p className="text-[10px] font-bold text-foreground truncate">Highest: <span className="text-orange-500 dark:text-orange-400">{highestLateTime}</span></p>
               </div>
             </Card>
             );})()}
 
             {/* 3. On Leave Today */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.purple} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.purple} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <CalendarDays className="w-5 h-5 text-purple-600 dark:text-purple-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <CalendarDays className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <p className="text-[10px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider truncate">On Leave Today</p>
                 </div>
-                <p className="text-[11px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-2">On Leave Today</p>
-                <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{data.topKpi.onLeaveToday}</h3>
-                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                <div className="flex items-baseline gap-1.5 mt-2.5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none">{data.topKpi.onLeaveToday}</h3>
+                  <span className="text-[11px] font-semibold text-foreground">Employees</span>
                 </div>
               </div>
-                <div className="flex items-center gap-1 flex-wrap">
-                  <span className="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
-                  <span className="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
-                  <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">RL {data.leave?.replacement || 0}</span>
-                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">UL {data.leave?.unpaid || 0}</span>
-                </div>
+              <div className="mt-2.5 flex items-center gap-1 flex-wrap border-t border-slate-100 dark:border-slate-800 pt-2">
+                <span className="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">AL {data.leave?.annual || 0}</span>
+                <span className="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">MC {data.leave?.medical || 0}</span>
+                <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">RL {data.leave?.replacement || 0}</span>
+                <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">UL {data.leave?.unpaid || 0}</span>
+              </div>
             </Card>
 
             {/* 4. Absent Today */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.red} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.red} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <XCircle className="w-5 h-5 text-red-500 dark:text-red-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <XCircle className="w-4 h-4 text-red-500 dark:text-red-400" />
+                  </div>
+                  <p className="text-[10px] font-extrabold text-red-500 dark:text-red-400 uppercase tracking-wider truncate">Absent Today</p>
                 </div>
-                <p className="text-[11px] font-extrabold text-red-500 dark:text-red-400 uppercase tracking-wider mb-2">Absent Today</p>
-                <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && absentList.length > 0 ? absentList.filter(a => (a as any).status === 'absent').length : data.teamAvailability.absent}</h3>
-                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                <div className="flex items-baseline gap-1.5 mt-2.5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none">{feedConnected && absentList.length > 0 ? absentList.filter(a => (a as any).status === 'absent').length : data.teamAvailability.absent}</h3>
+                  <span className="text-[11px] font-semibold text-foreground">Employees</span>
                 </div>
               </div>
-              <div className="mt-2">
-                <p className="text-[11px] font-bold text-red-500 dark:text-red-400 mb-3">Needs Attention</p>
+              <div className="mt-2.5 border-t border-slate-100 dark:border-slate-800 pt-2">
+                <p className="text-[10px] font-bold text-red-500 dark:text-red-400">Needs Attention</p>
               </div>
             </Card>
             </div>
 
-            {/* Bottom Row: 3 Cards (33.333% each) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Bottom Row: 2 cols on mobile (Active Workforce spans 2), 3 cols on sm+ */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* 5. Missing Punch */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.amber} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.amber} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="flex justify-between items-start mb-2">
-                  <div className="w-10 h-10 rounded-full border border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                    <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 rounded-lg border border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                      <AlertTriangle className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                    </div>
+                    <p className="text-[10px] font-extrabold text-amber-500 dark:text-amber-400 uppercase tracking-wider truncate">Missing Punch</p>
                   </div>
-                  {feedConnected && <span className="text-amber-500 dark:text-amber-400 text-[11px] font-bold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full shadow-sm"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Live</span>}
+                  {feedConnected && <span className="text-amber-500 dark:text-amber-400 text-[10px] font-bold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full shrink-0"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Live</span>}
                 </div>
-                <p className="text-[11px] font-extrabold text-amber-500 dark:text-amber-400 uppercase tracking-wider mb-2">Missing Punch</p>
-                <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">
+                <div className="flex items-baseline gap-1.5 mt-2.5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none">
                     {feedConnected && missingPunchYesterdayLive !== null 
                       ? missingPunchYesterdayLive 
                       : (data.topKpi?.missingPunchYesterday || 0)}
                   </h3>
-                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                  <span className="text-[11px] font-semibold text-foreground">Employees</span>
                 </div>
               </div>
-              <div className="mt-2">
-                <p className="text-[11px] font-bold text-amber-500 dark:text-amber-400 mb-3 flex items-center gap-1">Yesterday's Records</p>
-                <div className="w-full bg-amber-100 dark:bg-amber-950/50 rounded-full h-1.5 overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full w-[100%]"></div>
+              <div className="mt-2.5 border-t border-slate-100 dark:border-slate-800 pt-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-bold text-amber-500 dark:text-amber-400 truncate">Yesterday&apos;s Records</p>
+                  <div className="w-12 bg-amber-100 dark:bg-amber-950/50 rounded-full h-1.5 overflow-hidden shrink-0">
+                    <div className="h-full bg-amber-500 rounded-full w-full"></div>
+                  </div>
                 </div>
               </div>
             </Card>
 
             {/* 6. Outstation */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.blue} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-lg transition-all duration-300`}>
+            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.blue} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <Plane className="w-5 h-5 text-blue-500 dark:text-blue-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <Plane className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                  </div>
+                  <p className="text-[10px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-wider truncate">Outstation</p>
                 </div>
-                <p className="text-[11px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-wider mb-2">Outstation</p>
-                <div className="flex flex-col items-start mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)}</h3>
-                  <p className="text-[12px] font-semibold text-foreground mt-1">Employees</p>
+                <div className="flex items-baseline gap-1.5 mt-2.5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none">{activeOutstationList.length > 0 ? activeOutstationList.length : (data.topKpi.outstationToday || 0)}</h3>
+                  <span className="text-[11px] font-semibold text-foreground">Employees</span>
                 </div>
               </div>
-              <div className="mt-2">
-                <p className="text-[11px] font-bold text-blue-500 dark:text-blue-400 mb-3">{(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? "Away on duty" : "None Today"}</p>
-                <div className="flex items-center border-t border-slate-100 dark:border-slate-800 pt-3">
-                  <div className="w-12 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden ml-auto shrink-0">
-                    <div className="h-full bg-blue-300 rounded-full w-[30%]"></div>
+              <div className="mt-2.5 border-t border-slate-100 dark:border-slate-800 pt-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] font-bold text-blue-500 dark:text-blue-400 truncate">{(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? "Away on duty" : "None Today"}</p>
+                  <div className="w-12 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden shrink-0">
+                    <div className="h-full bg-blue-400 rounded-full" style={{ width: `${(activeOutstationList.length > 0 || (data.topKpi.outstationToday || 0) > 0) ? 100 : 25}%` }}></div>
                   </div>
                 </div>
               </div>
             </Card>
 
-            {/* 8. Active Workforce */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-5 flex flex-col h-[200px] justify-between ${cardHoverEffects.emerald} rounded-[24px] shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300`}>
+            {/* 7. Active Workforce */}
+            <Card className={`col-span-2 sm:col-span-1 group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.emerald} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="w-10 h-10 rounded-full border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
-                  <Users className="w-5 h-5 text-emerald-500 dark:text-emerald-400 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 rounded-lg border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                      <Users className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                    </div>
+                    <p className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider truncate">Active Workforce</p>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">Active</span>
                 </div>
-                <p className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2">Active Workforce</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <h3 className="text-4xl font-black text-slate-800 dark:text-white leading-none">
-                    {data.topKpi.activeEmployees} <span className="text-[18px] font-bold text-foreground">/ {data.topKpi.totalHeadcount}</span>
+                <div className="flex items-baseline gap-1.5 mt-2.5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none">
+                    {data.topKpi.activeEmployees} <span className="text-sm sm:text-base font-bold text-foreground">/ {data.topKpi.totalHeadcount}</span>
                   </h3>
                 </div>
-                <p className="text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1">Active</p>
               </div>
-              <div className="mt-4 flex items-center gap-3 border-t border-slate-100 dark:border-slate-800 pt-3">
-                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{Math.round((data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%</span>
+              <div className="mt-2.5 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-2">
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{Math.round((data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%</span>
                 <div className="w-full bg-emerald-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, (data.topKpi.activeEmployees / (data.topKpi.totalHeadcount || 1)) * 100)}%` }}></div>
                 </div>
@@ -860,13 +878,13 @@ export default function WorkforceInsights() {
 
           </div>
 
-          {/* Column 3: Employees By Department or Employee Attendance */}
+          {/* Column 3: Employee Distribution & Top Performer (no hardcoded mock fallbacks) */}
           {!['head_of_department', 'branch_leader'].includes(role) && (() => {
             const rawBranchMetrics = data.branchMetrics || [];
             const hqMetric = rawBranchMetrics.find((b: any) => b.name === 'HQ' || b.name === 'Rayhar HQ') || { count: 0 };
             const hqCount = hqMetric.count || 0;
             const branchCount = rawBranchMetrics.filter((b: any) => b.name !== 'HQ' && b.name !== 'Rayhar HQ').reduce((sum: number, b: any) => sum + (b.count || 0), 0);
-            const totalEmployees = hqCount + branchCount;
+            const totalEmployees = (hqCount + branchCount) || data.topKpi?.activeEmployees || data.topKpi?.totalHeadcount || 0;
             const hqPct = totalEmployees > 0 ? (hqCount / totalEmployees) * 100 : 0;
             const branchPct = totalEmployees > 0 ? (branchCount / totalEmployees) * 100 : 0;
             
@@ -875,58 +893,60 @@ export default function WorkforceInsights() {
             const topPerformerCount = topPerformers.length;
 
             return (
-              <Card className={`col-span-1 xl:col-span-1 border border-slate-200 dark:border-slate-800 bg-card p-5 flex flex-col justify-between ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-                <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
+              <Card className={`col-span-1 xl:col-span-1 border border-slate-200 dark:border-slate-800 bg-card p-4 flex flex-col justify-between ${cardHoverEffect} rounded-2xl shadow-sm`}>
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
                 </div>
                 
-                <div className="flex flex-col flex-1 mt-2">
-                  <div className="flex justify-between items-end mb-2">
-                     <span className="text-[11px] font-semibold text-foreground">Total Employee</span>
-                     <span className="text-3xl font-black text-slate-800 dark:text-slate-200">{totalEmployees > 0 ? totalEmployees : (data.topKpi?.totalHeadcount || 218)}</span>
-                  </div>
-                  
-                  {/* 100% Stacked Bar for HQ and Branch */}
-                  <div className="flex w-full h-5 rounded-full overflow-hidden mt-2 mb-4">
-                    <div style={{ width: `${hqPct || 37.6}%` }} className="bg-[#f59e0b] h-full" />
-                    <div style={{ width: `${branchPct || 62.4}%` }} className="bg-[#0f766e] h-full" />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 border-b border-slate-100 dark:border-slate-800 pb-5 mb-5">
-                    <div className="flex flex-col border-r border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center gap-1.5 mb-2">
-                         <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
-                         <span className="text-[10px] font-bold text-foreground">HQ ({(hqPct || 37.6).toFixed(1)}%)</span>
-                      </div>
-                      <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{hqCount > 0 ? hqCount : 82}</span>
+                <div className="flex flex-col flex-1 mt-2.5 gap-3">
+                  <div>
+                    <div className="flex justify-between items-baseline mb-1.5">
+                       <span className="text-[11px] font-semibold text-foreground">Total Employee</span>
+                       <span className="text-2xl font-black text-slate-800 dark:text-slate-200 leading-none">{totalEmployees}</span>
                     </div>
-                    <div className="flex flex-col pl-2">
-                      <div className="flex items-center gap-1.5 mb-2">
-                         <div className="w-2 h-2 rounded-full bg-[#0f766e]" />
-                         <span className="text-[10px] font-bold text-foreground">Branch ({(branchPct || 62.4).toFixed(1)}%)</span>
+                    
+                    {/* 100% Stacked Bar for HQ and Branch */}
+                    <div className="flex w-full h-3 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                      {hqPct > 0 && <div style={{ width: `${hqPct}%` }} className="bg-[#f59e0b] h-full transition-all duration-500" />}
+                      {branchPct > 0 && <div style={{ width: `${branchPct}%` }} className="bg-[#0f766e] h-full transition-all duration-500" />}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div className="flex flex-col border-r border-slate-100 dark:border-slate-800 pr-2">
+                      <div className="flex items-center gap-1.5 mb-1">
+                         <div className="w-2 h-2 rounded-full bg-[#f59e0b] shrink-0" />
+                         <span className="text-[10px] font-bold text-foreground truncate">HQ ({hqPct.toFixed(1)}%)</span>
                       </div>
-                      <span className="text-2xl font-black text-slate-800 dark:text-slate-200">{branchCount > 0 ? branchCount : 136}</span>
+                      <span className="text-xl font-black text-slate-800 dark:text-slate-200 leading-none">{hqCount}</span>
+                    </div>
+                    <div className="flex flex-col pl-1">
+                      <div className="flex items-center gap-1.5 mb-1">
+                         <div className="w-2 h-2 rounded-full bg-[#0f766e] shrink-0" />
+                         <span className="text-[10px] font-bold text-foreground truncate">Branch ({branchPct.toFixed(1)}%)</span>
+                      </div>
+                      <span className="text-xl font-black text-slate-800 dark:text-slate-200 leading-none">{branchCount}</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 mb-6">
-                    <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200">Top Performer</span>
-                    <div className="text-xs text-foreground mt-0.5 italic">Recognize employees with outstanding attendance performance.</div>
-                    <div className="group flex items-center justify-between bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 mt-1 cursor-default hover:bg-orange-100/50 dark:hover:bg-orange-900/20 transition-colors">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm transition-transform duration-300 group-hover:scale-110">
-                             <Award className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-                          </div>
-                          <div className="flex flex-col">
-                             <span className="text-[14px] font-bold text-slate-800 dark:text-slate-200">{topPerformerCount > 0 ? topPerformerCount : 27} Employees</span>
-                             <span className="text-[11px] font-semibold text-foreground">Attendance Rate: <span className="text-emerald-500 font-bold">100%</span></span>
-                          </div>
-                       </div>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">Top Performer</span>
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">100% Rate</span>
+                    </div>
+                    <div className="group flex items-center gap-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl p-2.5 cursor-default hover:bg-orange-100/50 dark:hover:bg-orange-900/20 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-950/50 flex items-center justify-center text-orange-600 shrink-0">
+                        <Award className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{topPerformerCount} Employees</span>
+                        <span className="text-[10px] font-medium text-foreground truncate">Outstanding attendance</span>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                <button onClick={() => navigate('/branch-management')} className="w-full h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-[11px] font-bold text-slate-600 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700">
+                <button onClick={() => navigate('/employees')} className="mt-3 w-full h-9 flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-[11px] font-bold text-slate-600 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-700">
                    View All Employees <ChevronRight className="w-3 h-3 ml-1" />
                 </button>
               </Card>
@@ -2700,96 +2720,165 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
     };
   });
 
+  const activeComp = liveMonthlyComp || monthlyComp;
+  const attCurrent = Number(activeComp.attendance?.current ?? topKpi.attendanceRate ?? 0);
+  const attPrev = Number(activeComp.attendance?.previous ?? 0);
+  const absCurrent = Number(activeComp.absences?.current ?? data?.performance?.totalAbsenteeism ?? 0);
+  const absPrev = Number(activeComp.absences?.previous ?? 0);
+  const lateCurrent = Number(activeComp.lateArrivals?.current ?? data?.performance?.lateAttendance ?? 0);
+  const latePrev = Number(activeComp.lateArrivals?.previous ?? 0);
+  const avgHrsCurrent = Number(data?.performance?.avgWorkingHours ?? activeComp.workingHours?.current ?? 0);
+  const avgHrsPrev = Number(activeComp.workingHours?.previous ?? 0);
+  const maxHrsCurrent = Number(data?.performance?.maxWorkingHours ?? activeComp.workingHours?.max ?? 0);
+  const leaveAppCurrent = totalLeaveCount || 0;
+  const leaveApprovedCurrent = Number(activeComp.leaveRequests?.current ?? 0);
+  const leaveApprovedPrev = Number(activeComp.leaveRequests?.previous ?? 0);
+  const riskCurrent = Number(data?.performance?.attendanceRisk ?? 0);
+
+  const renderMoMBadge = (cur: number, prev: number, opts?: { suffix?: string; decimals?: number; invert?: boolean }) => {
+    const suffix = opts?.suffix || '';
+    const decimals = opts?.decimals ?? 0;
+    const diff = Number((cur - prev).toFixed(decimals));
+    if (diff === 0) {
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          0{suffix} vs last mo
+        </span>
+      );
+    }
+    const isGood = opts?.invert ? diff < 0 : diff > 0;
+    const sign = diff > 0 ? '+' : '-';
+    const absVal = Math.abs(diff).toFixed(decimals);
+    return (
+      <span
+        className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold whitespace-nowrap ${
+          isGood
+            ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
+            : 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300'
+        }`}
+      >
+        {diff > 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+        {sign}{absVal}{suffix} vs last mo
+      </span>
+    );
+  };
+
   return (
-    <div className="space-y-8">
-       {/* PRIMARY SECTION */}
+    <div className="space-y-6">
+       {/* PRIMARY SECTION — Compact 3x2 Monthly KPI Grid */}
        <div>
-         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5 mb-5">
             {/* 1. Attendance Rate */}
-            <Card className="group p-4 flex items-center border border-indigo-200 dark:border-indigo-900/50 cursor-default bg-card hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-               {feedConnected && <span className="absolute top-3 right-3 flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>}
-               <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
-                 <CheckCircle2 className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Attendance Rate</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).attendance?.current) || topKpi.attendanceRate || 0}%</h3>
-                 <p className="text-[10px] text-foreground font-medium">Monthly Average</p>
-               </div>
+            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-indigo-200 dark:border-indigo-900/50 cursor-default bg-card hover:bg-indigo-50/40 dark:hover:bg-indigo-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Attendance Rate</p>
+                </div>
+                {feedConnected && <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest shrink-0"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
+              </div>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{attCurrent}%</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Monthly Average</p>
+                </div>
+                {renderMoMBadge(attCurrent, attPrev, { suffix: '%', decimals: 1 })}
+              </div>
             </Card>
 
-            {/* 2. Total Present */}
-            <Card className="group p-4 flex items-center border border-emerald-200 dark:border-emerald-900/50 cursor-default bg-card hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
-                 <UserCheck className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Total Present</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{(feedConnected && clockInOut?.length > 0 ? clockInOut.length : data?.teamAvailability?.present) || 0}</h3>
-                 <p className="text-[10px] text-foreground font-medium">Employees</p>
-               </div>
+            {/* 2. Total Absenteeism */}
+            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-red-200 dark:border-red-900/50 cursor-default bg-card hover:bg-red-50/40 dark:hover:bg-red-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <XCircle className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Total Absenteeism</p>
+              </div>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{absCurrent}</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Absent Days</p>
+                </div>
+                {renderMoMBadge(absCurrent, absPrev, { invert: true })}
+              </div>
             </Card>
 
-            {/* 3. Total Absenteeism */}
-            <Card className="group p-4 flex items-center border border-red-200 dark:border-red-900/50 cursor-default bg-card hover:bg-red-50/50 dark:hover:bg-red-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
-                 <XCircle className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Total Absenteeism</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).absences?.current) || data?.performance?.totalAbsenteeism || 0}</h3>
-                 <p className="text-[10px] text-foreground font-medium">Absent Days</p>
-               </div>
+            {/* 3. Late Attendance */}
+            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-amber-200 dark:border-amber-900/50 cursor-default bg-card hover:bg-amber-50/40 dark:hover:bg-amber-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Late Attendance</p>
+              </div>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{lateCurrent}</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Late Records</p>
+                </div>
+                {renderMoMBadge(lateCurrent, latePrev, { invert: true })}
+              </div>
             </Card>
 
-            {/* 4. Late Attendance */}
-            <Card className="group p-4 flex items-center border border-amber-200 dark:border-amber-900/50 cursor-default bg-card hover:bg-amber-50/50 dark:hover:bg-amber-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
-                 <Clock className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Late Attendance</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{((liveMonthlyComp || monthlyComp).lateArrivals?.current) || data?.performance?.lateAttendance || 0}</h3>
-                 <p className="text-[10px] text-foreground font-medium">Late Records</p>
-               </div>
+            {/* 4. Avg Working Hrs */}
+            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-cyan-200 dark:border-cyan-900/50 cursor-default bg-card hover:bg-cyan-50/40 dark:hover:bg-cyan-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Avg Working Hrs</p>
+              </div>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{avgHrsCurrent} <span className="text-sm font-bold">Hrs</span></h3>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Monthly Average / Day</p>
+                </div>
+                {renderMoMBadge(avgHrsCurrent, avgHrsPrev, { suffix: 'h', decimals: 1 })}
+              </div>
             </Card>
 
-            </div>
-<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-{/* 5. Avg Working Hrs */}
-            <Card className="group p-4 flex items-center border border-cyan-200 dark:border-cyan-900/50 cursor-default bg-card hover:bg-cyan-50/50 dark:hover:bg-cyan-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
-                 <TrendingUp className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Avg Working Hrs</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.avgWorkingHours || "0"} Hrs</h3>
-                 <p className="text-[10px] text-foreground font-medium">Monthly Average</p>
-               </div>
+            {/* 5. Leave Utilization */}
+            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-purple-200 dark:border-purple-900/50 cursor-default bg-card hover:bg-purple-50/40 dark:hover:bg-purple-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <CalendarDays className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Leave Utilization</p>
+              </div>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{leaveAppCurrent}</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Leave Applications</p>
+                </div>
+                {renderMoMBadge(leaveApprovedCurrent, leaveApprovedPrev, { invert: true })}
+              </div>
             </Card>
 
-            {/* 6. Leave Utilization */}
-            <Card className="group p-4 flex items-center border border-purple-200 dark:border-purple-900/50 cursor-default bg-card hover:bg-purple-50/50 dark:hover:bg-purple-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
-                 <CalendarDays className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Leave Utilization</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalLeaveCount || 0}</h3>
-                 <p className="text-[10px] text-foreground font-medium">Leave Applications</p>
-               </div>
-            </Card>
-
-            {/* 8. Attendance Risk */}
-            <Card className="group p-4 flex items-center border border-rose-200 dark:border-rose-900/50 cursor-default bg-card hover:bg-rose-50/50 dark:hover:bg-rose-900/20 relative rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-               <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mr-4 transition-transform duration-300 group-hover:scale-110">
-                 <AlertTriangle className="w-5 h-5 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6" />
-               </div>
-               <div className="flex flex-col">
-                 <p className="text-[10px] text-foreground font-bold uppercase tracking-widest mb-0.5">Attendance Risk</p>
-                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{data?.performance?.attendanceRisk || 0}</h3>
-                 <p className="text-[10px] text-foreground font-medium">Need Attention</p>
-               </div>
+            {/* 6. Attendance Risk */}
+            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-rose-200 dark:border-rose-900/50 cursor-default bg-card hover:bg-rose-50/40 dark:hover:bg-rose-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Attendance Risk</p>
+              </div>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{riskCurrent}</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-1">Need Attention</p>
+                </div>
+                <span
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold whitespace-nowrap ${
+                    riskCurrent > 0
+                      ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300'
+                      : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
+                  }`}
+                >
+                  {riskCurrent > 0 ? '3+ Lates / 2+ Absent' : 'All Clear'}
+                </span>
+              </div>
             </Card>
          </div>
 
@@ -2889,7 +2978,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 <div className="flex flex-col justify-between w-full lg:w-[200px] gap-3">
                   <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
                     <p className="text-xs text-foreground font-bold mb-1">Max Working Hours</p>
-                    <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">8.4 hrs</h3>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{maxHrsCurrent} hrs</h3>
                   </div>
                   <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/50 h-full">
                     <p className="text-xs text-foreground font-bold mb-1">Missed Punches</p>

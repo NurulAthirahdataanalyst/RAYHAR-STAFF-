@@ -3837,17 +3837,20 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department,
     WITH daily_first_att AS (
       SELECT 
         a.user_id,
-        DATE(a.clock_in) as att_date,
-        MIN(a.clock_in) as first_clock_in
+        (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date as att_date,
+        MIN(a.clock_in) as first_clock_in,
+        MAX(a.clock_out) as last_clock_out
       FROM attendances a
       JOIN profiles p ON p.user_id = a.user_id
-      WHERE DATE(a.clock_in) BETWEEN ? AND ? AND p.status = 'Active'
+      WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date BETWEEN ?::date AND ?::date AND p.status = 'Active'
         AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification') ${profileFilter}
-      GROUP BY a.user_id, DATE(a.clock_in)
+      GROUP BY a.user_id, (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date
     )
     SELECT 
       COUNT(*) as total, 
-      SUM(CASE WHEN (first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) as lates 
+      SUM(CASE WHEN (first_clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::time > ?::time THEN 1 ELSE 0 END) as lates,
+      COALESCE(ROUND(AVG(EXTRACT(EPOCH FROM (last_clock_out - first_clock_in)) / 3600.0) FILTER (WHERE last_clock_out IS NOT NULL AND last_clock_out > first_clock_in AND EXTRACT(EPOCH FROM (last_clock_out - first_clock_in)) / 3600.0 <= 24)::numeric, 1), 0) as avg_hrs,
+      COALESCE(ROUND(MAX(EXTRACT(EPOCH FROM (last_clock_out - first_clock_in)) / 3600.0) FILTER (WHERE last_clock_out IS NOT NULL AND last_clock_out > first_clock_in AND EXTRACT(EPOCH FROM (last_clock_out - first_clock_in)) / 3600.0 <= 24)::numeric, 1), 0) as max_hrs
     FROM daily_first_att
   `;
   const [attRowsCur] = await pool.query(attQuery, [curStart, curEnd, ...pFilterParams, lateTimeStr]);
@@ -3874,6 +3877,11 @@ async function computeDynamicWorkforceMetrics(dateStr, role, branch, department,
     absences: { current: curAbsences, previous: prevAbsences },
     leaveRequests: { current: parseInt(leaveCur[0].total || 0), previous: parseInt(leavePrev[0].total || 0) },
     outstation: { current: parseInt(outCur[0].total || 0), previous: parseInt(outPrev[0].total || 0) },
+    workingHours: {
+      current: parseFloat(attRowsCur[0].avg_hrs || 0),
+      previous: parseFloat(attRowsPrev[0].avg_hrs || 0),
+      max: parseFloat(attRowsCur[0].max_hrs || 0)
+    },
     headcount: { current: totalEmployeesCur, previous: totalEmployeesPrev }
   };
 
@@ -14327,7 +14335,7 @@ app.get("/api/workforce-stats", async (req, res) => {
       [lateTimeStr, monthStartStr, monthEndStr, ...pFilterParams]
     );
 
-    // Deduplicate attRows per user per date: keep ONLY the earliest clock-in for daily status and lateness
+    // Deduplicate attRows per user per date: keep earliest clock-in and latest clock-out for daily status, lateness, and working hours
     const dailyAttMap = new Map();
     attRows.forEach(att => {
       const dStr = att.att_date ? (att.att_date instanceof Date ? att.att_date.toISOString().split('T')[0] : String(att.att_date).split('T')[0]) : new Date(new Date(att.clock_in).getTime() + 8*3600*1000).toISOString().split('T')[0];
@@ -14339,12 +14347,28 @@ app.get("/api/workforce-stats", async (req, res) => {
         dailyAttMap.set(key, { ...att, dStr, is_late: isLateVal });
       } else {
         const existing = dailyAttMap.get(key);
-        if (!existing.clock_out && att.clock_out) {
+        if (att.clock_out && (!existing.clock_out || new Date(att.clock_out) > new Date(existing.clock_out))) {
           existing.clock_out = att.clock_out;
         }
       }
     });
     const uniqueAttRows = Array.from(dailyAttMap.values());
+
+    let totalWorkingHoursSum = 0;
+    let completedShiftsCount = 0;
+    let maxWorkingHoursVal = 0;
+    uniqueAttRows.forEach(att => {
+      if (att.clock_in && att.clock_out) {
+        const diffHrs = (new Date(att.clock_out).getTime() - new Date(att.clock_in).getTime()) / 3600000;
+        if (diffHrs > 0 && diffHrs <= 24) {
+          totalWorkingHoursSum += diffHrs;
+          completedShiftsCount++;
+          if (diffHrs > maxWorkingHoursVal) maxWorkingHoursVal = diffHrs;
+        }
+      }
+    });
+    const avgWorkingHours = completedShiftsCount > 0 ? Number((totalWorkingHoursSum / completedShiftsCount).toFixed(1)) : 0;
+    const maxWorkingHours = completedShiftsCount > 0 ? Number(maxWorkingHoursVal.toFixed(1)) : 0;
 
     let totalLateArrivals = 0;
     let presentToday = 0;
@@ -14563,13 +14587,15 @@ app.get("/api/workforce-stats", async (req, res) => {
 
     // 6. Trends (Real Data)
     const [trendRows] = await pool.query(
-      `SELECT EXTRACT(MONTH FROM (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as m, EXTRACT(YEAR FROM (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as y, COUNT(DISTINCT (user_id, (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date)) as total_att
-       FROM attendances
-       WHERE (clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') >= (DATE_TRUNC('month', ?::date) - INTERVAL '5 months')
-         AND COALESCE(verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
+      `SELECT EXTRACT(MONTH FROM (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as m, EXTRACT(YEAR FROM (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')) as y, COUNT(DISTINCT (a.user_id, (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur')::date)) as total_att
+       FROM attendances a
+       JOIN profiles p ON p.user_id = a.user_id
+       WHERE (a.clock_in AT TIME ZONE 'Asia/Kuala_Lumpur') >= (DATE_TRUNC('month', ?::date) - INTERVAL '5 months')
+         AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
+         AND p.status = 'Active' ${profileFilter}
        GROUP BY y, m
        ORDER BY y, m`,
-       [targetDateStr]
+       [targetDateStr, ...pFilterParams]
     );
     
     const realMonthlyTrend = [];
@@ -14757,9 +14783,13 @@ app.get("/api/workforce-stats", async (req, res) => {
       }
     });
 
-    // Add Outstation to weekly map
+    // Add Outstation to weekly map (scoped to active company)
     const [weekOutstationRows] = await pool.query(
-      `SELECT user_id, start_date, end_date FROM outstation_assignments WHERE status != 'Cancelled'`
+      `SELECT o.user_id, o.start_date, o.end_date
+       FROM outstation_assignments o
+       JOIN profiles p ON p.user_id = o.user_id
+       WHERE o.status != 'Cancelled' AND p.status = 'Active' ${profileFilter}`,
+      pFilterParams
     );
     weekOutstationRows.forEach(o => {
        const startObj = new Date(o.start_date); startObj.setHours(0,0,0,0);
@@ -14794,7 +14824,7 @@ app.get("/api/workforce-stats", async (req, res) => {
     const [deptRows] = await pool.query(
       `SELECT p.department, COUNT(*) as count 
        FROM profiles p 
-       WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date AND p.department IS NOT NULL AND p.department != '' ${profileFilter}
+       WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) AND p.department IS NOT NULL AND p.department != '' ${profileFilter}
        GROUP BY p.department`,
       [targetDateStr, ...pFilterParams]
     );
@@ -14803,8 +14833,8 @@ app.get("/api/workforce-stats", async (req, res) => {
     const [branchRows] = await pool.query(
       `SELECT p.branch, b.operating_zone, COUNT(*) as count 
        FROM profiles p 
-       LEFT JOIN branches b ON p.branch = b.name
-       WHERE p.status = 'Active' AND DATE(p.created_at) <= ?::date AND p.branch IS NOT NULL AND p.branch != '' ${profileFilter}
+       LEFT JOIN branches b ON UPPER(TRIM(p.branch)) = UPPER(TRIM(b.code))
+       WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) AND p.branch IS NOT NULL AND p.branch != '' ${profileFilter}
        GROUP BY p.branch, b.operating_zone`,
       [targetDateStr, ...pFilterParams]
     );
@@ -15196,7 +15226,12 @@ app.get("/api/workforce-stats", async (req, res) => {
         attentionEmployees,
         missingPunchEmployees,
         missingPunchIndicator,
-        absentEmployees
+        absentEmployees,
+        avgWorkingHours,
+        maxWorkingHours,
+        totalAbsenteeism: absences,
+        lateAttendance: totalLateArrivals,
+        attendanceRisk: empStats.filter(u => u.lateCount >= 3 || u.absentCount >= 2 || (u.workingDaysToDate >= 3 && u.attendanceRate < 80)).length
       },
       sseInitialPayload
     });
