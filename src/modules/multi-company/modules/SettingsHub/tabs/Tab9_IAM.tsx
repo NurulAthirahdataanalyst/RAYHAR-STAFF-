@@ -554,33 +554,12 @@ export const Tab9_IAM: React.FC = () => {
     <div className="space-y-6">
       {/* Top Filter & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-2xl border border-border dark:border-neutral-800">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
-            Company Scope:
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground self-start sm:self-auto">
+          <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
+          <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
+          <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
+            {currentCompany?.company_name || 'Rayhar Travels'}
           </span>
-          <Select 
-            value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
-            onValueChange={(val) => setSelectedCompanyId(parseInt(val, 10))}
-          >
-            <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-bold text-black dark:text-white shadow-xs rounded-xl">
-              <SelectValue placeholder="Select company...">
-                {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {companies.length > 0 ? (
-                companies.map(c => (
-                  <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
-                    {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="1" className="text-xs font-bold">
-                  Rayhar Travels (Main Company)
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
         </div>
 
         <Button

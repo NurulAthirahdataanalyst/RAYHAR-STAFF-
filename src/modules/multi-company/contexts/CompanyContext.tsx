@@ -5,6 +5,7 @@ import { multiCompanyApi } from '../services/multiCompanyApi';
 
 interface CompanyContextType {
   activeCompany: Company | null;
+  homeCompany: Company | null;
   companies: Company[];
   userCompanies: UserCompanyRole[];
   userActiveRole: UserCompanyRole | null;
@@ -60,6 +61,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [companies, setCompanies] = useState<Company[]>([DEFAULT_MAIN_COMPANY]);
   const [userCompanies, setUserCompanies] = useState<UserCompanyRole[]>([]);
   const [activeCompany, setActiveCompany] = useState<Company | null>(DEFAULT_MAIN_COMPANY);
+  const [homeCompany, setHomeCompany] = useState<Company | null>(DEFAULT_MAIN_COMPANY);
   const [companyModules, setCompanyModules] = useState<CompanyModuleSetting[]>([]);
   const [enabledModuleKeys, setEnabledModuleKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -172,6 +174,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const userDefault = uCompanies.find(uc => uc.is_default) || uCompanies[0];
       const userAssignedCompId = userDefault?.company_id || (user as any)?.company_id || (user?.branch === 'RAYRENT' ? 2 : undefined);
 
+      const resolvedHome =
+        (userAssignedCompId ? activeList.find(c => c.id === userAssignedCompId) : undefined) ||
+        activeList.find(c => c.company_type === 'main') ||
+        activeList[0];
+      if (resolvedHome) {
+        setHomeCompany(resolvedHome);
+      }
+
       // If user has single-company scope (Company Staff Data), strictly lock to assigned company
       if (!hasParentGroupScope && userAssignedCompId) {
         selected = activeList.find(c => c.id === userAssignedCompId);
@@ -265,6 +275,13 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
           return all.find((c) => c.company_type === 'main') || all[0];
         });
+        setHomeCompany((prev) => {
+          if (prev) {
+            const refreshed = all.find((c) => c.id === prev.id);
+            if (refreshed) return refreshed;
+          }
+          return all.find((c) => c.company_type === 'main') || all[0];
+        });
       }
     } catch (err) {
       console.error('Error refreshing companies:', err);
@@ -284,7 +301,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     isParentScope(user?.scope_type) ||
     isParentScope(cachedScope) ||
     (!isCompanyRestrictedScope(effectiveScope) && (
-      Boolean(activeCompany?.company_type === 'main' && ['hr_admin', 'admin', 'managing_director'].includes(normUserRole)) ||
+      Boolean((activeCompany?.company_type === 'main' || homeCompany?.company_type === 'main') && ['hr_admin', 'admin', 'managing_director'].includes(normUserRole)) ||
       userCompanies.some(uc => isParentScope(uc.scope_type))
     ));
 
@@ -292,6 +309,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     <CompanyContext.Provider
       value={{
         activeCompany,
+        homeCompany,
         companies,
         userCompanies,
         userActiveRole,

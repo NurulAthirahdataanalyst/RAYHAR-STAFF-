@@ -1,11 +1,11 @@
 import React from 'react';
-import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate, Navigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
+import { ArrowRightLeft, History } from 'lucide-react';
 import { Tab3_CompanyMgmt } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab3_CompanyMgmt';
 import { Tab9_IAM } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab9_IAM';
 import { Tab4_BranchLocationMgmt } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab4_BranchLocationMgmt';
 import { Tab5_DepartmentMgmt } from '@/modules/multi-company/modules/SettingsHub/tabs/Tab5_DepartmentMgmt';
-import { TabPersonnelEntity } from '@/modules/multi-company/modules/SettingsHub/tabs/TabPersonnelEntity';
 import { CompanyTransferWizard } from '@/modules/multi-company/employee-assignment/CompanyTransferWizard';
 import { EmployeeCompanyHistory } from '@/modules/multi-company/employee-assignment/EmployeeCompanyHistory';
 import { CompanyModuleManagement } from './CompanyModuleManagement';
@@ -37,9 +37,15 @@ export default function OrganizationEntities() {
 
   const currentSection = getActiveSection();
 
+  if (currentSection === 'personnel') {
+    return <Navigate to="/employees" replace />;
+  }
+
+  const isTransferHub = currentSection === 'transfer' || currentSection === 'history';
+
   return (
     <div className="space-y-6 pb-12">
-      {/* Main Section Content Area - Navigated directly via Sidebar Submenu */}
+      {/* Main Section Content Area */}
       <div className="min-h-[500px]">
         {currentSection === 'entities' && (
           <Tab3_CompanyMgmt 
@@ -50,10 +56,6 @@ export default function OrganizationEntities() {
           />
         )}
 
-        {currentSection === 'personnel' && (
-          <TabPersonnelEntity />
-        )}
-
         {currentSection === 'roles' && (
           <Tab9_IAM />
         )}
@@ -62,16 +64,45 @@ export default function OrganizationEntities() {
           <CompanyModuleManagement />
         )}
 
-        {currentSection === 'transfer' && (
-          <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
-            <CompanyTransferWizard onTransferComplete={() => navigate('/organization/history')} />
-          </Card>
-        )}
+        {isTransferHub && (
+          <div className="space-y-4">
+            <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 dark:bg-neutral-900/70 border border-border dark:border-neutral-800 gap-1">
+              <button
+                type="button"
+                onClick={() => navigate('/organization/transfer')}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  currentSection === 'transfer'
+                    ? 'bg-[#942392] text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
+                }`}
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+                <span>Transfer Wizard</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/organization/history')}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  currentSection === 'history'
+                    ? 'bg-[#942392] text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
+                }`}
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>Career History</span>
+              </button>
+            </div>
 
-        {currentSection === 'history' && (
-          <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
-            <EmployeeCompanyHistory />
-          </Card>
+            {currentSection === 'transfer' ? (
+              <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
+                <CompanyTransferWizard onTransferComplete={() => navigate('/organization/history')} />
+              </Card>
+            ) : (
+              <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">
+                <EmployeeCompanyHistory />
+              </Card>
+            )}
+          </div>
         )}
 
         {currentSection === 'branches' && (

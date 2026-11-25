@@ -1,32 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import { 
   Settings, 
-  SlidersHorizontal, 
-  UserPlus, 
   Building2, 
-  MapPin, 
-  Layers, 
   CalendarClock, 
   Clock, 
   FileCheck2, 
-  ShieldCheck, 
   History,
   PanelLeftClose,
   PanelLeftOpen,
-  ChevronRight,
-  Info,
-  Building
 } from 'lucide-react';
 import { Tab1_SystemConfig } from './tabs/Tab1_SystemConfig';
-import { Tab2_EmployeeConfig } from './tabs/Tab2_EmployeeConfig';
-import { Tab3_CompanyMgmt } from './tabs/Tab3_CompanyMgmt';
-import { Tab4_BranchLocationMgmt } from './tabs/Tab4_BranchLocationMgmt';
-import { Tab5_DepartmentMgmt } from './tabs/Tab5_DepartmentMgmt';
 import { Tab6_WorkScheduleMgmt } from './tabs/Tab6_WorkScheduleMgmt';
 import { Tab7_AttendanceConfig } from './tabs/Tab7_AttendanceConfig';
 import { Tab8_LeaveWorkflowConfig } from './tabs/Tab8_LeaveWorkflowConfig';
-import { Tab9_IAM } from './tabs/Tab9_IAM';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { useCompany } from '../../contexts/CompanyContext';
@@ -35,13 +22,8 @@ import { AuditLogItem } from '../../types/multiCompany.types';
 
 export type SettingsTabId = 
   | 'attendance'
-  | 'employee'
-  | 'company'
-  | 'branch'
-  | 'department'
   | 'schedule'
   | 'leave'
-  | 'iam'
   | 'system';
 
 interface TabDefinition {
@@ -53,19 +35,24 @@ interface TabDefinition {
 
 const SETTINGS_TABS: TabDefinition[] = [
   { id: 'attendance', label: 'Attendance Config', icon: Clock },
-  { id: 'employee', label: 'Personnel Management', icon: UserPlus },
-  { id: 'company', label: 'Company Management', icon: Building2 },
-  { id: 'branch', label: 'Branch & Location', icon: MapPin },
-  { id: 'department', label: 'Department Management', icon: Layers },
   { id: 'schedule', label: 'Work Schedules', icon: CalendarClock },
   { id: 'leave', label: 'Leave & Approvals', icon: FileCheck2 },
-  { id: 'iam', label: 'Roles & Permissions', icon: ShieldCheck },
   { id: 'system', label: 'System Activity', icon: History },
 ];
 
+const LEGACY_TAB_REDIRECTS: Record<string, string> = {
+  employee: '/employees',
+  personnel: '/employees',
+  staff: '/employees',
+  company: '/organization/entities',
+  branch: '/organization/branches',
+  department: '/organization/departments',
+  iam: '/organization/roles',
+};
+
 export const SettingsLayout: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const rawParam = searchParams.get('tab');
+  const rawParam = (searchParams.get('tab') || '').toLowerCase();
   const initialTab: SettingsTabId = (rawParam && SETTINGS_TABS.some(t => t.id === rawParam)) 
     ? (rawParam as SettingsTabId) 
     : 'attendance';
@@ -90,11 +77,15 @@ export const SettingsLayout: React.FC = () => {
   };
 
   useEffect(() => {
-    const tabParam = searchParams.get('tab') as SettingsTabId;
+    const tabParam = (searchParams.get('tab') || '').toLowerCase() as SettingsTabId;
     if (tabParam && SETTINGS_TABS.some(t => t.id === tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
+
+  if (rawParam && LEGACY_TAB_REDIRECTS[rawParam]) {
+    return <Navigate to={LEGACY_TAB_REDIRECTS[rawParam]} replace />;
+  }
 
   const handleTabChange = (tabId: SettingsTabId) => {
     setActiveTab(tabId);
@@ -123,9 +114,9 @@ export const SettingsLayout: React.FC = () => {
             <Settings className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Portal Configurations</h1>
+            <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Settings &amp; Policies</h1>
             <p className="text-xs sm:text-sm text-foreground italic mt-0.5">
-              Enterprise multi-company governance, branch geofencing, and centralized roles
+              Attendance rules, work schedules, leave approval workflows, and system activity for {activeCompany?.company_name || 'Rayhar Travels'}
             </p>
           </div>
         </div>
@@ -225,13 +216,8 @@ export const SettingsLayout: React.FC = () => {
         {/* ACTIVE TAB CONTENTS */}
         <div className="flex-1 min-w-0 w-full space-y-4">
           {activeTab === 'attendance' && <Tab7_AttendanceConfig />}
-          {activeTab === 'employee' && <Tab2_EmployeeConfig />}
-          {activeTab === 'company' && <Tab3_CompanyMgmt onNavigateToTab={(t) => handleTabChange(t as SettingsTabId)} />}
-          {activeTab === 'branch' && <Tab4_BranchLocationMgmt />}
-          {activeTab === 'department' && <Tab5_DepartmentMgmt />}
           {activeTab === 'schedule' && <Tab6_WorkScheduleMgmt />}
           {activeTab === 'leave' && <Tab8_LeaveWorkflowConfig />}
-          {activeTab === 'iam' && <Tab9_IAM />}
           {activeTab === 'system' && <Tab1_SystemConfig />}
         </div>
       </div>

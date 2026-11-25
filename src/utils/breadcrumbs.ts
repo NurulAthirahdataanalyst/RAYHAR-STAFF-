@@ -5,46 +5,45 @@ export interface BreadcrumbSegment {
   path?: string;
 }
 
-export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: string): BreadcrumbSegment[] {
+export function getBreadcrumbs(rawPathname: string, rawSearch?: string, _role?: string): BreadcrumbSegment[] {
   const pathname = typeof rawPathname === "string" ? rawPathname : "/";
   const search = typeof rawSearch === "string" ? rawSearch : "";
   const home: BreadcrumbSegment = { label: "HOME", path: "/" };
 
-  if (pathname === "/") return [home, { label: "DASHBOARD" }];
-  
+  if (pathname === "/") return [home, { label: "MY WORKSPACE" }, { label: "DASHBOARD" }];
+
   // Calendar Pages
   if (pathname === "/calendar") return [home, { label: "CALENDAR", path: "/calendar" }, { label: "WORK CALENDAR" }];
   if (pathname === "/calendar/company-leave") {
-    if (role === "hr_admin") {
-      return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "COMPANY LEAVE CALENDAR" }];
-    }
     return [home, { label: "CALENDAR", path: "/calendar" }, { label: "COMPANY LEAVE CALENDAR" }];
   }
 
   // Attendance Pages
-  if (pathname === "/attendance") return [home, { label: "ATTENDANCE" }, { label: "EMPLOYEE ATTENDANCE" }];
+  if (pathname === "/attendance") return [home, { label: "MY WORKSPACE" }, { label: "MY ATTENDANCE" }];
   if (pathname === "/team-attendance" || pathname === "/attendance/team") return [home, { label: "ATTENDANCE" }, { label: "TEAM ATTENDANCE" }];
-  
-  // Leave Management Pages (General & Team)
-  if (pathname === "/leave/team") return [home, { label: "LEAVE MANAGEMENT" }, { label: "TEAM LEAVE REQUEST" }];
-  if (pathname === "/leave") return [home, { label: "LEAVE MANAGEMENT" }, { label: "LEAVE OVERVIEW" }];
-  if (pathname === "/leave/apply") return [home, { label: "LEAVE MANAGEMENT", path: "/leave" }, { label: "LEAVE APPLICATION" }];
-  if (pathname === "/leave/forms") return [home, { label: "LEAVE MANAGEMENT", path: "/leave" }, { label: "MY LEAVE REQUEST" }];
 
-  // Outstation Management Pages
-  if (pathname === "/outstation") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION DASHBOARD" }];
-  if (pathname === "/outstation/assignment") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION ASSIGNMENT" }];
-  if (pathname === "/outstation/calendar") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION CALENDAR" }];
-  if (pathname === "/outstation/my-calendar" || pathname === "/outstation/my_calendar") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation/my" }, { label: "MY OUTSTATION CALENDAR" }];
-  if (pathname === "/outstation/my") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "MY OUTSTATION" }];
-  if (pathname === "/outstation/analytics") return [home, { label: "OUTSTATION MANAGEMENT", path: "/outstation" }, { label: "OUTSTATION ANALYTICS" }];
+  // Leave Pages (Personal & Team)
+  if (pathname === "/leave/team") return [home, { label: "APPROVAL CENTER", path: "/leave/admin" }, { label: "TEAM LEAVE REQUESTS" }];
+  if (pathname === "/leave") return [home, { label: "MY LEAVE" }, { label: "LEAVE OVERVIEW" }];
+  if (pathname === "/leave/apply") return [home, { label: "MY LEAVE", path: "/leave/apply" }, { label: "LEAVE APPLICATION" }];
+  if (pathname === "/leave/forms") return [home, { label: "MY LEAVE", path: "/leave/apply" }, { label: "MY LEAVE REQUESTS" }];
+
+  // Outstation Pages (Personal vs Operations)
+  if (pathname === "/outstation/my-calendar" || pathname === "/outstation/my_calendar") {
+    return [home, { label: "MY OUTSTATION", path: "/outstation/my" }, { label: "MY OUTSTATION CALENDAR" }];
+  }
+  if (pathname === "/outstation/my") return [home, { label: "MY OUTSTATION", path: "/outstation/my" }, { label: "MY OUTSTATION" }];
+  if (pathname === "/outstation") return [home, { label: "OUTSTATION OPERATIONS", path: "/outstation" }, { label: "OUTSTATION DASHBOARD" }];
+  if (pathname === "/outstation/assignment") return [home, { label: "OUTSTATION OPERATIONS", path: "/outstation" }, { label: "OUTSTATION ASSIGNMENT" }];
+  if (pathname === "/outstation/calendar") return [home, { label: "OUTSTATION OPERATIONS", path: "/outstation" }, { label: "OUTSTATION CALENDAR" }];
+  if (pathname === "/outstation/analytics") return [home, { label: "OUTSTATION OPERATIONS", path: "/outstation" }, { label: "OUTSTATION ANALYTICS" }];
   if (pathname === "/outstation/reports") return [home, { label: "REPORTS", path: "/reports" }, { label: "OUTSTATION REPORTS" }];
 
-  // Analytics Pages
-  if (pathname === "/analytics") return [home, { label: "ANALYTICS" }];
+  // Personal Analytics
+  if (pathname === "/analytics") return [home, { label: "MY WORKSPACE" }, { label: "MY ANALYTICS" }];
 
   // Leave Administration Pages
-  if (pathname === "/leave/admin") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE APPROVALS" }];
+  if (pathname === "/leave/admin") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE APPROVAL" }];
   if (pathname === "/leave/calendar") return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE CALENDAR" }];
   if (pathname === "/leave/entitlement") {
     if (search) {
@@ -52,36 +51,33 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
       const module = params.get("module");
       if (module) {
         return [
-          home, 
-          { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, 
+          home,
+          { label: "LEAVE ADMINISTRATION", path: "/leave/admin" },
           { label: "LEAVE ENTITLEMENT MANAGEMENT", path: "/leave/entitlement" },
-          { label: module.toUpperCase().replace(/-/g, ' ') }
+          { label: module.toUpperCase().replace(/-/g, " ") }
         ];
       }
     }
     return [home, { label: "LEAVE ADMINISTRATION", path: "/leave/admin" }, { label: "LEAVE ENTITLEMENT MANAGEMENT" }];
   }
 
-  // Employee Management Pages
-  if (pathname === "/master") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "MASTER HUB CONTROL" }];
-  if (pathname === "/employees") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "EMPLOYEE DIRECTORY" }];
-  if (pathname === "/master/department") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DEPARTMENT" }];
-  if (pathname.startsWith("/master/department/")) {
-    return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "DEPARTMENT", path: "/master/department" }, { label: "DEPARTMENT OVERVIEW" }];
+  // People & Workforce Pages
+  if (pathname === "/employees") return [home, { label: "PEOPLE & WORKFORCE", path: "/employees" }, { label: "EMPLOYEE DIRECTORY" }];
+  if (pathname === "/branches/temporary-assignment" || pathname === "/branches/temporary-assignments") {
+    return [home, { label: "PEOPLE & WORKFORCE", path: "/employees" }, { label: "TEMPORARY ASSIGNMENTS" }];
   }
-  if (pathname === "/master/role") return [home, { label: "EMPLOYEE MANAGEMENT", path: "/master" }, { label: "ROLE" }];
-
-  // Branch Management Pages
-  if (pathname === "/branches") return [home, { label: "BRANCH MANAGEMENT", path: "/branches" }, { label: "BRANCH OVERVIEW" }];
-  if (pathname === "/branches/temporary-assignment" || pathname === "/branches/temporary-assignments") return [home, { label: "TEMPORARY ASSIGNMENTS" }];
+  if (pathname.startsWith("/master/department/")) {
+    return [home, { label: "COMPANY SETUP" }, { label: "DEPARTMENTS", path: "/organization/departments" }, { label: "DEPARTMENT OVERVIEW" }];
+  }
 
   // GPS Location Tracker
-  if (pathname === "/gps-location-tracker") return [home, { label: "HR ADMINISTRATION", path: "/master" }, { label: "GPS LOCATION TRACKER" }];
+  if (pathname === "/gps-location-tracker") return [home, { label: "HR ADMINISTRATION" }, { label: "GPS LIVE TRACKER" }];
+  if (pathname === "/gps-location-tracker/history") return [home, { label: "GPS LOCATION TRACKER" }, { label: "LOCATION HISTORY" }];
 
   // Workforce Analytics Pages
   if (pathname === "/hr-analytics/attendance") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "ATTENDANCE DASHBOARD" }];
   if (pathname === "/hr-analytics/leave") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "LEAVE ANALYTICS" }];
-  if (pathname === "/hr-analytics/workforce") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "WORKFORCE INSIGHT" }];
+  if (pathname === "/hr-analytics/workforce") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "WORKFORCE INSIGHTS" }];
   if (pathname === "/hr-analytics/calendar") return [home, { label: "WORKFORCE ANALYTICS", path: "/hr-analytics/attendance" }, { label: "WORKFORCE CALENDAR" }];
 
   // Reports Pages
@@ -90,60 +86,57 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, role?: s
   if (pathname === "/reports/leave") return [home, { label: "REPORTS", path: "/reports" }, { label: "LEAVE REPORTS" }];
   if (pathname === "/reports/department") return [home, { label: "REPORTS", path: "/reports" }, { label: "DEPARTMENT & BRANCH REPORTS" }];
 
-  // Organization & Entities Module Pages
+  // Company Setup vs Group & Entities Pages
   if (pathname.startsWith("/organization")) {
-    const base: BreadcrumbSegment[] = [
-      home,
-      { label: "ORGANIZATION & ENTITIES", path: "/organization/entities" }
-    ];
-
-    let sub = "";
-    if (pathname === "/organization/entities" || pathname.endsWith("/entities")) sub = "COMPANY ENTITIES";
-    else if (pathname === "/organization/personnel" || pathname.endsWith("/personnel")) sub = "PERSONNEL ENTITY";
-    else if (pathname === "/organization/roles" || pathname.endsWith("/roles")) sub = "COMPANY ROLES & RBAC";
-    else if (pathname === "/organization/modules" || pathname.endsWith("/modules")) sub = "COMPANY MODULE CONFIGURATION";
-    else if (pathname === "/organization/transfer" || pathname.endsWith("/transfer")) sub = "EMPLOYEE TRANSFER WIZARD";
-    else if (pathname === "/organization/history" || pathname.endsWith("/history")) sub = "TRANSFER CAREER HISTORY";
-    else if (pathname === "/organization/branches" || pathname.endsWith("/branches")) sub = "BRANCHES & GEOFENCE";
-    else if (pathname === "/organization/departments" || pathname.endsWith("/departments")) sub = "DEPARTMENTS";
-
-    if (!sub && search) {
-      const params = new URLSearchParams(search);
-      const tab = params.get("tab");
-      if (tab === "entities") sub = "COMPANY ENTITIES";
-      else if (tab === "personnel") sub = "PERSONNEL ENTITY";
-      else if (tab === "roles") sub = "COMPANY ROLES & RBAC";
-      else if (tab === "modules") sub = "COMPANY MODULE CONFIGURATION";
-      else if (tab === "transfer") sub = "EMPLOYEE TRANSFER WIZARD";
-      else if (tab === "history") sub = "TRANSFER CAREER HISTORY";
-      else if (tab === "branches") sub = "BRANCHES & GEOFENCE";
-      else if (tab === "departments") sub = "DEPARTMENTS";
+    if (pathname === "/organization/branches" || pathname.endsWith("/branches")) {
+      return [home, { label: "COMPANY SETUP" }, { label: "BRANCHES & GEOFENCE" }];
     }
-
-    if (sub) {
-      base.push({ label: sub });
+    if (pathname === "/organization/departments" || pathname.endsWith("/departments")) {
+      return [home, { label: "COMPANY SETUP" }, { label: "DEPARTMENTS" }];
     }
-    return base;
+    if (pathname === "/organization/roles" || pathname.endsWith("/roles")) {
+      return [home, { label: "COMPANY SETUP" }, { label: "ROLES & PERMISSIONS (RBAC)" }];
+    }
+    if (pathname === "/organization/transfer" || pathname.endsWith("/transfer")) {
+      return [
+        home,
+        { label: "GROUP & ENTITIES", path: "/organization/entities" },
+        { label: "INTER-COMPANY TRANSFERS", path: "/organization/transfer" },
+        { label: "TRANSFER WIZARD" }
+      ];
+    }
+    if (pathname === "/organization/history" || pathname.endsWith("/history")) {
+      return [
+        home,
+        { label: "GROUP & ENTITIES", path: "/organization/entities" },
+        { label: "INTER-COMPANY TRANSFERS", path: "/organization/transfer" },
+        { label: "CAREER HISTORY" }
+      ];
+    }
+    if (pathname === "/organization/modules" || pathname.endsWith("/modules")) {
+      return [home, { label: "GROUP & ENTITIES", path: "/organization/entities" }, { label: "COMPANY MODULES" }];
+    }
+    return [home, { label: "GROUP & ENTITIES", path: "/organization/entities" }, { label: "COMPANY ENTITIES" }];
   }
 
-  // Setting Pages
+  // Settings Page (under Company Setup)
   if (pathname === "/settings") {
-    const base: BreadcrumbSegment[] = [home, { label: "HR ADMINISTRATOR" }, { label: "SETTINGS", path: "/settings" }];
+    const base: BreadcrumbSegment[] = [home, { label: "COMPANY SETUP" }, { label: "SETTINGS", path: "/settings" }];
     if (search) {
       const params = new URLSearchParams(search);
-      const tab = params.get("tab");
+      const tab = (params.get("tab") || "").toLowerCase();
       if (tab) {
         let tabLabel = tab.toUpperCase();
-        if (tab === "attendance" || tab === "system") tabLabel = "ATTENDANCE CONFIG";
-        else if (tab === "staff" || tab === "personnel") tabLabel = "PERSONNEL MANAGEMENT";
-        else if (tab === "branch") tabLabel = "BRANCH MANAGEMENT";
-        else if (tab === "department") tabLabel = "DEPARTMENT MANAGEMENT";
-        else if (tab === "iam") tabLabel = "ROLES & PERMISSIONS";
+        if (tab === "attendance") tabLabel = "ATTENDANCE CONFIG";
+        else if (tab === "schedule") tabLabel = "WORK SCHEDULES";
+        else if (tab === "leave") tabLabel = "LEAVE & APPROVALS";
+        else if (tab === "system") tabLabel = "SYSTEM ACTIVITY";
         base.push({ label: tabLabel });
       }
     }
     return base;
   }
+
   if (pathname === "/profile") return [home, { label: "PROFILE" }];
 
   // Fallback

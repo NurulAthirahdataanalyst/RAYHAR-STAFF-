@@ -16,7 +16,8 @@ import {
   Sparkles, 
   SlidersHorizontal, 
   CalendarClock,
-  Info
+  Info,
+  Building2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
@@ -254,38 +255,15 @@ export const Tab7_AttendanceConfig: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Filter: Attendance Policy Scope */}
+      {/* Top Active Company Context */}
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
-          Attendance Policy Scope:
-        </span>
-        <Select 
-          value={selectedCompanyId ? selectedCompanyId.toString() : "1"} 
-          onValueChange={(val) => {
-            setSelectedCompanyId(parseInt(val, 10));
-            setTestClockInTime('');
-            setSelectedGroupIndex(0);
-          }}
-        >
-          <SelectTrigger className="w-72 min-w-[260px] text-xs h-9 bg-background dark:bg-neutral-900 border-border dark:border-neutral-800 font-medium data-[placeholder]:font-normal text-black dark:text-white shadow-xs">
-            <SelectValue placeholder="Select company...">
-              {currentCompany ? `${currentCompany.company_name} (${currentCompany.company_type === 'main' ? 'Main Company' : 'Subsidiary'})` : 'Rayhar Travels (Main Company)'}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {companies.length > 0 ? (
-              companies.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()} className="text-xs font-bold">
-                  {c.company_name} ({c.company_type === 'main' ? 'Main Company' : 'Subsidiary'})
-                </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="1" className="text-xs font-bold">
-                Rayhar Travels (Main Company)
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
+          <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
+          <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
+          <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
+            {currentCompany?.company_name || activeCompany?.company_name || 'Rayhar Travels'}
+          </span>
+        </div>
       </div>
 
       {/* TOP PROMINENT CARD: DEFAULT LATE ARRIVAL WINDOW (GRACE PERIOD) */}

@@ -19,7 +19,7 @@ export interface PageInfo {
   icon: LucideIcon;
 }
 
-export function getPageTitleInfo(pathname: string, userRole?: string, search?: string): PageInfo {
+export function getPageTitleInfo(pathname: string, _userRole?: string, search?: string): PageInfo {
   const currentSearch = search || (typeof window !== 'undefined' ? window.location.search : '');
   const searchTab = new URLSearchParams(currentSearch).get('tab')?.toLowerCase();
   // Dashboard
@@ -102,26 +102,26 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
     icon: FilePenLine
   };
   if (pathname === "/leave/forms") return {
-    title: "My Leave Request",
+    title: "My Leave Requests",
     subtitle: "Track your leave requests, approval progress, and leave history.",
     icon: NotebookPen
   };
   if (pathname === "/leave/team") return {
-    title: "Team Leave Request",
+    title: "Team Leave Requests",
     subtitle: "Review and manage leave requests submitted by your team.",
     icon: Users
   };
 
   // Analytics
   if (pathname === "/analytics") return {
-    title: "Analytics",
-    subtitle: "Discover workforce trends through attendance and employee performance insights.",
+    title: "My Analytics",
+    subtitle: "Discover your personal attendance trends, punctuality, and working hour insights.",
     icon: ChartPie
   };
 
   // Leave Administration
   if (pathname === "/leave/admin") return {
-    title: "Leave Approvals",
+    title: "Leave Approval",
     subtitle: "Review, approve, or reject employee leave applications.",
     icon: BadgeCheck
   };
@@ -136,7 +136,7 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
     icon: WalletCards
   };
 
-  // Employee Management
+  // People & Workforce
   if (pathname === "/master") return {
     title: "Master Hub Control",
     subtitle: "Manage employee records, organizational structure, and system access.",
@@ -144,11 +144,11 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
   };
   if (pathname === "/employees") return {
     title: "Employee Directory",
-    subtitle: "Browse and manage employee profiles across the organization.",
+    subtitle: "Browse, add, and manage employee profiles for the active company workspace.",
     icon: ContactRound
   };
   if (pathname === "/master/department") return {
-    title: "Department",
+    title: "Departments",
     subtitle: "Organize and manage departments within the company.",
     icon: Building2
   };
@@ -160,14 +160,14 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
     };
   }
   if (pathname === "/master/role") return {
-    title: "Role",
+    title: "Roles & Permissions (RBAC)",
     subtitle: "Manage enterprise system roles and configure unlimited custom permissions",
     icon: UserCog
   };
 
-  // Branch Management
+  // Branch Management / Temporary Assignments
   if (pathname === "/branches") return {
-    title: "Branch Overview",
+    title: "Branches & Geofence",
     subtitle: "View branch performance, workforce distribution, and operational status.",
     icon: Building
   };
@@ -189,7 +189,7 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
     icon: ChartNoAxesCombined
   };
   if (pathname === "/hr-analytics/workforce") return {
-    title: "Workforce Insight",
+    title: "Workforce Insights",
     subtitle: "Gain actionable insights into workforce performance and attendance behavior.",
     icon: ScanSearch
   };
@@ -223,8 +223,8 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
 
   // Settings & Profile
   if (pathname === "/settings") return {
-    title: "Portal Configurations",
-    subtitle: "Configure global branches, staff roles, and check-in parameters.",
+    title: "Settings & Policies",
+    subtitle: "Configure attendance rules, work schedules, leave approval workflows, and system activity.",
     icon: Settings
   };
   if (pathname === "/profile") return {
@@ -238,7 +238,7 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
     icon: MapPinned
   };
   if (pathname === "/gps-location-tracker") return {
-    title: "GPS Location Tracker",
+    title: "GPS Live Tracker",
     subtitle: "Monitor live workforce field locations, outstation tracking, and attendance coordinates.",
     icon: MapPinned
   };
@@ -250,20 +250,20 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
     icon: Bell
   };
 
-  // Organization & Entities Module
+  // Company Setup & Group Entities
   if (pathname.startsWith("/organization")) {
     if (pathname.includes("/roles") || searchTab === "roles" || searchTab === "iam") return {
-      title: "Company Roles & RBAC",
-      subtitle: "Configure company-specific roles, permissions, and multi-tenant security scopes.",
+      title: "Roles & Permissions (RBAC)",
+      subtitle: "Configure company-specific roles, permissions, and security authorization scopes.",
       icon: ShieldCheck
     };
     if (pathname.includes("/transfer") || searchTab === "transfer") return {
-      title: "Employee Transfer Wizard",
-      subtitle: "Execute multi-step verified company transfers with role compatibility checks.",
+      title: "Inter-Company Transfers",
+      subtitle: "Execute multi-step verified company transfers and inspect career transition history across entities.",
       icon: ArrowRightLeft
     };
     if (pathname.includes("/history") || searchTab === "history") return {
-      title: "Transfer Career History",
+      title: "Inter-Company Transfers",
       subtitle: "Inspect historical records and career transition audit logs across entities.",
       icon: History
     };
@@ -278,8 +278,8 @@ export function getPageTitleInfo(pathname: string, userRole?: string, search?: s
       icon: Layers
     };
     if (pathname.includes("/personnel") || searchTab === "personnel" || searchTab === "staff") return {
-      title: "Personnel Entity",
-      subtitle: "Manage company-scoped personnel directory, employee profiles and authorized RBAC staffing",
+      title: "Employee Directory",
+      subtitle: "Browse, add, and manage employee profiles for the active company workspace.",
       icon: Users
     };
     if (pathname.includes("/modules") || searchTab === "modules") return {

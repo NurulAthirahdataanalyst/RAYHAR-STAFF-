@@ -24,7 +24,6 @@ import LeaveAnalytics from "./pages/LeaveAnalytics";
 import EmployeeAnalytics from "./pages/EmployeeAnalytics";
 import LeaveFormView from "./pages/LeaveFormView";
 import Employees from "./pages/Employees";
-import Branches from "./pages/Branches";
 import TemporaryAssignments from "./pages/TemporaryAssignments";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
@@ -34,11 +33,8 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import CalendarPage from "./pages/Calendar";
 import MasterPlaceholder from "./pages/master/Placeholder";
-import Department from "./pages/master/Department";
 import DepartmentDetails from "./pages/master/DepartmentDetails";
-import MasterOverview from "./pages/master/Overview";
 import LeaveEntitlementManagement from "./pages/master/LeaveEntitlementManagement";
-import Role from "./pages/master/Role";
 import AttendanceDashboard from "./pages/hr-analytics/AttendanceDashboard";
 import TeamAttendance from "./pages/TeamAttendance";
 import TeamLeaveRequests from "./pages/TeamLeaveRequests";
@@ -109,16 +105,16 @@ function ProtectedRoutes() {
           <Route path="/leave/forms" element={<LeaveFormView />} />
 
           <Route path="/employees" element={<Employees />} />
-          <Route path="/branches" element={<Branches />} />
+          <Route path="/branches" element={<Navigate to="/organization/branches" replace />} />
           <Route path="/branches/temporary-assignments" element={<TemporaryAssignments />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/gps-location-tracker" element={<GPSLocationTracker />} />
-                  <Route path="/gps-location-tracker/history" element={<LocationHistory />} />
+          <Route path="/gps-location-tracker/history" element={<LocationHistory />} />
 
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/organization" element={<OrganizationEntities />} />
           <Route path="/organization/entities" element={<OrganizationEntities />} />
-          <Route path="/organization/personnel" element={<OrganizationEntities />} />
+          <Route path="/organization/personnel" element={<Navigate to="/employees" replace />} />
           <Route path="/organization/roles" element={<OrganizationEntities />} />
           <Route path="/organization/modules" element={<OrganizationEntities />} />
           <Route path="/organization/transfer" element={<OrganizationEntities />} />
@@ -142,13 +138,13 @@ function ProtectedRoutes() {
           <Route path="/reports/leave" element={<LeaveReports />} />
           <Route path="/reports/department" element={<DepartmentReports />} />
 
-          {/* Master Section */}
-          <Route path="/master" element={<MasterOverview />} />
-          <Route path="/master/department" element={<Department />} />
+          {/* Legacy Master Section Redirects */}
+          <Route path="/master" element={<Navigate to="/employees" replace />} />
+          <Route path="/master/department" element={<Navigate to="/organization/departments" replace />} />
           <Route path="/master/department/:deptName" element={<DepartmentDetails />} />
-          <Route path="/master/leave-entitlement" element={<LeaveEntitlementManagement />} />
+          <Route path="/master/leave-entitlement" element={<Navigate to="/leave/entitlement" replace />} />
           <Route path="/master/designation" element={<MasterPlaceholder title="Designation" />} />
-          <Route path="/master/role" element={<Role />} />
+          <Route path="/master/role" element={<Navigate to="/organization/roles" replace />} />
 
           {/* Outstation Management */}
           <Route path="/outstation" element={<OutstationDashboard />} />

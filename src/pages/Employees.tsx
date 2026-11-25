@@ -393,7 +393,7 @@ export default function Employees() {
 
   const fetchBranchesAndDepartments = async (companyId?: number) => {
     try {
-      const cId = companyId || signupCompanyId || activeCompany?.id || 1;
+      const cId = companyId || activeCompany?.id || 1;
       const bRes = await fetch(`${API_BASE_URL}/api/branches?company_id=${cId}`);
       const bData = await bRes.json();
       if (bData.success) {
@@ -426,7 +426,7 @@ export default function Employees() {
 
   const fetchRoles = async (companyId?: number) => {
     try {
-      const cId = companyId || signupCompanyId || activeCompany?.id || 1;
+      const cId = companyId || activeCompany?.id || 1;
       const response = await fetch(`${API_BASE_URL}/api/roles?company_id=${cId}`);
       const data = await response.json();
       if (data.success && Array.isArray(data.roles)) {
@@ -444,8 +444,10 @@ export default function Employees() {
 
   useEffect(() => {
     const cId = activeCompany?.id || 1;
+    setSignupCompanyId(cId);
     void fetchEmployees(cId);
     void fetchBranchesAndDepartments(cId);
+    void fetchRoles(cId);
   }, [activeCompany?.id, role, userBranch, userDepartment]);
 
   useEffect(() => {
@@ -453,6 +455,7 @@ export default function Employees() {
       if (e.detail?.company?.id) {
         void fetchEmployees(e.detail.company.id);
         void fetchBranchesAndDepartments(e.detail.company.id);
+        void fetchRoles(e.detail.company.id);
       }
     };
     const handleBranchUpdate = () => {
@@ -1011,22 +1014,16 @@ export default function Employees() {
   return (
     <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
 
-        <div className="mb-2 flex items-center justify-between">
-          {canAccessMasterOverview ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mb-1 gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
-              onClick={() => navigate("/master")}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="text-[10px] print:text-[13px] font-black uppercase tracking-widest">
-                Back to Employee Management
-              </span>
-            </Button>
-          ) : <div />}
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
+            <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
+            <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
+              {activeCompany?.company_name || "Rayhar Travels"}
+            </span>
+          </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2.5">
+          <div className="flex flex-wrap items-center justify-end gap-2.5 ml-auto">
             <Button
               variant="outline"
               onClick={handleExportCSV}
@@ -2376,31 +2373,20 @@ export default function Employees() {
           </DialogHeader>
           <form onSubmit={handleSignup} className="p-6 space-y-4 bg-card">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Company Entity Filter */}
+              {/* Locked Target Company Badge */}
               <div className="space-y-1.5 col-span-1 sm:col-span-2 lg:col-span-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-[#942392]" />
-                  Company Entity <span className="text-rose-500">*</span>
+                  Target Company
                 </Label>
-                <Select 
-                  value={String(signupCompanyId)} 
-                  onValueChange={(val) => {
-                    const cId = Number(val);
-                    setSignupCompanyId(cId);
-                    void fetchModalDataForCompany(cId);
-                  }}
-                >
-                  <SelectTrigger className="h-11 px-4 rounded-xl border border-input bg-background/50 text-xs font-black shadow-xs text-foreground">
-                    <SelectValue placeholder="Select Company" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {(companies && companies.length > 0 ? companies : [{ id: 1, company_name: "Rayhar Travels" }, { id: 2, company_name: "Ray Rent" }]).map((c: any) => (
-                      <SelectItem key={c.id} value={String(c.id)} className="text-xs font-black">
-                        {c.company_name} {c.id === 1 ? "(HQ)" : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="h-11 px-4 rounded-xl border border-[#942392]/25 bg-[#942392]/[0.06] dark:bg-purple-950/30 flex items-center justify-between gap-2 text-xs font-black text-foreground select-none">
+                  <span className="truncate uppercase text-[#942392] dark:text-purple-200">
+                    {activeCompany?.company_name || "Rayhar Travels"}
+                  </span>
+                  <Badge variant="outline" className="text-[9px] font-black uppercase tracking-wider border-[#942392]/30 text-[#942392] dark:text-purple-300 bg-background/80 shrink-0">
+                    {activeCompany?.company_type === "subsidiary" ? "Subsidiary" : "Main Company"}
+                  </Badge>
+                </div>
               </div>
 
               {/* Full Name */}
