@@ -1587,9 +1587,6 @@ export default function WorkforceInsights() {
                           : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                         {scopeLabel && <span className="text-[9px] font-bold text-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
                       </div>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" /> {displayDate}
-                      </span>
                     </div>
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
@@ -1666,9 +1663,6 @@ export default function WorkforceInsights() {
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
                           : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
                       </div>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" /> {displayDate}
-                      </span>
                     </div>
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
@@ -1826,9 +1820,6 @@ export default function WorkforceInsights() {
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> {displayDate}
-              </span>
             </div>
 
             <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
@@ -1913,9 +1904,6 @@ export default function WorkforceInsights() {
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
                   : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> {displayDate}
-              </span>
             </div>
 
             {/* allClockIns = on-time + late merged, sorted by clock_in */}
@@ -2005,9 +1993,6 @@ export default function WorkforceInsights() {
                     </div>
                     <div className="text-xs text-foreground mt-0.5 italic">Employees currently assigned to outstation duties.</div>
                   </div>
-                  <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded text-foreground flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate("/outstation")}>
-                    <CalendarDays className="w-3 h-3" /> {displayDate}
-                  </span>
                 </div>
                 
                 <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
@@ -2214,9 +2199,6 @@ export default function WorkforceInsights() {
                 <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Outstation</h3>
                 <div className="text-xs text-foreground mt-0.5 italic">View scheduled employee outstation assignments and details.</div>
               </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded text-foreground flex items-center gap-1 shrink-0">
-                <CalendarDays className="w-3 h-3" /> {displayDate}
-              </span>
             </div>
             
             <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
