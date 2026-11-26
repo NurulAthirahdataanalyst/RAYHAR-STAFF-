@@ -193,6 +193,11 @@ export default function WorkforceInsights() {
   const [liveMonthlyComp, setLiveMonthlyComp] = useState<any>(null);
   const [liveLeaveTrend, setLiveLeaveTrend] = useState<any>(null);
   const [liveWeeklyAttendanceTrend, setLiveWeeklyAttendanceTrend] = useState<any[] | null>(null);
+  const [trendLoading, setTrendLoading] = useState(false);
+  const trendLoadingRef = useRef(false);
+  const weeklyTrendCacheRef = useRef<Record<string, any[]>>({});
+  const trendAbortRef = useRef<AbortController | null>(null);
+  const lastFetchedTrendKeyRef = useRef<string | null>(null);
   const [liveHrAlerts, setLiveHrAlerts] = useState<any[] | null>(null);
   const [missingPunchYesterdayLive, setMissingPunchYesterdayLive] = useState<number | null>(null);
   const [feedConnected, setFeedConnected] = useState(false);
@@ -254,7 +259,7 @@ export default function WorkforceInsights() {
           setOutstationSummary(d.outstationSummary || d.outstationAnalytics || null);
           setLiveMonthlyComp(d.monthlyComparison || null);
           setLiveLeaveTrend(d.leaveTrend || d.leaveAnalytics?.monthlyTrend || null);
-          setLiveWeeklyAttendanceTrend(prev => isViewingSseWeekRef.current ? (d.weeklyAttendanceTrend || null) : prev);
+          setLiveWeeklyAttendanceTrend(prev => (isViewingSseWeekRef.current && !trendLoadingRef.current) ? (d.weeklyAttendanceTrend || null) : prev);
           setLiveHrAlerts(d.hrAlerts || null);
           if (d.missingPunchYesterday !== undefined) setMissingPunchYesterdayLive(d.missingPunchYesterday);
           setFeedConnected(true);
@@ -402,12 +407,20 @@ export default function WorkforceInsights() {
     } catch (err) { console.error('Decline error:', err); }
   };
 
+  const getTrendCacheKey = (weekStart: Date) =>
+    `${activeCompany?.id || 1}_${role || ""}_${userBranch || ""}_${userDepartment || ""}_${month}_${year}_${format(weekStart, "yyyy-MM-dd")}`;
+
   const fetchInsights = async () => {
     setLoading(true);
+    weeklyTrendCacheRef.current = {};
+    trendAbortRef.current?.abort();
+    trendLoadingRef.current = false;
+    setTrendLoading(false);
     try {
       const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase().trim().replace(/ /g, "_"));
       const queryBranch = isAllAccessRole ? "" : (userBranch || "");
       const queryDept = isAllAccessRole ? "" : (userDepartment || "");
+      const targetWeekStart = viewMode === "day" ? startOfWeek(selectedDate, { weekStartsOn: 6 }) : trendWeekStart;
 
       const params = new URLSearchParams({
         role: role || "",
@@ -415,6 +428,7 @@ export default function WorkforceInsights() {
         department: queryDept,
         month: month,
         year: year,
+        weekStartDate: format(targetWeekStart, "yyyy-MM-dd"),
         company_id: String(activeCompany?.id || 1)
       });
       if (viewMode === 'day') {
@@ -440,6 +454,12 @@ export default function WorkforceInsights() {
       const json = await res.json();
       if (json.success) {
         setData(json);
+        if (json.attendanceOverview?.weeklyAttendanceTrend) {
+          const k = getTrendCacheKey(targetWeekStart);
+          weeklyTrendCacheRef.current[k] = json.attendanceOverview.weeklyAttendanceTrend;
+          lastFetchedTrendKeyRef.current = k;
+          setLiveWeeklyAttendanceTrend(json.attendanceOverview.weeklyAttendanceTrend);
+        }
       } else {
         throw new Error(json.error || "Failed to fetch data");
       }
@@ -466,6 +486,25 @@ export default function WorkforceInsights() {
   };
 
   const fetchWeeklyTrendOnly = async (weekStart: Date) => {
+    const cacheKey = getTrendCacheKey(weekStart);
+    const cached = weeklyTrendCacheRef.current[cacheKey];
+    if (cached) {
+      trendAbortRef.current?.abort();
+      trendLoadingRef.current = false;
+      setTrendLoading(false);
+      lastFetchedTrendKeyRef.current = cacheKey;
+      setLiveWeeklyAttendanceTrend(cached);
+      return;
+    }
+
+    if (lastFetchedTrendKeyRef.current === cacheKey) return;
+
+    trendAbortRef.current?.abort();
+    const controller = new AbortController();
+    trendAbortRef.current = controller;
+
+    trendLoadingRef.current = true;
+    setTrendLoading(true);
     try {
       const isAllAccessRole = ["hr_admin", "hr", "admin", "managing_director", "md", "operation_manager", "finance_manager"].includes((role || "").toLowerCase().trim().replace(/ /g, "_"));
       const queryBranch = isAllAccessRole ? "" : (userBranch || "");
@@ -479,23 +518,36 @@ export default function WorkforceInsights() {
         year: year,
         weekStartDate: format(weekStart, 'yyyy-MM-dd'),
         date: format(selectedDate, 'yyyy-MM-dd'),
-        company_id: String(activeCompany?.id || 1)
+        company_id: String(activeCompany?.id || 1),
+        trendOnly: "true"
       });
       const res = await fetch(`${API_BASE_URL}/api/workforce-stats?${params}`, {
-        headers: { 'x-company-id': String(activeCompany?.id || 1) }
+        headers: { 'x-company-id': String(activeCompany?.id || 1) },
+        signal: controller.signal
       });
+      if (controller.signal.aborted) return;
       if (res.ok) {
         const json = await res.json();
+        if (controller.signal.aborted) return;
         if (json.success && json.attendanceOverview?.weeklyAttendanceTrend) {
-          setLiveWeeklyAttendanceTrend(json.attendanceOverview.weeklyAttendanceTrend);
+          const trend = json.attendanceOverview.weeklyAttendanceTrend;
+          weeklyTrendCacheRef.current[cacheKey] = trend;
+          lastFetchedTrendKeyRef.current = cacheKey;
+          setLiveWeeklyAttendanceTrend(trend);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === "AbortError") return;
       console.error("Error fetching weekly trend:", err);
+    } finally {
+      if (!controller.signal.aborted) {
+        trendLoadingRef.current = false;
+        setTrendLoading(false);
+      }
     }
   };
 
-  // When trendWeekStart changes (but not on initial mount where fetchInsights covers it), we fetch just the weekly trend
+  // When trendWeekStart changes, immediately show skeleton (or cached data) and fetch weekly trend only
   useEffect(() => {
     if (data) {
       fetchWeeklyTrendOnly(trendWeekStart);
@@ -2297,7 +2349,7 @@ export default function WorkforceInsights() {
         )}
         </>
         ) : (
-          <MonthViewDashboard data={data} branches={branches} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationAssignments={outstationAssignments} upcomingOutstationList={upcomingOutstationList} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} onEmployeeClick={(id: string) => setSelectedStaffId(id)} viewMode={viewMode} />
+          <MonthViewDashboard data={data} branches={branches} clockInOut={clockInOut} absentList={absentList} tempAssignments={tempAssignments} outstationAssignments={outstationAssignments} upcomingOutstationList={upcomingOutstationList} outstationSummary={outstationSummary} feedConnected={feedConnected} liveMonthlyComp={liveMonthlyComp} liveHrAlerts={liveHrAlerts} liveLeaveTrend={liveLeaveTrend} month={month} year={year} day={day} liveWeeklyAttendanceTrend={liveWeeklyAttendanceTrend} trendLoading={trendLoading} trendWeekStart={trendWeekStart} setTrendWeekStart={setTrendWeekStart} onEmployeeClick={(id: string) => setSelectedStaffId(id)} viewMode={viewMode} />
         )}
   
       <StaffProfileDialog 
@@ -2308,7 +2360,7 @@ export default function WorkforceInsights() {
     </div>
   );
 }
-function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentList, tempAssignments, outstationAssignments, upcomingOutstationList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendWeekStart, setTrendWeekStart, onEmployeeClick, viewMode }: any) {
+function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentList, tempAssignments, outstationAssignments, upcomingOutstationList, pendingApprovalsList, feedConnected, outstationSummary, liveMonthlyComp, liveHrAlerts, liveLeaveTrend, month, year, day, liveWeeklyAttendanceTrend, trendLoading, trendWeekStart, setTrendWeekStart, onEmployeeClick, viewMode }: any) {
     const [selectedRegion, setSelectedRegion] = useState<string>('All Regions');
   const navigate = useNavigate();
   const { role: currentRole } = useRole();
@@ -2633,30 +2685,27 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
   const trendChartWrapRef = useRef<HTMLDivElement | null>(null);
   const [trendAnimKey, setTrendAnimKey] = useState(0);
   const prevTrendWeekRef = useRef<string>(format(trendWeekStart, "yyyy-MM-dd"));
-  const pendingTrendAnimRef = useRef(false);
+  const prevTrendLoadingRef = useRef<boolean>(Boolean(trendLoading));
 
   useEffect(() => {
     const wk = format(trendWeekStart, "yyyy-MM-dd");
+    const wasLoading = prevTrendLoadingRef.current;
+    prevTrendLoadingRef.current = Boolean(trendLoading);
+
     if (prevTrendWeekRef.current !== wk) {
       prevTrendWeekRef.current = wk;
-      pendingTrendAnimRef.current = true;
       trendChartWrapRef.current?.removeAttribute("data-hovered-day");
-      const fallbackTimer = setTimeout(() => {
-        if (pendingTrendAnimRef.current) {
-          pendingTrendAnimRef.current = false;
-          setTrendAnimKey((k) => k + 1);
-        }
-      }, 320);
-      return () => clearTimeout(fallbackTimer);
+      if (!trendLoading) {
+        setTrendAnimKey((k) => k + 1);
+      }
+      return;
     }
-  }, [trendWeekStart]);
 
-  useEffect(() => {
-    if (pendingTrendAnimRef.current) {
-      pendingTrendAnimRef.current = false;
+    if (wasLoading && !trendLoading) {
+      trendChartWrapRef.current?.removeAttribute("data-hovered-day");
       setTrendAnimKey((k) => k + 1);
     }
-  }, [liveWeeklyAttendanceTrend]);
+  }, [trendWeekStart, trendLoading, liveWeeklyAttendanceTrend]);
 
   const trendBarShapes = useMemo(() => {
     const makeShape = (segKey: string) => (props: any) => {
@@ -2901,30 +2950,46 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                   <div className="flex items-center gap-2 whitespace-nowrap">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#2D9B2B] shrink-0" />
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
-                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.present, 0) || 0}
-                    </span>
+                    {trendLoading ? (
+                      <Skeleton className="h-6 w-8 rounded-md" />
+                    ) : (
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                        {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.present, 0) || 0}
+                      </span>
+                    )}
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">On Time</span>
                   </div>
                   <div className="flex items-center gap-2 whitespace-nowrap">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#FFD700] shrink-0" />
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
-                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}
-                    </span>
+                    {trendLoading ? (
+                      <Skeleton className="h-6 w-7 rounded-md" />
+                    ) : (
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                        {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}
+                      </span>
+                    )}
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Late</span>
                   </div>
                   <div className="flex items-center gap-2 whitespace-nowrap">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#E12C2C] shrink-0" />
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
-                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}
-                    </span>
+                    {trendLoading ? (
+                      <Skeleton className="h-6 w-8 rounded-md" />
+                    ) : (
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                        {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}
+                      </span>
+                    )}
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Absent</span>
                   </div>
                   <div className="flex items-center gap-2 whitespace-nowrap">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] shrink-0" />
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
-                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + (item.leave || 0), 0) || 0}
-                    </span>
+                    {trendLoading ? (
+                      <Skeleton className="h-6 w-7 rounded-md" />
+                    ) : (
+                      <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                        {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + (item.leave || 0), 0) || 0}
+                      </span>
+                    )}
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Leave</span>
                   </div>
                 </div>
@@ -2936,6 +3001,32 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 
               <div className="flex flex-col lg:flex-row gap-6">
                 <div ref={trendChartWrapRef} className="attendance-trend-chart flex-1 h-[280px] min-h-[280px]">
+                  {trendLoading ? (
+                    <div className="h-full w-full flex flex-col justify-between pt-3 pb-1 px-2">
+                      <div className="relative flex-1 flex items-end justify-around pl-6 pr-2 border-b border-slate-100 dark:border-slate-800/70">
+                        <div className="absolute inset-0 left-6 flex flex-col justify-between pointer-events-none">
+                          {[0, 1, 2, 3, 4].map((lineIdx) => (
+                            <div key={lineIdx} className="w-full border-t border-dashed border-slate-100 dark:border-slate-800/80 relative">
+                              <Skeleton className="absolute -left-6 -top-1.5 h-2.5 w-4 rounded" />
+                            </div>
+                          ))}
+                        </div>
+                        {[72, 82, 88, 68, 78, 65, 80].map((pct, barIdx) => (
+                          <div key={barIdx} className="flex flex-col items-center justify-end h-full z-10">
+                            <Skeleton className="w-4 rounded-t-md" style={{ height: `${pct}%` }} />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-around pl-6 pr-2 pt-2.5">
+                        {["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"].map((dLabel) => (
+                          <span key={dLabel} className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+                            {dLabel}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                  <>
                   <style>{`
                     .attendance-trend-chart .trend-bar-seg {
                       opacity: 1;
@@ -3079,6 +3170,8 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                       <Bar dataKey="weekend" name="Weekend" stackId="a" fill="#9ca3af" shape={trendBarShapes.weekend} isAnimationActive={true} animationBegin={0} animationDuration={520} animationEasing="ease-out" />
                     </BarChart>
                   </ResponsiveContainer>
+                  </>
+                  )}
                 </div>
                 
                 {/* Metric Boxes */}

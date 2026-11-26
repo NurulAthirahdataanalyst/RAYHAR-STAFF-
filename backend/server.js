@@ -14332,9 +14332,201 @@ app.get("/api/workforce-stats", async (req, res) => {
       targetDateStr = isCurrentMonth ? todayStr : monthStartStr;
     }
     const lateTimeStr = getLateThresholdTime(companyId, targetDateStr);
+    const maxDateToCheck = isDayView ? targetDateStr : monthEndStr;
+    const isTrendOnly = safeString(req.query.trendOnly) === 'true' || safeString(req.query.trendOnly) === '1';
+
+    if (isTrendOnly) {
+      const weeklyMap = {
+        'Mon': { present: 0, late: 0, leave: 0, expected: 0, outstation: 0 },
+        'Tue': { present: 0, late: 0, leave: 0, expected: 0, outstation: 0 },
+        'Wed': { present: 0, late: 0, leave: 0, expected: 0, outstation: 0 },
+        'Thu': { present: 0, late: 0, leave: 0, expected: 0, outstation: 0 },
+        'Fri': { present: 0, late: 0, leave: 0, expected: 0, outstation: 0 },
+        'Sat': { present: 0, late: 0, leave: 0, expected: 0, outstation: 0 },
+        'Sun': { present: 0, late: 0, leave: 0, expected: 0, outstation: 0 },
+      };
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const weekStartDateParam = safeString(req.query.weekStartDate);
+      const targetD = weekStartDateParam ? new Date(weekStartDateParam) : new Date(targetDateStr);
+      const dayOfWeek = targetD.getDay();
+      const diffToSat = dayOfWeek === 6 ? 0 : -1 - dayOfWeek;
+      const weekStartD = new Date(targetD);
+      weekStartD.setDate(targetD.getDate() + diffToSat);
+      weekStartD.setHours(0, 0, 0, 0);
+
+      const weekEndD = new Date(weekStartD);
+      weekEndD.setDate(weekStartD.getDate() + 6);
+      weekEndD.setHours(23, 59, 59, 999);
+
+      const weekStartDateStr = `${weekStartD.getFullYear()}-${String(weekStartD.getMonth() + 1).padStart(2, '0')}-${String(weekStartD.getDate()).padStart(2, '0')}`;
+      const weekEndDateStr = `${weekEndD.getFullYear()}-${String(weekEndD.getMonth() + 1).padStart(2, '0')}-${String(weekEndD.getDate()).padStart(2, '0')}`;
+
+      const [
+        [allProfiles],
+        branchZoneMapW,
+        [weekAttRows],
+        [weekLeaveRows],
+        [weekOutstationRows]
+      ] = await Promise.all([
+        pool.query(
+          `SELECT p.user_id, p.branch, p.created_at
+           FROM profiles p
+           WHERE p.status = 'Active' AND (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}`,
+          [maxDateToCheck, ...pFilterParams]
+        ),
+        getBranchZoneMap(),
+        pool.query(
+          `SELECT a.user_id, a.clock_in
+           FROM attendances a
+           JOIN profiles p ON p.user_id = a.user_id
+           WHERE a.clock_in >= ? AND a.clock_in <= ?
+             AND COALESCE(a.verification_status, 'Approved') NOT IN ('Rejected', 'Expired', 'Pending Verification')
+             AND p.status = 'Active' ${profileFilter}
+           ORDER BY a.clock_in ASC`,
+          [weekStartD.toISOString(), weekEndD.toISOString(), ...pFilterParams]
+        ),
+        pool.query(
+          `SELECT lr.user_id, lr.leave_type, lr.reason, lr.cuti_ganti_tarikh,
+                  (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as start_date,
+                  (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as end_date
+           FROM leave_requests lr
+           JOIN profiles p ON p.user_id = lr.user_id
+           WHERE lr.status = 'Approved'
+             AND (lr.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+             AND (lr.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
+             AND p.status = 'Active' ${profileFilter}`,
+          [weekEndDateStr, weekStartDateStr, ...pFilterParams]
+        ),
+        pool.query(
+          `SELECT o.user_id,
+                  (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as start_date,
+                  (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date as end_date
+           FROM outstation_assignments o
+           JOIN profiles p ON p.user_id = o.user_id
+           WHERE o.status != 'Cancelled'
+             AND (o.start_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date
+             AND (o.end_date AT TIME ZONE 'Asia/Kuala_Lumpur')::date >= ?::date
+             AND p.status = 'Active' ${profileFilter}`,
+          [weekEndDateStr, weekStartDateStr, ...pFilterParams]
+        )
+      ]);
+
+      const dIter = new Date(weekStartD);
+      const dEnd = new Date(targetDateStr);
+      dEnd.setHours(23, 59, 59, 999);
+      while (dIter <= weekEndD) {
+        const dayOfWeekNum = dIter.getDay();
+        const dayName = dayNames[dayOfWeekNum];
+        const dIterStr = `${dIter.getFullYear()}-${String(dIter.getMonth() + 1).padStart(2, '0')}-${String(dIter.getDate()).padStart(2, '0')}`;
+
+        let expectedForDay = 0;
+        let totalEmployeesForDay = 0;
+        allProfiles.forEach(p => {
+          const pCreatedStr = getEmpCreatedDateStr(p.created_at);
+          if (!pCreatedStr || pCreatedStr <= dIterStr) {
+            totalEmployeesForDay++;
+            const userZone = branchZoneMapW.get(p.branch) || 'ZONE_B';
+            const isFirstSaturday = dayOfWeekNum === 6 && dIter.getDate() <= 7;
+            const isRest = (userZone === 'ZONE_A' && (dayOfWeekNum === 5 || isFirstSaturday)) ||
+                           (userZone === 'ZONE_B' && (dayOfWeekNum === 0 || isFirstSaturday));
+            if (!isRest) expectedForDay++;
+          }
+        });
+        weeklyMap[dayName].expected = expectedForDay;
+        weeklyMap[dayName].totalEmployees = totalEmployeesForDay;
+        weeklyMap[dayName].isFuture = dIter > dEnd;
+        dIter.setDate(dIter.getDate() + 1);
+      }
+
+      const outstationSetPerDay = {
+        Sat: new Set(), Sun: new Set(), Mon: new Set(), Tue: new Set(), Wed: new Set(), Thu: new Set(), Fri: new Set()
+      };
+      weekOutstationRows.forEach(o => {
+        const startObj = new Date(o.start_date); startObj.setHours(0, 0, 0, 0);
+        const endObj = new Date(o.end_date); endObj.setHours(23, 59, 59, 999);
+        const oIter = new Date(Math.max(startObj.getTime(), weekStartD.getTime()));
+        oIter.setHours(0, 0, 0, 0);
+        const oEnd = new Date(Math.min(endObj.getTime(), weekEndD.getTime()));
+        oEnd.setHours(23, 59, 59, 999);
+        while (oIter <= oEnd) {
+          const dayName = dayNames[oIter.getDay()];
+          if (outstationSetPerDay[dayName] && !outstationSetPerDay[dayName].has(o.user_id)) {
+            outstationSetPerDay[dayName].add(o.user_id);
+            weeklyMap[dayName].outstation = (weeklyMap[dayName].outstation || 0) + 1;
+          }
+          oIter.setDate(oIter.getDate() + 1);
+        }
+      });
+
+      const weekAttMap = new Map();
+      weekAttRows.forEach(att => {
+        const dateObj = new Date(att.clock_in);
+        const dateStr = new Date(dateObj.getTime() + 8 * 3600 * 1000).toISOString().split('T')[0];
+        const key = `${att.user_id}_${dateStr}`;
+        if (!weekAttMap.has(key)) {
+          const empCompanyId = att.company_id || getEmployeeCompanyId(att.user_id) || companyId;
+          const { isLate } = isAttendanceLate(att.clock_in, empCompanyId, dateStr);
+          weekAttMap.set(key, { ...att, dateStr, dateObj, is_late: isLate ? 1 : 0 });
+        }
+      });
+
+      Array.from(weekAttMap.values()).forEach(att => {
+        const dateObj = att.dateObj;
+        const dateStr = att.dateStr;
+        const dayName = dayNames[dateObj.getDay()];
+        const isOutstation = outstationSetPerDay[dayName]?.has(att.user_id) || false;
+        const isOnLeave = weekLeaveRows.some(lr => lr.user_id === att.user_id && isEmployeeOnLeaveOnDate(lr, dateStr));
+        if (dateObj >= weekStartD && dateObj <= weekEndD && !isOutstation && !isOnLeave) {
+          if (parseInt(att.is_late) === 1) weeklyMap[dayName].late++;
+          else weeklyMap[dayName].present++;
+        }
+      });
+
+      const onLeaveSetPerDay = {
+        Sat: new Set(), Sun: new Set(), Mon: new Set(), Tue: new Set(), Wed: new Set(), Thu: new Set(), Fri: new Set()
+      };
+      weekLeaveRows.forEach(lr => {
+        const startObj = new Date(lr.start_date); startObj.setHours(0, 0, 0, 0);
+        const endObj = new Date(lr.end_date); endObj.setHours(23, 59, 59, 999);
+        const lIter = new Date(Math.max(startObj.getTime(), weekStartD.getTime()));
+        lIter.setHours(0, 0, 0, 0);
+        const lEnd = new Date(Math.min(endObj.getTime(), weekEndD.getTime()));
+        lEnd.setHours(23, 59, 59, 999);
+        while (lIter <= lEnd) {
+          const dIterStr = `${lIter.getFullYear()}-${String(lIter.getMonth() + 1).padStart(2, '0')}-${String(lIter.getDate()).padStart(2, '0')}`;
+          if (isEmployeeOnLeaveOnDate(lr, dIterStr)) {
+            const dayName = dayNames[lIter.getDay()];
+            if (onLeaveSetPerDay[dayName]) onLeaveSetPerDay[dayName].add(lr.user_id);
+          }
+          lIter.setDate(lIter.getDate() + 1);
+        }
+      });
+      Object.keys(onLeaveSetPerDay).forEach(day => {
+        if (weeklyMap[day]) weeklyMap[day].leave = onLeaveSetPerDay[day].size;
+      });
+
+      const weeklyOrder = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+      const weeklyAttendanceTrend = weeklyOrder.map(day => {
+        const d = weeklyMap[day];
+        const outstation = d.outstation || 0;
+        const absent = d.isFuture ? 0 : Math.max(0, d.expected - d.present - d.late - d.leave - outstation);
+        return {
+          name: day,
+          present: d.present,
+          late: d.late,
+          absent,
+          leave: d.leave,
+          weekend: Math.max(0, d.totalEmployees - d.expected)
+        };
+      });
+
+      return res.json({
+        success: true,
+        attendanceOverview: { weeklyAttendanceTrend }
+      });
+    }
 
     // 1. Employees & KPI
-    const maxDateToCheck = isDayView ? targetDateStr : monthEndStr;
     const [empRows] = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) as active FROM profiles p WHERE (p.created_at IS NULL OR (p.created_at AT TIME ZONE 'Asia/Kuala_Lumpur')::date <= ?::date) ${profileFilter}`, [maxDateToCheck, ...pFilterParams]);
     const totalHeadcount = parseInt(empRows[0].total || 0);
     const activeEmployees = parseInt(empRows[0].active || 0);
