@@ -3453,63 +3453,6 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
          <div className="w-full mb-6">
            <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" onEmployeeClick={(id: string) => onEmployeeClick?.(id)} />
          </div>
-
-         {/* SUPPORTING SECTION */}
-       <div>
-         <div className="grid grid-cols-1 gap-6">
-           {!isAdminOnly && <Card className="p-4 border-l-4 border-l-[#942392] border-y !border-y-slate-600 border-r !border-r-slate-600 dark:!border-y-slate-500 dark:!border-r-slate-500 hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] bg-card shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-             <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-               <div className="flex items-center gap-2">
-                 <AlertCircle className="w-4 h-4 text-[#942392]" />
-                 <h3 className="text-sm font-bold text-[#1A1F36] dark:text-slate-100">HR Alerts</h3>
-               </div>
-               {feedConnected && (
-                 <div className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest z-10 shadow-sm">
-                   <span className="w-1 h-1 rounded-full bg-card animate-pulse" /> LIVE
-                 </div>
-               )}
-             </div>
-             
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-               {(Array.isArray(liveHrAlerts) ? liveHrAlerts : Array.isArray(hrAlerts) ? hrAlerts : []).map((alert: any, i: number) => {
-                 let bgColor = 'bg-slate-50 dark:bg-slate-900/50';
-                 let borderColor = 'border border-slate-300 dark:border-slate-700';
-                 let iconColor = 'text-foreground';
-                 let titleColor = 'text-slate-800 dark:text-slate-200';
-                 
-                 if (alert.type === 'critical') {
-                   bgColor = 'bg-[#FEE2E2] dark:bg-red-950/40'; borderColor = 'border-red-200 dark:border-red-900/50'; iconColor = 'text-red-600 dark:text-red-400'; titleColor = 'text-red-900 dark:text-red-200';
-                 } else if (alert.type === 'warning') {
-                   bgColor = 'bg-[#FEF3C7] dark:bg-amber-950/40'; borderColor = 'border-amber-200 dark:border-amber-900/50'; iconColor = 'text-amber-600 dark:text-amber-400'; titleColor = 'text-amber-900 dark:text-amber-200';
-                 } else if (alert.type === 'info') {
-                   bgColor = 'bg-[#DBEAFE] dark:bg-blue-950/40'; borderColor = 'border-blue-200 dark:border-blue-900/50'; iconColor = 'text-blue-600 dark:text-blue-400'; titleColor = 'text-blue-900 dark:text-blue-200';
-                 } else if (alert.type === 'success') {
-                   bgColor = 'bg-[#DCFCE7] dark:bg-emerald-950/40'; borderColor = 'border-emerald-200 dark:border-emerald-900/50'; iconColor = 'text-emerald-600 dark:text-emerald-400'; titleColor = 'text-emerald-900 dark:text-emerald-200';
-                 }
-                 
-                 return (
-                   <div key={i} className={`p-3 rounded-lg border ${bgColor} ${borderColor} flex gap-3 items-start`}>
-                     <div className={`mt-0.5 ${iconColor}`}>
-                       {alert.type === 'critical' ? <XCircle className="w-4 h-4" /> :
-                        alert.type === 'warning' ? <AlertTriangle className="w-4 h-4" /> :
-                        alert.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> :
-                        <AlertCircle className="w-4 h-4" />}
-                     </div>
-                     <div>
-                       <p className={`text-[11px] font-black uppercase tracking-wider mb-0.5 ${titleColor}`}>{alert.title}</p>
-                       <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{alert.description}</p>
-                     </div>
-                   </div>
-                 )
-               })}
-             </div>
-
-             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-               <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">See All <ChevronRight className="w-3 h-3" /></button>
-             </div>
-            </Card>}
-          </div>
-        </div>
      </div>
   )
 }
