@@ -1,4 +1,5 @@
 import { useRole } from "@/contexts/RoleContext";
+import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "@/config/api";
@@ -46,6 +47,8 @@ function toProperCase(str: string): string {
 
 export default function DepartmentReports() {
   const { role, userBranch, userDepartment, scopeType } = useRole();
+  const { activeCompany } = useCompany();
+  const isSubsidiary = activeCompany?.company_type === "subsidiary";
   const navigate = useNavigate();
   const isOwnDataOnly = (role || "").toLowerCase().trim() === "employee" || (scopeType || "").toLowerCase().includes("own") || (scopeType || "").toLowerCase().includes("self");
   const [loading, setLoading] = useState(true);
@@ -64,8 +67,10 @@ export default function DepartmentReports() {
 
   useEffect(() => {
     if (isDepartmentScoped || isBranchScoped || isOwnDataOnly) return;
+    setSelectedBranch("All");
+    setSelectedDept("All");
     fetchData();
-  }, [isDepartmentScoped, isBranchScoped, isOwnDataOnly, userBranch, userDepartment]);
+  }, [isDepartmentScoped, isBranchScoped, isOwnDataOnly, userBranch, userDepartment, activeCompany?.id]);
 
   // Lock the internal states to match user's branch/dept for scoped roles
   useEffect(() => {
@@ -123,33 +128,34 @@ export default function DepartmentReports() {
   });
 
   // Group by department using filtered employees list (exclude invalid department like '--')
-  const deptMap: Record<string, any> = Object.create(null);
+  // Main company shows HQ departments; subsidiary companies show all departments across branches
+  const deptMap: Record<string, { headcount: number; active: number }> = Object.create(null);
   filteredEmployees.forEach(e => {
+    const branch = e.branch || 'HQ';
+    if (!isSubsidiary && branch !== 'HQ') return;
+
     const deptName = (e.department || '').trim();
     if (isInvalidDepartment(deptName)) return;
 
-    const key = `${deptName} - ${e.branch || 'HQ'}`;
-    if (!deptMap[key]) {
-      deptMap[key] = { branch: e.branch || 'HQ', headcount: 0, active: 0 };
+    if (!deptMap[deptName]) {
+      deptMap[deptName] = { headcount: 0, active: 0 };
     }
-    deptMap[key].headcount += 1;
+    deptMap[deptName].headcount += 1;
     if (e.status !== 'Inactive') {
-      deptMap[key].active += 1;
+      deptMap[deptName].active += 1;
     }
   });
 
-  const deptArray = Object.entries(deptMap).map(([dept, stats]) => ({
-    department: dept.split(' - ')[0],
-    branch: stats.branch,
+  const deptStatsList = Object.entries(deptMap).map(([department, stats]) => ({
+    department,
+    branch: isSubsidiary ? 'All' : 'HQ',
     headcount: stats.headcount,
     active: stats.active
   }));
 
-  const hqList = deptArray.filter(e => e.branch === 'HQ');
-    
   // Aggregate branch list by branch
   const branchMap: Record<string, any> = Object.create(null);
-  filteredEmployees.filter(e => (e.branch || 'HQ') !== 'HQ').forEach(e => {
+  (isSubsidiary ? filteredEmployees : filteredEmployees.filter(e => (e.branch || 'HQ') !== 'HQ')).forEach(e => {
     const b = e.branch || 'HQ';
     if (!branchMap[b]) {
       branchMap[b] = { headcount: 0, active: 0 };
@@ -169,9 +175,9 @@ export default function DepartmentReports() {
   const handleExportCSV = () => {
     const headers = ["Department", "Branch", "Total Headcount", "Active Employees"];
     const rows = [
-      ...hqList.map(a => [
+      ...deptStatsList.map(a => [
         `"${(a.department || '').replace(/"/g, '""')}"`,
-        `"HQ"`,
+        `"${a.branch}"`,
         a.headcount,
         a.active
       ]),
@@ -268,7 +274,7 @@ export default function DepartmentReports() {
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">Total Department</p>
-                <h3 className="text-3xl font-bold mt-1">{hqList.length}</h3>
+                <h3 className="text-3xl font-bold mt-1">{deptStatsList.length}</h3>
               </div>
             </CardContent>
           </Card>
@@ -307,7 +313,7 @@ export default function DepartmentReports() {
               <div>
                 <p className="text-sm font-medium text-foreground">Total Employees (Department)</p>
                 <h3 className="text-3xl font-bold mt-1 text-purple-600 dark:text-purple-400">
-                  {hqList.reduce((sum, item) => sum + item.headcount, 0)}
+                  {deptStatsList.reduce((sum, item) => sum + item.headcount, 0)}
                 </h3>
               </div>
             </CardContent>
@@ -332,7 +338,9 @@ export default function DepartmentReports() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Department Statistics (HQ)</CardTitle>
+              <CardTitle className="text-lg">
+                {isSubsidiary ? "Department Statistics" : "Department Statistics (HQ)"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -356,14 +364,14 @@ export default function DepartmentReports() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {hqList.length === 0 ? (
+                      {deptStatsList.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={3} className="text-center py-8 text-foreground">
                             No departments found.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        hqList.map((req, idx) => (
+                        deptStatsList.map((req, idx) => (
                           <TableRow key={idx}>
                             <TableCell className="font-medium text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">{req.department}</TableCell>
                             <TableCell>{req.headcount}</TableCell>

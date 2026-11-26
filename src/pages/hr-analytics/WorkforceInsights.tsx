@@ -1,4 +1,5 @@
 import { StaffProfileDialog } from '@/components/shared/StaffProfileDialog';
+import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
@@ -1416,8 +1417,8 @@ export default function WorkforceInsights() {
           </Card>
         </div>
 
+        {!['head_of_department', 'branch_leader'].includes(role) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-{!['head_of_department', 'branch_leader'].includes(role) && (
           <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Monitoring</CardTitle>
@@ -1484,92 +1485,97 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
-)}
 
-          {/* 6. Employee Performance & Attendance Ranking */}
-          <Card className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'lg:col-span-3' : 'lg:col-span-2'} border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employee Performance & Attendance</CardTitle>
-              <div className="text-xs text-foreground mt-0.5 italic">Monitor attendance trends and identify top and low-performing employees.</div>
-            </CardHeader>
-            <CardContent className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              <div>
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Top Attendance Performers
-                </h4>
-                <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the highest attendance rates during the selected period.</div>
-                <div className="space-y-3">
-                  {data?.performance?.topAttendance?.length > 0 ? (Array.isArray(data.performance.topAttendance) ? data.performance.topAttendance : []).map((emp: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
-                          {i + 1}
-                        </div>
-                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
-                      </div>
-                      <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{emp.attendanceRate}%</span>
-                    </div>
-                  )) : (
-                    <p className="text-sm text-foreground">No attendance records found.</p>
-                  )}
+          {/* Late Arrivals Today — Redesigned & Placed in Previous Employee Performance Slot */}
+          {isAdminRole && (
+            <Card className="col-span-1 lg:col-span-2 border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 sm:p-5 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all duration-300 hover:border-[#942392]/40">
+              <div className="flex items-center justify-between px-4 py-3 mb-3.5 rounded-lg border border-slate-200/90 dark:border-slate-800 border-l-[3px] border-l-[#F26522] bg-white dark:bg-slate-900/40">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-white tracking-tight">
+                    Late Arrivals Today
+                  </h3>
                 </div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 shadow-xs shrink-0">
+                  <CalendarDays className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />
+                  {displayDate === format(new Date(), "dd/MM/yyyy") ? "Today" : displayDate}
+                </span>
               </div>
 
-              <div>
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-500" /> Highest Late Arrivals
-                </h4>
-                <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the most recorded late arrivals.</div>
-                <div className="space-y-3">
-                  {data?.performance?.topLate?.length > 0 ? (Array.isArray(data.performance.topLate) ? data.performance.topLate : []).map((emp: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded bg-red-50 dark:bg-red-950/50 flex items-center justify-center text-xs font-bold text-red-600 dark:text-red-400">
-                          {i + 1}
+              <div className="flex-1 space-y-2.5 max-h-[290px] overflow-y-auto custom-scrollbar pr-0.5">
+                {lateList.length === 0 && !feedConnected && (
+                  <div className="space-y-2.5 py-1">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <div key={idx} className="flex items-center justify-between px-4 py-3 rounded-xl bg-[#F8F9FA] dark:bg-slate-900/60">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="w-11 h-11 rounded-full shrink-0" />
+                          <div className="space-y-1.5">
+                            <Skeleton className={`h-3.5 ${idx % 2 === 0 ? "w-36" : "w-28"} rounded`} />
+                            <Skeleton className="h-3 w-24 rounded" />
+                          </div>
                         </div>
-                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
+                        <div className="flex flex-col items-end gap-1.5">
+                          <Skeleton className="h-3.5 w-16 rounded" />
+                          <Skeleton className="h-5 w-14 rounded-full" />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-bold text-red-600 dark:text-red-400">{emp.lateCount}</span>
-                        <span className="text-xs text-foreground">lates</span>
+                    ))}
+                  </div>
+                )}
+                {lateList.length === 0 && feedConnected && (
+                  <div className="h-full min-h-[200px] flex flex-col items-center justify-center py-8 text-foreground">
+                    <CheckCircle2 className="w-7 h-7 text-emerald-500 opacity-60 mb-1.5" />
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">No late arrivals today!</p>
+                  </div>
+                )}
+                {(Array.isArray(lateList) ? lateList : []).map((emp) => {
+                  const savedAvatar = getSavedAvatar(emp.user_id);
+                  const subtitle =
+                    formatDeptBranch(emp.department, emp.branch) !== "—"
+                      ? formatDeptBranch(emp.department, emp.branch)
+                      : toProperCase((emp.role || "Employee").replace(/_/g, " "));
+                  return (
+                    <div
+                      key={emp.user_id}
+                      onClick={() => setSelectedStaffId(emp.user_id)}
+                      className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-[#F8F9FA] dark:bg-slate-900/60 hover:bg-slate-100/90 dark:hover:bg-slate-800/70 border border-slate-100 dark:border-slate-800/60 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {savedAvatar && savedAvatar !== "initials" ? (
+                          <div className="w-11 h-11 rounded-full shrink-0 overflow-hidden shadow-xs">
+                            <UserAvatar avatarId={savedAvatar} name={emp.full_name} size={44} />
+                          </div>
+                        ) : (
+                          <div
+                            className={`w-11 h-11 rounded-full shrink-0 flex items-center justify-center font-bold text-xs uppercase shadow-xs ${getAvatarColor(emp.full_name)}`}
+                          >
+                            {emp.initials}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug truncate">
+                            {toProperCase(emp.full_name)}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-normal leading-snug mt-0.5 truncate">
+                            {subtitle}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <span className="text-[13px] font-medium text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap">
+                          {emp.clock_in}
+                        </span>
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FDECEB] text-[#E70D0D] dark:bg-red-950/60 dark:text-red-400 tabular-nums whitespace-nowrap">
+                          +{String(emp.late_minutes || 0).padStart(2, "0")} Min
+                        </span>
                       </div>
                     </div>
-                  )) : (
-                    <p className="text-sm text-foreground">No late arrivals recorded.</p>
-                  )}
-                </div>
+                  );
+                })}
               </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <XCircle className="w-4 h-4 text-slate-500" /> Highest Absent
-                </h4>
-                <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the highest number of absence records.</div>
-                <div className="space-y-3">
-                  {data?.performance?.topAbsent?.length > 0 ? (Array.isArray(data.performance.topAbsent) ? data.performance.topAbsent : []).map((emp: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
-                          {i + 1}
-                        </div>
-                        <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{emp.absentCount}</span>
-                        <span className="text-xs text-foreground">days</span>
-                      </div>
-                    </div>
-                  )) : (
-                    <p className="text-sm text-foreground">No absent recorded.</p>
-                  )}
-                </div>
-              </div>
-
-            </CardContent>
-          </Card>
-
+            </Card>
+          )}
         </div>
+        )}
 
                   {/* HOD & Branch Leader LIVE CARDS (Only show for these roles, under Branch Distribution) */}
             {['head_of_department', 'branch_leader'].includes(role) && (() => {
@@ -1818,175 +1824,9 @@ export default function WorkforceInsights() {
         {/* BOTTOM SECTION: LIVE CARDS */}
         {isAdminRole && (
           <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
-          {/* Card 1: Clock-In/Out — LIVE SSE */}
-          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
-                
-                {feedConnected
-                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
-              </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> {displayDate}
-              </span>
-            </div>
-
-            {/* allClockIns = on-time + late merged, sorted by clock_in */}
-            {(() => {
-              const allClockIns = [...clockInOut, ...lateList].sort((a, b) =>
-                (a.clock_in || '').localeCompare(b.clock_in || '')
-              );
-              
-              
-              const displayClockIns = allClockIns;
-              return (
-                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-                  {displayClockIns.length === 0 && !feedConnected && (
-                    <div className="space-y-3 py-2">
-                      {Array.from({ length: 3 }).map((_, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
-                          <div className="flex items-center gap-2.5">
-                            <Skeleton className="w-8 h-8 rounded-full shrink-0" />
-                            <div className="space-y-1.5">
-                              <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
-                              <Skeleton className="h-2.5 w-20 rounded" />
-                            </div>
-                          </div>
-                          <Skeleton className="h-5 w-14 rounded" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {displayClockIns.length === 0 && feedConnected && (
-                    <div className="flex flex-col items-center justify-center py-8 text-foreground">
-                      <Clock className="w-6 h-6 opacity-40 mb-1" />
-                      <p className="text-[10px] font-semibold">No clock-ins yet today</p>
-                    </div>
-                  )}
-                  {(Array.isArray(displayClockIns) ? displayClockIns : []).map((emp) => (
-                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
-                          {emp.initials}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                            {emp.is_late && (
-                              <>
-                                <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                                
-                              </>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Clock className="w-3.5 h-3.5 text-foreground" />
-                        <span 
-                          style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
-                          className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
-                        >
-                          {emp.clock_in}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-
-            <Button
-              variant="outline"
-              onClick={() => navigate('/hr-analytics/attendance#admin-attendance')}
-              className="w-full mt-4 h-9 bg-card hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold border border-slate-300 dark:border-slate-700"
-            >
-              View All Attendance
-            </Button>
-          </Card>
-
-          {/* Card 2: Late — LIVE SSE */}
-          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Late</h3>
-                
-                {feedConnected
-                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
-              </div>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" /> {displayDate}
-              </span>
-            </div>
-
-            <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
-              {lateList.length === 0 && !feedConnected && (
-                <div className="space-y-3 py-2">
-                  {Array.from({ length: 3 }).map((_, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
-                      <div className="flex items-center gap-2.5">
-                        <Skeleton className="w-8 h-8 rounded-full shrink-0" />
-                        <div className="space-y-1.5">
-                          <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
-                          <Skeleton className="h-2.5 w-20 rounded" />
-                        </div>
-                      </div>
-                      <Skeleton className="h-5 w-14 rounded" />
-                    </div>
-                  ))}
-                </div>
-              )}
-              {lateList.length === 0 && feedConnected && (
-                <div className="flex flex-col items-center justify-center py-8 text-foreground">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-500 opacity-60 mb-1" />
-                  <p className="text-[10px] font-semibold">No late arrivals today!</p>
-                </div>
-              )}
-              {(Array.isArray(lateList) ? lateList : []).map((emp) => (
-                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
-                      {emp.initials}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                        <span className="px-1.5 py-0.5 text-[8px] font-bold rounded bg-red-500 text-white">
-                          {Math.floor(emp.late_minutes / 60)} H {(emp.late_minutes % 60).toString().padStart(2, '0')} Min
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <Clock className="w-3.5 h-3.5 text-foreground" />
-                    <span 
-                      style={{ backgroundColor: '#ffbf00' }}
-                      className="whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white"
-                    >
-                      {emp.clock_in}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Button
-              variant="outline"
-              onClick={() => navigate('/hr-analytics/attendance#admin-attendance')}
-              className="w-full mt-4 h-9 bg-card hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold border border-slate-300 dark:border-slate-700"
-            >
-              View All Attendance
-            </Button>
-          </Card>
-
-          {/* Card 3: Absent — LIVE SSE */}
+          {/* Card 1: Absent / Leave / Outstation — 50% width */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div className="flex items-center gap-2">
@@ -2067,6 +1907,91 @@ export default function WorkforceInsights() {
             <Button
               variant="outline"
               onClick={() => navigate('/hr-analytics/attendance#employee-absenteeism')}
+              className="w-full mt-4 h-9 bg-card hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold border border-slate-300 dark:border-slate-700"
+            >
+              View All Attendance
+            </Button>
+          </Card>
+
+          {/* Card 2: Clock-In/Out — 50% width */}
+          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
+                
+                {feedConnected
+                  ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
+              </div>
+              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded text-foreground flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" /> {displayDate}
+              </span>
+            </div>
+
+            {/* allClockIns = on-time + late merged, sorted by clock_in */}
+            {(() => {
+              const allClockIns = [...clockInOut, ...lateList].sort((a, b) =>
+                (a.clock_in || '').localeCompare(b.clock_in || '')
+              );
+              const displayClockIns = allClockIns;
+              return (
+                <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
+                  {displayClockIns.length === 0 && !feedConnected && (
+                    <div className="space-y-3 py-2">
+                      {Array.from({ length: 3 }).map((_, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 rounded-lg">
+                          <div className="flex items-center gap-2.5">
+                            <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                            <div className="space-y-1.5">
+                              <Skeleton className={`h-3.5 ${idx % 2 === 0 ? 'w-32' : 'w-24'} rounded`} />
+                              <Skeleton className="h-2.5 w-20 rounded" />
+                            </div>
+                          </div>
+                          <Skeleton className="h-5 w-14 rounded" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {displayClockIns.length === 0 && feedConnected && (
+                    <div className="flex flex-col items-center justify-center py-8 text-foreground">
+                      <Clock className="w-6 h-6 opacity-40 mb-1" />
+                      <p className="text-[10px] font-semibold">No clock-ins yet today</p>
+                    </div>
+                  )}
+                  {(Array.isArray(displayClockIns) ? displayClockIns : []).map((emp) => (
+                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                          {emp.initials}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
+                            {emp.is_late && (
+                              <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Clock className="w-3.5 h-3.5 text-foreground" />
+                        <span 
+                          style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
+                          className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
+                        >
+                          {emp.clock_in}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            <Button
+              variant="outline"
+              onClick={() => navigate('/hr-analytics/attendance#admin-attendance')}
               className="w-full mt-4 h-9 bg-card hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold border border-slate-300 dark:border-slate-700"
             >
               View All Attendance
@@ -2916,32 +2841,40 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
               
-              <div className="flex justify-between items-center mb-6 pl-2">
-                <div className="flex gap-6 items-baseline">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.present, 0) || 0}</span>
-                    <span className="text-xs font-bold text-foreground">On Time</span>
+              <div className="flex flex-wrap justify-between items-center gap-x-6 gap-y-3 mb-6 px-1">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2D9B2B] shrink-0" />
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.present, 0) || 0}
+                    </span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">On Time</span>
                   </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}</span>
-                    <span className="text-xs font-bold text-foreground">Late</span>
-                    
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#FFD700] shrink-0" />
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.late, 0) || 0}
+                    </span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Late</span>
                   </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}</span>
-                    <span className="text-xs font-bold text-foreground">Absent</span>
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#E12C2C] shrink-0" />
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + item.absent, 0) || 0}
+                    </span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Absent</span>
                   </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + (item.leave || 0), 0) || 0}</span>
-                    <span className="text-xs font-bold text-foreground">Leave</span>
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] shrink-0" />
+                    <span className="text-2xl font-black text-slate-800 dark:text-slate-100 leading-none">
+                      {(liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend)?.reduce((sum: number, item: any) => sum + (item.leave || 0), 0) || 0}
+                    </span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Leave</span>
                   </div>
                 </div>
-                  <div className="flex gap-4">
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#2D9B2B]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Present (On Time)</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#FFD700]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Present (Late)</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#E12C2C]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Absent</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#3B82F6]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Leave</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-[#9ca3af]"></div><span className="text-xs font-bold text-slate-600 dark:text-slate-300">Weekend</span></div>
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#9ca3af] shrink-0" />
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Weekend</span>
                 </div>
               </div>
 
@@ -3096,6 +3029,86 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 
        {/* SECONDARY SECTION */}
        <div>
+         {/* Employee Performance & Attendance Ranking (Month View Only) */}
+         <Card className="w-full mb-6 border border-slate-200 dark:border-slate-800 bg-card hover:border-[#942392] transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
+             <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employee Performance &amp; Attendance</CardTitle>
+             <div className="text-xs text-foreground mt-0.5 italic">Monitor attendance trends and identify top and low-performing employees.</div>
+           </CardHeader>
+           <CardContent className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
+             <div>
+               <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                 <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Top Attendance Performers
+               </h4>
+               <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the highest attendance rates during the selected period.</div>
+               <div className="space-y-3">
+                 {data?.performance?.topAttendance?.length > 0 ? (Array.isArray(data.performance.topAttendance) ? data.performance.topAttendance : []).map((emp: any, i: number) => (
+                   <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
+                     <div className="flex items-center gap-3">
+                       <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
+                         {i + 1}
+                       </div>
+                       <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
+                     </div>
+                     <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 shrink-0">{emp.attendanceRate}%</span>
+                   </div>
+                 )) : (
+                   <p className="text-sm text-foreground">No attendance records found.</p>
+                 )}
+               </div>
+             </div>
+
+             <div>
+               <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                 <AlertTriangle className="w-4 h-4 text-red-500" /> Highest Late Arrivals
+               </h4>
+               <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the most recorded late arrivals.</div>
+               <div className="space-y-3">
+                 {data?.performance?.topLate?.length > 0 ? (Array.isArray(data.performance.topLate) ? data.performance.topLate : []).map((emp: any, i: number) => (
+                   <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
+                     <div className="flex items-center gap-3">
+                       <div className="w-6 h-6 rounded bg-red-50 dark:bg-red-950/50 flex items-center justify-center text-xs font-bold text-red-600 dark:text-red-400 shrink-0">
+                         {i + 1}
+                       </div>
+                       <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
+                     </div>
+                     <div className="flex items-center gap-1 shrink-0">
+                       <span className="text-sm font-bold text-red-600 dark:text-red-400">{emp.lateCount}</span>
+                       <span className="text-xs text-foreground">lates</span>
+                     </div>
+                   </div>
+                 )) : (
+                   <p className="text-sm text-foreground">No late arrivals recorded.</p>
+                 )}
+               </div>
+             </div>
+
+             <div>
+               <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                 <XCircle className="w-4 h-4 text-slate-500" /> Highest Absent
+               </h4>
+               <div className="text-xs text-foreground mt-0.5 mb-2 italic">Employees with the highest number of absence records.</div>
+               <div className="space-y-3">
+                 {data?.performance?.topAbsent?.length > 0 ? (Array.isArray(data.performance.topAbsent) ? data.performance.topAbsent : []).map((emp: any, i: number) => (
+                   <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-colors">
+                     <div className="flex items-center gap-3">
+                       <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
+                         {i + 1}
+                       </div>
+                       <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{emp.name}</span>
+                     </div>
+                     <div className="flex items-center gap-1 shrink-0">
+                       <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{emp.absentCount}</span>
+                       <span className="text-xs text-foreground">days</span>
+                     </div>
+                   </div>
+                 )) : (
+                   <p className="text-sm text-foreground">No absent recorded.</p>
+                 )}
+               </div>
+             </div>
+           </CardContent>
+         </Card>
          
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
