@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyBranch, WorkSchedule } from '../../../types/multiCompany.types';
+import PageActions from '@/components/layout/PageActions';
 import {
   toProperCase,
   formatBranchDisplayName,
@@ -515,18 +516,9 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Filter & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
+    <div className="space-y-4">
+      <PageActions>
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
-            <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
-            <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
-              {companies.find(c => c.id === selectedCompanyId)?.company_name || activeCompany?.company_name || 'Rayhar Travels'}
-            </span>
-          </div>
-
           <Select value={zoneFilter} onValueChange={setZoneFilter}>
             <SelectTrigger className="w-56 h-9 px-3 rounded-xl border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 text-xs font-bold shrink-0 shadow-xs">
               <SelectValue placeholder="All Operating Zones" />
@@ -540,14 +532,25 @@ export const Tab4_BranchLocationMgmt: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
-        </div>
 
-        <Button
-          onClick={handleOpenAddModal}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
-        >
-          Register Branch
-        </Button>
+          <Button
+            onClick={handleOpenAddModal}
+            className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl cursor-pointer"
+          >
+            Register Branch
+          </Button>
+        </div>
+      </PageActions>
+
+      {/* Active Company Context Badge */}
+      <div className="flex items-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
+          <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
+          <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
+          <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
+            {companies.find(c => c.id === selectedCompanyId)?.company_name || activeCompany?.company_name || 'Rayhar Travels'}
+          </span>
+        </div>
       </div>
 
       {/* Branches Table */}

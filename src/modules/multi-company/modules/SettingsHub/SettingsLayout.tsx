@@ -19,6 +19,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { useCompany } from '../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../services/multiCompanyApi';
 import { AuditLogItem } from '../../types/multiCompany.types';
+import PageActions, { PageHeaderMeta } from '@/components/layout/PageActions';
 
 export type SettingsTabId = 
   | 'attendance'
@@ -106,33 +107,25 @@ export const SettingsLayout: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-16 w-full">
-      {/* HEADER SECTION */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#942392] text-white flex items-center justify-center shadow-xs shrink-0">
-            <Settings className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-foreground uppercase tracking-tight">Settings &amp; Policies</h1>
-            <p className="text-xs sm:text-sm text-foreground italic mt-0.5">
-              Attendance rules, work schedules, leave approval workflows, and system activity for {activeCompany?.company_name || 'Rayhar Travels'}
-            </p>
-          </div>
-        </div>
+    <div className="space-y-6 pb-16 w-full">
+      <PageHeaderMeta
+        title="Settings & Policies"
+        description={`Attendance rules, work schedules, leave approval workflows, and system activity for ${activeCompany?.company_name || 'Rayhar Travels'}`}
+      />
+      <PageActions>
         <button 
           onClick={() => handleTabChange('system')}
-          className="flex items-center self-start sm:self-auto gap-2 px-4 py-2 bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/15 border border-[#942392]/20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-xs cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 bg-[#942392]/10 text-[#942392] hover:bg-[#942392]/15 border border-[#942392]/20 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-xs cursor-pointer"
         >
           <History className="w-3.5 h-3.5" />
           <span>View Audit Log</span>
         </button>
-      </div>
+      </PageActions>
 
       {/* 2-COLUMN ENTERPRISE LAYOUT: ASIDE TABS ON LEFT, ACTIVE CARD ON RIGHT */}
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
         {/* ASIDE NAVIGATION TABS (Collapsible, Rayhar Purple Gradient, Yellow Active Accent) */}
-        <aside className={`w-full shrink-0 lg:sticky lg:top-20 lg:self-start z-10 transition-all duration-300 ${
+        <aside className={`w-full shrink-0 lg:sticky lg:top-[calc(var(--app-topbar-height,48px)+var(--page-header-height,88px)+16px)] lg:self-start z-10 transition-all duration-300 ${
           isCollapsed ? 'lg:w-20' : 'lg:w-64 xl:w-72'
         }`}>
           <div className="bg-gradient-to-b from-[#800A7A] via-[#942392] to-[#3d0052] p-2.5 sm:p-3 rounded-2xl shadow-lg border border-[#942392]/20 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible scrollbar-none">

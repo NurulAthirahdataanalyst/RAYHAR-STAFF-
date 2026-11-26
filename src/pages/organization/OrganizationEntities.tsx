@@ -9,6 +9,7 @@ import { Tab5_DepartmentMgmt } from '@/modules/multi-company/modules/SettingsHub
 import { CompanyTransferWizard } from '@/modules/multi-company/employee-assignment/CompanyTransferWizard';
 import { EmployeeCompanyHistory } from '@/modules/multi-company/employee-assignment/EmployeeCompanyHistory';
 import { CompanyModuleManagement } from './CompanyModuleManagement';
+import PageActions from '@/components/layout/PageActions';
 
 export type OrganizationSection = 'entities' | 'personnel' | 'roles' | 'modules' | 'transfer' | 'history' | 'branches' | 'departments';
 
@@ -66,32 +67,34 @@ export default function OrganizationEntities() {
 
         {isTransferHub && (
           <div className="space-y-4">
-            <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 dark:bg-neutral-900/70 border border-border dark:border-neutral-800 gap-1">
-              <button
-                type="button"
-                onClick={() => navigate('/organization/transfer')}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                  currentSection === 'transfer'
-                    ? 'bg-[#942392] text-white shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
-                }`}
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5" />
-                <span>Transfer Wizard</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/organization/history')}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                  currentSection === 'history'
-                    ? 'bg-[#942392] text-white shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
-                }`}
-              >
-                <History className="w-3.5 h-3.5" />
-                <span>Career History</span>
-              </button>
-            </div>
+            <PageActions>
+              <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 dark:bg-neutral-900/70 border border-border dark:border-neutral-800 gap-1">
+                <button
+                  type="button"
+                  onClick={() => navigate('/organization/transfer')}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    currentSection === 'transfer'
+                      ? 'bg-[#942392] text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
+                  }`}
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                  <span>Transfer Wizard</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/organization/history')}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    currentSection === 'history'
+                      ? 'bg-[#942392] text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Career History</span>
+                </button>
+              </div>
+            </PageActions>
 
             {currentSection === 'transfer' ? (
               <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl p-6">

@@ -482,20 +482,8 @@ export default function LeaveFormView() {
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
 
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
-            onClick={() => navigate("/leave")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-[10px] print:text-[13px] font-black uppercase tracking-widest">
-              Back to Leave Overview
-            </span>
-          </Button>
-
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <PageActions>
+          <div className="flex flex-wrap items-center gap-2">
             <MonthPicker
               monthYear={monthYear}
               onSelectMonthYear={setMonthYear}
@@ -517,6 +505,20 @@ export default function LeaveFormView() {
               New Application
             </Button>
           </div>
+        </PageActions>
+
+        <div className="mb-2 flex items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 px-0 text-foreground hover:bg-transparent hover:text-[#942392] transition-colors touch-target no-global-hover"
+            onClick={() => navigate("/leave")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] print:text-[13px] font-black uppercase tracking-widest">
+              Back to Leave Overview
+            </span>
+          </Button>
         </div>
 
       <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-card/80 backdrop-blur-md rounded-[24px] sm:rounded-[32px] overflow-hidden">

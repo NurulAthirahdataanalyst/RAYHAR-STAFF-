@@ -15,6 +15,7 @@ import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { Company } from '../../../types/multiCompany.types';
 import { CompanyLogoUploader } from '../../../components/CompanyLogoUploader';
 import { resolveCompanyLogoUrl } from '../../../utils/companyLogo';
+import PageActions from '@/components/layout/PageActions';
 
 interface Tab3CompanyMgmtProps {
   onNavigateToTab?: (tabKey: string, companyId?: number) => void;
@@ -147,15 +148,14 @@ export const Tab3_CompanyMgmt: React.FC<Tab3CompanyMgmtProps> = ({ onNavigateToT
 
   return (
     <div className="space-y-4">
-      {/* Top Action Button */}
-      <div className="flex justify-end">
+      <PageActions>
         <Button
           onClick={handleOpenAddModal}
           className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl cursor-pointer"
         >
           Register New Company
         </Button>
-      </div>
+      </PageActions>
 
       {/* Companies Listing Table */}
       <Card className="border border-border dark:border-neutral-800 shadow-xs bg-white/70 dark:bg-card/70 backdrop-blur-md rounded-2xl overflow-hidden">

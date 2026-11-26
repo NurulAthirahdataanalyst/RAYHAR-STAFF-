@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyDepartment } from '../../../types/multiCompany.types';
+import PageActions from '@/components/layout/PageActions';
 
 export const Tab5_DepartmentMgmt: React.FC = () => {
   const { companies, activeCompany } = useCompany();
@@ -66,23 +67,25 @@ export const Tab5_DepartmentMgmt: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-xl border border-border dark:border-neutral-800">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground self-start sm:self-auto">
+    <div className="space-y-4">
+      <PageActions>
+        <Button
+          onClick={() => setModalOpen(true)}
+          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl cursor-pointer"
+        >
+          Create Department
+        </Button>
+      </PageActions>
+
+      {/* Active Company Context Badge */}
+      <div className="flex items-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
           <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
           <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
           <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
             {companies.find(c => c.id === selectedCompanyId)?.company_name || activeCompany?.company_name || 'Rayhar Travels'}
           </span>
         </div>
-
-        <Button
-          onClick={() => setModalOpen(true)}
-          className="bg-[#942392] hover:bg-[#800A7A] text-white font-black text-xs uppercase tracking-wider shadow-sm h-9 px-4 rounded-xl self-start sm:self-auto"
-        >
-          Create Department
-        </Button>
       </div>
 
       {/* Departments Table */}

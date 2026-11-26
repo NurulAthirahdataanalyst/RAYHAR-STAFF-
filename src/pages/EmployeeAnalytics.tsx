@@ -19,6 +19,7 @@ import {
 import { API_BASE_URL } from "../config/api";
 import EmployeeAnalyticsView from "./EmployeeAnalyticsView";
 import { MonthPicker } from "@/components/shared/MonthPicker";
+import PageActions, { PageHeaderMeta } from "@/components/layout/PageActions";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AttendanceLog {
   attendance_id: number;
@@ -635,44 +636,28 @@ export default function EmployeeAnalytics() {
 
   return (
     <div className="space-y-5 sm:space-y-7 animate-in fade-in duration-500 pb-12">
-
-      {/* ── Page Header ── */}
-      <div className="flex flex-col items-start gap-4 w-full">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#942392] rounded-xl text-white">
-            <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-responsive-xl font-black text-foreground tracking-tight uppercase">
-              Performance Insights
-            </h1>
-            <p className="text-responsive-sm text-foreground font-medium italic">
-              Employee Attendance Analytics · {MONTHS.find(m => m.value === selectedMonth)?.label} {selectedYear}
-            </p>
-          </div>
-        </div>
-
-        {/* Month/Year Filter */}
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
-          <MonthPicker
-            monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth.padStart(2, '0')}`}
-            onSelectMonthYear={(val) => {
-              if (val) {
-                const [year, month] = val.split('-');
-                setSelectedYear(year);
-                if (month === 'all') {
-                  setSelectedMonth("all");
-                } else {
-                  setSelectedMonth(parseInt(month, 10).toString());
-                }
-              } else {
+      <PageHeaderMeta
+        description={`Employee Attendance Analytics · ${MONTHS.find(m => m.value === selectedMonth)?.label} ${selectedYear}`}
+      />
+      <PageActions>
+        <MonthPicker
+          monthYear={selectedMonth === "all" ? `${selectedYear}-all` : `${selectedYear}-${selectedMonth.padStart(2, '0')}`}
+          onSelectMonthYear={(val) => {
+            if (val) {
+              const [year, month] = val.split('-');
+              setSelectedYear(year);
+              if (month === 'all') {
                 setSelectedMonth("all");
+              } else {
+                setSelectedMonth(parseInt(month, 10).toString());
               }
-            }}
-            className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
-          />
-        </div>
-      </div>
+            } else {
+              setSelectedMonth("all");
+            }
+          }}
+          className="appearance-none flex items-center justify-between px-4 py-2 bg-card border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-[11px] font-black uppercase tracking-widest rounded-md shadow-sm outline-none cursor-pointer h-10 gap-3 hover:border-[#942392]/40 min-w-[140px]"
+        />
+      </PageActions>
 
       {/* ═══════════════════════════════════════════════════════════════════
           SECTION 1 — MY ATTENDANCE PROFILE

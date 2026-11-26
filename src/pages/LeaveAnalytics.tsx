@@ -71,7 +71,7 @@ import {
 } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
-import PageActions from "@/components/layout/PageActions";
+import PageActions, { PageToolbar } from "@/components/layout/PageActions";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -1475,10 +1475,9 @@ export default function LeaveAnalytics() {
   const trendSubtitle = viewType === "day" ? "Leave distribution by hour" : (viewType === "month" ? "Leave distribution by day" : "Leave distribution by month");
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto px-4 pt-2 pb-6">
-      
-      {/* Filter Toolbar Line directly under main header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+    <div className="space-y-4 animate-in fade-in duration-500 max-w-[1600px] mx-auto pb-6">
+      <PageToolbar>
+        <div className="flex flex-wrap items-center justify-between gap-2">
         {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
         <div className="flex sm:inline-flex w-full sm:w-auto items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
           <button
@@ -1591,6 +1590,7 @@ export default function LeaveAnalytics() {
           </div>
         </div>
       </div>
+      </PageToolbar>
 
       {/* 2. Executive KPI Cards (Row 1) */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">

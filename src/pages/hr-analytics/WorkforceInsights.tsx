@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Users, UserCheck, CalendarDays, Calendar as CalendarIcon, Clock, FileCheck, CheckCircle2, XCircle, AlertTriangle, Building2, Download, ChevronRight, Wifi, WifiOff, TrendingUp, TrendingDown, MapPin, Plane, FileText, AlertCircle, Award, ChevronLeft } from "lucide-react";
 import { getCleanReason } from "@/lib/leaveStorage";
 import { format, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, Sector, AreaChart, Area, ReferenceArea, Rectangle } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -610,27 +610,24 @@ export default function WorkforceInsights() {
   };
   return (
     <div className="space-y-6 animate-in fade-in duration-500 w-full">
+        <PageActions>
+          <div className="flex flex-wrap items-center justify-end gap-2.5">
+            {/* DAY | MONTH View Toggle Bar */}
+            <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
+              <button 
+                className={`flex items-center justify-center h-8 px-4 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+                onClick={() => setViewMode('day')}
+              >
+                DAY
+              </button>
+              <button 
+                className={`flex items-center justify-center h-8 px-4 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
+                onClick={() => setViewMode('month')}
+              >
+                MONTH
+              </button>
+            </div>
 
-        {/* Filter Toolbar Line directly under main header */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
-          {/* LEFT: DAY | MONTH View Toggle Bar */}
-          <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 p-1.5 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800 shrink-0 gap-1">
-            <button 
-              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'day' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
-              onClick={() => setViewMode('day')}
-            >
-              DAY
-            </button>
-            <button 
-              className={`flex items-center justify-center h-8 px-5 text-[11px] font-black tracking-widest rounded-lg transition-all duration-300 ${viewMode === 'month' ? 'bg-[#FFFE00] text-[#942392] shadow-md' : 'text-foreground hover:text-slate-700 hover:bg-slate-200/50'}`}
-              onClick={() => setViewMode('month')}
-            >
-              MONTH
-            </button>
-          </div>
-
-          {/* RIGHT: Active Filter Controls */}
-          <div className="flex flex-wrap items-center justify-end gap-2.5 flex-1 sm:flex-initial">
             <div className="relative">
               {viewMode === "day" ? (
                 <Popover>
@@ -668,9 +665,8 @@ export default function WorkforceInsights() {
                 <YearPopover year={year} onSelectYear={setYear} />
               )}
             </div>
-
           </div>
-        </div>
+        </PageActions>
 
         {/* Redesigned Top Section: Responsive Compact KPI Grid */}
         {viewMode === 'day' ? (
@@ -2631,13 +2627,97 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 
   const baseTrendData = liveWeeklyAttendanceTrend || data?.attendanceOverview?.weeklyAttendanceTrend || [];
   const activeEmp = topKpi?.activeEmployees || data?.topKpi?.activeEmployees || 82;
-  const trendDataWithWeekend = (Array.isArray(baseTrendData) ? baseTrendData : []).map((day: any) => {
-    const totalTracked = (day.present || 0) + (day.late || 0) + (day.absent || 0) + (day.leave || 0);
-    return {
-      ...day,
-      weekend: day.weekend !== undefined ? day.weekend : Math.max(0, activeEmp - totalTracked)
+  const trendDataWithWeekend = useMemo(() => {
+    return (Array.isArray(baseTrendData) ? baseTrendData : []).map((dayItem: any) => {
+      const totalTracked = (dayItem.present || 0) + (dayItem.late || 0) + (dayItem.absent || 0) + (dayItem.leave || 0);
+      return {
+        ...dayItem,
+        weekend: dayItem.weekend !== undefined ? dayItem.weekend : Math.max(0, activeEmp - totalTracked)
+      };
+    });
+  }, [baseTrendData, activeEmp]);
+
+  const topSegmentPerDay = useMemo(() => {
+    return trendDataWithWeekend.map((d: any) => {
+      if ((d.weekend || 0) > 0) return 'weekend';
+      if ((d.leave || 0) > 0) return 'leave';
+      if ((d.absent || 0) > 0) return 'absent';
+      if ((d.late || 0) > 0) return 'late';
+      if ((d.present || 0) > 0) return 'present';
+      return '';
+    });
+  }, [trendDataWithWeekend]);
+
+  const trendChartWrapRef = useRef<HTMLDivElement | null>(null);
+  const [trendAnimKey, setTrendAnimKey] = useState(0);
+  const prevTrendWeekRef = useRef<string>(format(trendWeekStart, "yyyy-MM-dd"));
+  const pendingTrendAnimRef = useRef(false);
+
+  useEffect(() => {
+    const wk = format(trendWeekStart, "yyyy-MM-dd");
+    if (prevTrendWeekRef.current !== wk) {
+      prevTrendWeekRef.current = wk;
+      pendingTrendAnimRef.current = true;
+      trendChartWrapRef.current?.removeAttribute("data-hovered-day");
+      const fallbackTimer = setTimeout(() => {
+        if (pendingTrendAnimRef.current) {
+          pendingTrendAnimRef.current = false;
+          setTrendAnimKey((k) => k + 1);
+        }
+      }, 320);
+      return () => clearTimeout(fallbackTimer);
+    }
+  }, [trendWeekStart]);
+
+  useEffect(() => {
+    if (pendingTrendAnimRef.current) {
+      pendingTrendAnimRef.current = false;
+      setTrendAnimKey((k) => k + 1);
+    }
+  }, [liveWeeklyAttendanceTrend]);
+
+  const trendBarShapes = useMemo(() => {
+    const makeShape = (segKey: string) => (props: any) => {
+      const { index, fill, x, y, width, height } = props;
+      if (!height || height <= 0) return null;
+      const isTop = topSegmentPerDay[index] === segKey;
+      return (
+        <Rectangle
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          fill={fill}
+          radius={isTop ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+          className={`trend-bar-seg trend-bar-seg-${index}`}
+        />
+      );
     };
-  });
+    return {
+      present: makeShape('present'),
+      late: makeShape('late'),
+      absent: makeShape('absent'),
+      leave: makeShape('leave'),
+      weekend: makeShape('weekend'),
+    };
+  }, [topSegmentPerDay]);
+
+  const renderTrendXAxisTick = useMemo(() => {
+    return (tickProps: any) => {
+      const { x, y, payload, index } = tickProps;
+      return (
+        <text
+          x={x}
+          y={y + 16}
+          textAnchor="middle"
+          fontSize={11}
+          className={`trend-xaxis-tick trend-xaxis-tick-${index}`}
+        >
+          {payload?.value}
+        </text>
+      );
+    };
+  }, []);
 
   const activeComp = liveMonthlyComp || monthlyComp;
   const attCurrent = Number(activeComp.attendance?.current ?? topKpi.attendanceRate ?? 0);
@@ -2873,30 +2953,148 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
               </div>
 
               <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 h-[280px] min-h-[280px]">
+                <div ref={trendChartWrapRef} className="attendance-trend-chart flex-1 h-[280px] min-h-[280px]">
+                  <style>{`
+                    .attendance-trend-chart .trend-bar-seg {
+                      opacity: 1;
+                      transition: opacity 220ms cubic-bezier(0.4, 0, 0.2, 1);
+                      cursor: pointer;
+                    }
+                    .attendance-trend-chart[data-hovered-day] .trend-bar-seg {
+                      opacity: 0.34;
+                    }
+                    .attendance-trend-chart[data-hovered-day="0"] .trend-bar-seg-0,
+                    .attendance-trend-chart[data-hovered-day="1"] .trend-bar-seg-1,
+                    .attendance-trend-chart[data-hovered-day="2"] .trend-bar-seg-2,
+                    .attendance-trend-chart[data-hovered-day="3"] .trend-bar-seg-3,
+                    .attendance-trend-chart[data-hovered-day="4"] .trend-bar-seg-4,
+                    .attendance-trend-chart[data-hovered-day="5"] .trend-bar-seg-5,
+                    .attendance-trend-chart[data-hovered-day="6"] .trend-bar-seg-6 {
+                      opacity: 1;
+                    }
+                    .attendance-trend-chart .trend-xaxis-tick {
+                      fill: #64748b;
+                      font-weight: 700;
+                      transition: fill 200ms ease, opacity 200ms ease;
+                    }
+                    .dark .attendance-trend-chart .trend-xaxis-tick {
+                      fill: #94a3b8;
+                    }
+                    .attendance-trend-chart[data-hovered-day] .trend-xaxis-tick {
+                      opacity: 0.45;
+                    }
+                    .attendance-trend-chart[data-hovered-day="0"] .trend-xaxis-tick-0,
+                    .attendance-trend-chart[data-hovered-day="1"] .trend-xaxis-tick-1,
+                    .attendance-trend-chart[data-hovered-day="2"] .trend-xaxis-tick-2,
+                    .attendance-trend-chart[data-hovered-day="3"] .trend-xaxis-tick-3,
+                    .attendance-trend-chart[data-hovered-day="4"] .trend-xaxis-tick-4,
+                    .attendance-trend-chart[data-hovered-day="5"] .trend-xaxis-tick-5,
+                    .attendance-trend-chart[data-hovered-day="6"] .trend-xaxis-tick-6 {
+                      opacity: 1;
+                      fill: #0f172a;
+                      font-weight: 800;
+                    }
+                    .dark .attendance-trend-chart[data-hovered-day="0"] .trend-xaxis-tick-0,
+                    .dark .attendance-trend-chart[data-hovered-day="1"] .trend-xaxis-tick-1,
+                    .dark .attendance-trend-chart[data-hovered-day="2"] .trend-xaxis-tick-2,
+                    .dark .attendance-trend-chart[data-hovered-day="3"] .trend-xaxis-tick-3,
+                    .dark .attendance-trend-chart[data-hovered-day="4"] .trend-xaxis-tick-4,
+                    .dark .attendance-trend-chart[data-hovered-day="5"] .trend-xaxis-tick-5,
+                    .dark .attendance-trend-chart[data-hovered-day="6"] .trend-xaxis-tick-6 {
+                      fill: #f8fafc;
+                    }
+                  `}</style>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={trendDataWithWeekend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4} barSize={16}>
+                    <BarChart
+                      key={`trend-${trendAnimKey}`}
+                      data={trendDataWithWeekend}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 4 }}
+                      barGap={4}
+                      barSize={16}
+                      onMouseMove={(state: any) => {
+                        if (state && state.isTooltipActive && typeof state.activeTooltipIndex === "number") {
+                          trendChartWrapRef.current?.setAttribute("data-hovered-day", String(state.activeTooltipIndex));
+                        } else {
+                          trendChartWrapRef.current?.removeAttribute("data-hovered-day");
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        trendChartWrapRef.current?.removeAttribute("data-hovered-day");
+                      }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={10} />
+                      <XAxis dataKey="name" tick={renderTrendXAxisTick} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                      <RechartsTooltip 
-                          cursor={{ fill: 'transparent' }} 
-                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} 
-                          labelFormatter={(label) => {
-                            const daysMap: Record<string, number> = {
-                              'Sat': 0, 'Sun': 1, 'Mon': 2, 'Tue': 3, 'Wed': 4, 'Thu': 5, 'Fri': 6
-                            };
-                            const dayOffset = daysMap[label as string] ?? 0;
-                            const date = addDays(trendWeekStart, dayOffset);
-                            return `${String(label).toUpperCase()}, ${format(date, 'dd MMM yyyy')}`;
-                          }}
-                        />
-                      
-                      <Bar dataKey="present" name="Present (On Time)" stackId="a" fill="#2D9B2B" />
-                      <Bar dataKey="late" name="Present (Late)" stackId="a" fill="#FFD700" />
-                      <Bar dataKey="absent" name="Absent" stackId="a" fill="#E12C2C" />
-                      <Bar dataKey="leave" name="Leave" stackId="a" fill="#3B82F6" />
-                      <Bar dataKey="weekend" name="Weekend" stackId="a" fill="#9ca3af" radius={[4, 4, 0, 0]} />
+                      <RechartsTooltip
+                        cursor={false}
+                        isAnimationActive={true}
+                        animationDuration={180}
+                        animationEasing="ease-out"
+                        offset={12}
+                        wrapperStyle={{ outline: "none", zIndex: 30, pointerEvents: "none" }}
+                        content={({ active, payload, label }: any) => {
+                          if (!active || !payload || !payload.length) return null;
+                          const row = payload[0]?.payload || {};
+                          const daysMap: Record<string, number> = {
+                            Sat: 0, Sun: 1, Mon: 2, Tue: 3, Wed: 4, Thu: 5, Fri: 6,
+                          };
+                          const dayOffset = daysMap[String(label)] ?? 0;
+                          const dateFormatted = format(addDays(trendWeekStart, dayOffset), "EEE, dd MMM yyyy");
+                          const p = Number(row.present) || 0;
+                          const l = Number(row.late) || 0;
+                          const a = Number(row.absent) || 0;
+                          const lv = Number(row.leave) || 0;
+                          const wk = Number(row.weekend) || 0;
+                          const tracked = p + l + a + lv;
+                          const totalBar = tracked > 0 ? tracked : wk;
+                          const presentPct = tracked > 0 ? Math.round(((p + l) / tracked) * 100) : null;
+
+                          const items = tracked > 0
+                            ? [
+                                ...(p > 0 ? [{ label: "On Time", count: p, color: "#2D9B2B" }] : []),
+                                ...(l > 0 ? [{ label: "Late", count: l, color: "#FFD700" }] : []),
+                                ...(a > 0 ? [{ label: "Absent", count: a, color: "#E12C2C" }] : []),
+                                ...(lv > 0 ? [{ label: "Leave", count: lv, color: "#3B82F6" }] : []),
+                              ]
+                            : [{ label: "Weekend", count: wk, color: "#9ca3af" }];
+
+                          return (
+                            <div className="bg-[#14161B] text-white rounded-xl px-3.5 py-2.5 shadow-[0_12px_30px_rgba(0,0,0,0.28)] border border-white/10 min-w-[160px]">
+                              <p className="text-[10px] font-medium text-slate-400 leading-tight">
+                                {dateFormatted}
+                              </p>
+                              <div className="flex items-baseline gap-1.5 mt-1 mb-2">
+                                <span className="text-[15px] font-black text-white leading-none tabular-nums">
+                                  {totalBar}
+                                </span>
+                                <span className="text-xs font-semibold text-slate-400 leading-none">
+                                  Staff
+                                </span>
+                                {presentPct !== null && (
+                                  <span className="ml-1 text-[10px] font-bold text-emerald-400 leading-none tabular-nums">
+                                    • {presentPct}% Present
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pt-1.5 border-t border-white/10">
+                                {items.map((it) => (
+                                  <span key={it.label} className="inline-flex items-center gap-1 text-[11px] font-bold text-white whitespace-nowrap tabular-nums">
+                                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: it.color }} />
+                                    {it.count}
+                                    <span className="text-slate-400 font-medium">{it.label}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }}
+                      />
+
+                      <Bar dataKey="present" name="Present (On Time)" stackId="a" fill="#2D9B2B" shape={trendBarShapes.present} isAnimationActive={true} animationBegin={0} animationDuration={520} animationEasing="ease-out" />
+                      <Bar dataKey="late" name="Present (Late)" stackId="a" fill="#FFD700" shape={trendBarShapes.late} isAnimationActive={true} animationBegin={40} animationDuration={520} animationEasing="ease-out" />
+                      <Bar dataKey="absent" name="Absent" stackId="a" fill="#E12C2C" shape={trendBarShapes.absent} isAnimationActive={true} animationBegin={80} animationDuration={520} animationEasing="ease-out" />
+                      <Bar dataKey="leave" name="Leave" stackId="a" fill="#3B82F6" shape={trendBarShapes.leave} isAnimationActive={true} animationBegin={110} animationDuration={520} animationEasing="ease-out" />
+                      <Bar dataKey="weekend" name="Weekend" stackId="a" fill="#9ca3af" shape={trendBarShapes.weekend} isAnimationActive={true} animationBegin={0} animationDuration={520} animationEasing="ease-out" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

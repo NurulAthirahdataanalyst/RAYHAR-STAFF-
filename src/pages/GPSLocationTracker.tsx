@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRole, normalizeRole } from "@/contexts/RoleContext";
 import { useToast } from "@/hooks/use-toast";
 import { escapeHtml } from "@/utils/security";
+import PageActions from "@/components/layout/PageActions";
 
 // Fix default Leaflet marker icons broken by bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -543,12 +544,8 @@ export default function GPSLocationTracker() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-          <div>
-            {/* Left side empty for title space, since page title is in AppLayout usually, but we keep this div to push filters right */}
-            <h2 className="text-xl font-bold md:hidden">Location Tracker</h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+        <PageActions>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-48 shrink-0">
               <Input placeholder="Search Employee..." value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} className="w-full h-9 pr-8 text-xs" />
               {query && (
@@ -581,8 +578,8 @@ export default function GPSLocationTracker() {
               Refresh Map
             </Button>
           </div>
-        </div>
-        </div>
+        </PageActions>
+      </div>
 
       <div className="flex flex-col gap-4">
         <div className="h-[520px] rounded-lg overflow-hidden border border-border" style={{ zIndex: 0 }}>

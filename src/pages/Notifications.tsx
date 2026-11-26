@@ -31,6 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNotifications, type NotificationItem } from "@/contexts/NotificationContext";
+import PageActions from "@/components/layout/PageActions";
 
 import { 
   Dialog, 
@@ -676,40 +677,13 @@ export default function Notifications() {
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-500">
-      {/* Top Header Row: Back to Dashboard on Left, Move to Profile + Refresh & Actions on Right */}
-      <div className="flex items-center justify-between gap-3 pb-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="group gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-all duration-200 touch-target no-global-hover cursor-pointer active:scale-95"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
-          <span className="text-[10px] font-black uppercase tracking-widest">
-            Back to Dashboard
-          </span>
-        </Button>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="group gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-all duration-200 touch-target no-global-hover cursor-pointer active:scale-95"
-            onClick={() => navigate("/profile")}
-          >
-            <span className="text-[10px] font-black uppercase tracking-widest">
-              Move to Profile
-            </span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-          </Button>
-
+      <PageActions>
+        <div className="flex flex-wrap items-center gap-2.5">
           {currentScopeUnread > 0 && (
             <Badge className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs">
               {currentScopeUnread} unread
             </Badge>
           )}
-
-
           {currentScopeUnread > 0 && (
             <Button
               variant="default"
@@ -721,7 +695,33 @@ export default function Notifications() {
               Mark all as read
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="group gap-2 px-2 text-[#942392] hover:bg-[#942392]/10 hover:text-[#5e0080] transition-all duration-200 no-global-hover cursor-pointer active:scale-95 h-8"
+            onClick={() => navigate("/profile")}
+          >
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Move to Profile
+            </span>
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </Button>
         </div>
+      </PageActions>
+
+      {/* Top Navigation Row: Back to Dashboard */}
+      <div className="flex items-center justify-between gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="group gap-2 px-0 text-[#942392] hover:bg-transparent hover:text-[#5e0080] transition-all duration-200 touch-target no-global-hover cursor-pointer active:scale-95"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Back to Dashboard
+          </span>
+        </Button>
       </div>
 
       {/* Primary Scope Tabs: Personal vs Management */}

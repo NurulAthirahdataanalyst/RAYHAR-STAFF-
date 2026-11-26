@@ -5,6 +5,7 @@ import { multiCompanyApi } from '@/modules/multi-company/services/multiCompanyAp
 import { useNavigate } from "react-router-dom";
 import { MonthPicker } from '@/components/shared/MonthPicker';
 import { TableScrollTopButton } from '@/components/shared/TableScrollTopButton';
+import PageActions from '@/components/layout/PageActions';
 import { useRole } from "@/contexts/RoleContext";
 import { LeaveStatusDecisionBy } from "@/components/leave/ApprovalHistoryTimeline";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1042,16 +1043,8 @@ export default function Employees() {
   return (
     <div className="space-y-4 sm:space-y-4 animate-in fade-in duration-500">
 
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
-            <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
-            <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
-              {activeCompany?.company_name || "Rayhar Travels"}
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-end gap-2.5 ml-auto">
+        <PageActions>
+          <div className="flex flex-wrap items-center justify-end gap-2.5">
             <Button
               variant="outline"
               onClick={handleExportCSV}
@@ -1082,6 +1075,16 @@ export default function Employees() {
                 <span>Add Staff</span>
               </Button>
             )}
+          </div>
+        </PageActions>
+
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
+            <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
+            <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
+              {activeCompany?.company_name || "Rayhar Travels"}
+            </span>
           </div>
         </div>
 

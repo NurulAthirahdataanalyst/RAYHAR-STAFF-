@@ -6,6 +6,7 @@ import { Users, UserCog, ArrowLeft, Building2, ShieldAlert, CheckCircle2, AlertC
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { API_BASE_URL } from "@/config/api";
+import PageActions, { PageHeaderMeta } from "@/components/layout/PageActions";
 import {
   Dialog,
   DialogContent,
@@ -199,17 +200,16 @@ export default function DepartmentDetails() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => navigate("/master/department")} className="rounded-xl">
-          <ArrowLeft className="w-4 h-4" />
+      <PageHeaderMeta
+        title={deptName || "Department Overview"}
+        description="Manage department-specific configurations and employee assignments."
+      />
+      <PageActions>
+        <Button variant="outline" size="sm" onClick={() => navigate("/organization/departments")} className="rounded-xl gap-1.5 h-9 text-xs font-black uppercase tracking-wider">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Departments</span>
         </Button>
-        <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-primary" />
-            {deptName}
-          </h1>
-        </div>
-      </div>
+      </PageActions>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="rounded-[25px] border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">

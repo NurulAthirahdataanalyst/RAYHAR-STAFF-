@@ -39,6 +39,7 @@ import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { CompanyRole, RoleTemplate, RoleType, ScopeType, CompanyModuleSetting, ModulePermission } from '../../../types/multiCompany.types';
 import { saveRoleCopySource, resolveRoleCopySource } from '../../../utils/roleCopySource';
 import { API_BASE_URL } from '@/config/api';
+import PageActions from '@/components/layout/PageActions';
 
 const MODULE_ICONS: Record<string, React.ElementType> = {
   dashboard: LayoutDashboard,
@@ -551,24 +552,26 @@ export const Tab9_IAM: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Filter & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 dark:bg-neutral-900/40 rounded-2xl border border-border dark:border-neutral-800">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground self-start sm:self-auto">
+    <div className="space-y-4">
+      <PageActions>
+        <Button
+          onClick={handleOpenAdd}
+          className="rounded-xl px-3.5 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Company Role</span>
+        </Button>
+      </PageActions>
+
+      {/* Active Company Context Badge */}
+      <div className="flex items-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#942392]/10 dark:bg-purple-950/40 border border-[#942392]/20 text-xs font-bold text-foreground">
           <Building2 className="w-3.5 h-3.5 text-[#942392] dark:text-purple-300 shrink-0" />
           <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Active Company:</span>
           <span className="font-black text-[#942392] dark:text-purple-200 uppercase tracking-wide">
             {currentCompany?.company_name || 'Rayhar Travels'}
           </span>
         </div>
-
-        <Button
-          onClick={handleOpenAdd}
-          className="rounded-xl px-3.5 py-2 h-9 text-xs font-black uppercase tracking-wider bg-[#942392] hover:bg-[#5e0080] text-white shadow-md flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Company Role</span>
-        </Button>
       </div>
 
       {/* Roles Table */}

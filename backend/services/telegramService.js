@@ -15,8 +15,32 @@ function escapeTelegramHtml(value) {
 
 function formatTelegramDate(value) {
   if (!value) return "-";
+  if (typeof value === "string") {
+    const isoDateMatch = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoDateMatch) {
+      const [, y, m, day] = isoDateMatch;
+      const localNoon = new Date(Number(y), Number(m) - 1, Number(day), 12, 0, 0);
+      if (!Number.isNaN(localNoon.getTime())) {
+        return format(localNoon, "dd MMMM yyyy");
+      }
+    }
+  }
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kuala_Lumpur",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(d)
+    .split("-");
+  if (parts.length === 3) {
+    const mytNoon = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+    if (!Number.isNaN(mytNoon.getTime())) {
+      return format(mytNoon, "dd MMMM yyyy");
+    }
+  }
   return format(d, "dd MMMM yyyy");
 }
 
@@ -616,6 +640,16 @@ async function pinTelegramMessage(messageId, { disableNotification = true } = {}
   }
 }
 
+function isAlreadyUnpinnedTelegramError(err) {
+  const desc = String(err?.response?.data?.description || "").toLowerCase();
+  return (
+    desc.includes("message to unpin not found") ||
+    desc.includes("message is not pinned") ||
+    desc.includes("message_id_invalid") ||
+    desc.includes("message not found")
+  );
+}
+
 /**
  * Unpin a specific message in the configured HR Telegram group.
  * Silently ignores errors if the message was already unpinned or deleted.
@@ -645,6 +679,9 @@ async function unpinTelegramMessage(messageId) {
     console.log(`[Telegram] Unpinned message ${numericMessageId} in chat ${chatId}`);
     return { ...response.data, unpinned: true };
   } catch (err) {
+    if (isAlreadyUnpinnedTelegramError(err)) {
+      return { ok: true, unpinned: true, alreadyUnpinned: true };
+    }
     const migratedId = err?.response?.data?.parameters?.migrate_to_chat_id;
     if (migratedId && String(migratedId) !== String(chatId)) {
       try {
@@ -655,6 +692,9 @@ async function unpinTelegramMessage(messageId) {
         );
         return { ...response.data, unpinned: true };
       } catch (retryErr) {
+        if (isAlreadyUnpinnedTelegramError(retryErr)) {
+          return { ok: true, unpinned: true, alreadyUnpinned: true };
+        }
         console.warn(
           "[Telegram] Could not unpin previous message:",
           retryErr?.response?.data || retryErr.message
@@ -668,6 +708,135 @@ async function unpinTelegramMessage(messageId) {
     );
     return { ok: false, unpinned: false };
   }
+}
+
+const MONTH_NAME_TO_NUMBER = {
+  january: "01",
+  february: "02",
+  march: "03",
+  april: "04",
+  may: "05",
+  june: "06",
+  july: "07",
+  august: "08",
+  september: "09",
+  october: "10",
+  november: "11",
+  december: "12",
+};
+
+function extractStaffOnLeaveMessageDateIso(pinnedMessage) {
+  if (!pinnedMessage || typeof pinnedMessage !== "object") return null;
+  const rawText = String(pinnedMessage.text || pinnedMessage.caption || "").trim();
+  if (!/staff\s+on\s+leave\s+today/i.test(rawText)) {
+    return null;
+  }
+
+  const textDateMatch = rawText.match(
+    /\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b/i
+  );
+  if (textDateMatch) {
+    const day = String(Number(textDateMatch[1])).padStart(2, "0");
+    const month = MONTH_NAME_TO_NUMBER[String(textDateMatch[2]).toLowerCase()];
+    const year = textDateMatch[3];
+    if (month) {
+      return `${year}-${month}-${day}`;
+    }
+  }
+
+  const isoMatch = rawText.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+  if (isoMatch) {
+    return isoMatch[1];
+  }
+
+  const unixSeconds = Number(pinnedMessage.date);
+  if (Number.isFinite(unixSeconds) && unixSeconds > 0) {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kuala_Lumpur",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(unixSeconds * 1000));
+  }
+
+  return null;
+}
+
+/**
+ * Inspect the live Telegram chat via `getChat` and unpin any past-date
+ * "Staff On Leave Today" pinned message(s), even if DB tracking was lost or skipped.
+ * Never unpins unrelated manual HR announcements.
+ * @param {string} currentDateStr - YYYY-MM-DD in Asia/Kuala_Lumpur
+ */
+async function unpinStaleStaffOnLeaveFromChat(currentDateStr) {
+  const { token, chatId } = getTelegramConfig();
+  if (!token || !chatId || !/^\d{4}-\d{2}-\d{2}$/.test(String(currentDateStr || ""))) {
+    return { skipped: true, unpinnedCount: 0, unpinnedIds: [] };
+  }
+
+  const getChatUrl = `https://api.telegram.org/bot${token}/getChat`;
+  const fetchChat = async (targetChatId) =>
+    axios.get(getChatUrl, {
+      params: { chat_id: targetChatId },
+      timeout: 10000,
+    });
+
+  const unpinnedIds = [];
+  const seenMessageIds = new Set();
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    let chatData;
+    try {
+      const activeChatId = migratedChatIdOverride || chatId;
+      const res = await fetchChat(activeChatId);
+      chatData = res?.data?.result;
+    } catch (err) {
+      const migratedId = err?.response?.data?.parameters?.migrate_to_chat_id;
+      if (migratedId && String(migratedId) !== String(chatId)) {
+        try {
+          migratedChatIdOverride = String(migratedId);
+          const retryRes = await fetchChat(migratedChatIdOverride);
+          chatData = retryRes?.data?.result;
+        } catch (retryErr) {
+          console.warn(
+            "[Telegram] Could not inspect chat pinned message:",
+            retryErr?.response?.data || retryErr.message
+          );
+          return { ok: false, unpinnedCount: unpinnedIds.length, unpinnedIds };
+        }
+      } else {
+        console.warn(
+          "[Telegram] Could not inspect chat pinned message:",
+          err?.response?.data || err.message
+        );
+        return { ok: false, unpinnedCount: unpinnedIds.length, unpinnedIds };
+      }
+    }
+
+    const pinnedMsg = chatData?.pinned_message;
+    if (!pinnedMsg || !pinnedMsg.message_id) {
+      break;
+    }
+
+    const msgId = Number(pinnedMsg.message_id);
+    if (!Number.isFinite(msgId) || seenMessageIds.has(msgId)) {
+      break;
+    }
+    seenMessageIds.add(msgId);
+
+    const msgDateIso = extractStaffOnLeaveMessageDateIso(pinnedMsg);
+    if (!msgDateIso || msgDateIso >= currentDateStr) {
+      break;
+    }
+
+    const unpinRes = await unpinTelegramMessage(msgId);
+    if (!unpinRes?.unpinned) {
+      return { ok: false, unpinnedCount: unpinnedIds.length, unpinnedIds };
+    }
+    unpinnedIds.push(msgId);
+  }
+
+  return { ok: true, unpinnedCount: unpinnedIds.length, unpinnedIds };
 }
 
 /**
@@ -1198,6 +1367,8 @@ module.exports = {
   editTelegramMessage,
   pinTelegramMessage,
   unpinTelegramMessage,
+  extractStaffOnLeaveMessageDateIso,
+  unpinStaleStaffOnLeaveFromChat,
   buildLeaveRequestMessage,
   buildNewLeaveRequestMessage,
   buildMcAttachmentMessage,

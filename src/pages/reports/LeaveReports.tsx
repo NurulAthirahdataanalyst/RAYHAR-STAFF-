@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
-import PageActions from "@/components/layout/PageActions";
+import PageActions, { PageToolbar } from "@/components/layout/PageActions";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { CustomDatePicker, TablePagination } from "@/components/common/TablePagination";
@@ -273,12 +273,12 @@ export default function LeaveReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full py-4 space-y-6">
+      <div className="w-full space-y-6 pb-4">
 
-        {/* Filter Toolbar Line directly under main header */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
+        <PageToolbar>
+        <div className="flex flex-wrap items-center justify-between gap-2">
           {/* LEFT: DAY | MONTH | YEAR View Toggle Bar */}
-          <div className="flex items-center gap-4 sm:gap-6 border-b border-gray-200 dark:border-slate-800 w-full sm:w-auto shrink-0">
+          <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto shrink-0">
             <button
               onClick={() => setViewType("day")}
               className={`text-[11px] font-black uppercase tracking-widest pb-3 -mb-[1px] transition-colors border-b-[3px] ${
@@ -382,6 +382,7 @@ export default function LeaveReports() {
             </div>
           </div>
         </div>
+        </PageToolbar>
 
         {/* 4 KPI Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

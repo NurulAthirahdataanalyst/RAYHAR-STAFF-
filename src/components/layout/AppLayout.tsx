@@ -21,7 +21,7 @@ import { useShiftNotifications } from "@/hooks/useShiftNotifications";
 import { useBackgroundLocation } from "@/hooks/useBackgroundLocation";
 import { getBreadcrumbs } from "@/utils/breadcrumbs";
 import { sanitizeInternalPath } from "@/utils/security";
-import PageHeader from "./PageHeader";
+import PageHeader, { PageHeaderProvider } from "./PageHeader";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
@@ -123,7 +123,60 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isMainScrolled, setIsMainScrolled] = useState(false);
+  const mainRef = useRef<HTMLElement | null>(null);
+  const desktopTopBarRef = useRef<HTMLElement | null>(null);
+  const mobileTopBarRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
+
+  const isDashboardPage = location.pathname === "/";
+  const isLeaveApplicationPage = location.pathname === "/leave/apply";
+  const useStickyPageHeader = !isDashboardPage && !isLeaveApplicationPage;
+
+  // Measure active top bar height so sticky PageHeader sits flush below it at any font scale / viewport
+  useEffect(() => {
+    const updateTopBarOffset = () => {
+      const desktopH = desktopTopBarRef.current?.offsetHeight || 0;
+      const mobileH = mobileTopBarRef.current?.offsetHeight || 0;
+      const h = desktopH || mobileH || 0;
+      if (mainRef.current) {
+        mainRef.current.style.setProperty("--app-topbar-height", `${h}px`);
+      }
+      document.documentElement.style.setProperty("--app-topbar-height", `${h}px`);
+    };
+
+    updateTopBarOffset();
+    window.addEventListener("resize", updateTopBarOffset, { passive: true });
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(updateTopBarOffset);
+      if (desktopTopBarRef.current) ro.observe(desktopTopBarRef.current);
+      if (mobileTopBarRef.current) ro.observe(mobileTopBarRef.current);
+    }
+    return () => {
+      window.removeEventListener("resize", updateTopBarOffset);
+      ro?.disconnect();
+    };
+  }, []);
+
+  // Track <main> scroll state for sticky PageHeader subtle bottom shadow, and reset on route change
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+
+    mainEl.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    setIsMainScrolled(false);
+
+    const onScroll = () => {
+      const scrolled = mainEl.scrollTop > 4;
+      setIsMainScrolled((prev) => (prev === scrolled ? prev : scrolled));
+    };
+
+    mainEl.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      mainEl.removeEventListener("scroll", onScroll);
+    };
+  }, [location.pathname]);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
@@ -360,14 +413,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const formattedRole = getFormattedRoleDisplay();
 
   return (
+    <PageHeaderProvider>
     <div className="flex h-[100dvh] bg-background transition-colors duration-300 max-w-full overflow-hidden">
       <AppSidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
       
-      <main className="flex-1 h-[100dvh] overflow-y-auto overflow-x-hidden relative min-w-0 scroll-smooth">
+      <main ref={mainRef} className="flex-1 h-[100dvh] overflow-y-auto overflow-x-hidden relative min-w-0 scroll-smooth">
 
         
         {/* ═══════ DESKTOP TOP BAR ═══════ */}
-        <header className="hidden lg:flex sticky top-0 z-30 w-full bg-[#942392] py-2.5 px-3 items-center justify-between shadow-md border-b border-[#942392]/15">
+        <header ref={desktopTopBarRef} className="hidden lg:flex sticky top-0 z-30 w-full bg-[#942392] py-2.5 px-3 items-center justify-between shadow-md border-b border-[#942392]/15">
           <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />
           
           <div className="flex items-center justify-between relative z-10 w-full">
@@ -472,6 +526,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* ═══════ MOBILE TOP BAR ═══════ */}
         <div 
+          ref={mobileTopBarRef}
           className="lg:hidden sticky top-0 z-30 px-2.5 pb-2 pt-3.5 bg-background/95 backdrop-blur-md transition-colors duration-300"
           style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 14px)' }}
         >
@@ -576,17 +631,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* ═══════ MAIN CONTENT ═══════ */}
-        <div className="relative p-4 sm:p-4 lg:p-5 w-full mx-auto">
+        <div
+          className={`relative px-4 pb-4 sm:px-4 sm:pb-4 lg:px-5 lg:pb-5 w-full mx-auto ${
+            useStickyPageHeader ? "pt-0" : "pt-4 sm:pt-4 lg:pt-5"
+          }`}
+        >
           
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-start relative w-full">
             
             {/* Ruang Kerja Utama (70% - 90%) */}
             <div className="flex-1 min-w-0 transition-all duration-500 ease-in-out w-full">
+              {useStickyPageHeader && (
+                <PageHeader sticky showSeparator isScrolled={isMainScrolled} />
+              )}
               <div
                 key={`${location.pathname}-${refreshKey}-${activeCompany?.id || 1}`}
                 className={`w-full space-y-2.5 sm:space-y-3 ${getPageTransitionClass(location.pathname)}`}
               >
-                {location.pathname !== "/" && location.pathname !== "/analytics" && location.pathname !== "/settings" && <PageHeader />}
+                {isLeaveApplicationPage && (
+                  <PageHeader sticky={false} showSeparator={false} />
+                )}
                 <div className="w-full">
                   {children}
                 </div>
@@ -596,7 +660,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Panel Sisi (Collapsible Sidebar - 30% or slim) */}
             {hasRightSidebar && (
               <aside 
-                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out py-1 sticky top-4 max-h-[calc(100vh-32px)] overflow-visible ${
+                className={`hidden lg:flex flex-col shrink-0 transition-all duration-500 ease-in-out py-1 sticky top-[calc(var(--app-topbar-height,48px)+16px)] max-h-[calc(100dvh-var(--app-topbar-height,48px)-32px)] overflow-visible ${
+                  useStickyPageHeader ? "mt-4 lg:mt-5" : ""
+                } ${
                   sidebarCollapsed 
                     ? "w-[64px] relative border-l border-border/20 pl-2.5" 
                     : "w-[280px] relative border-l border-border/20 pl-3"
@@ -687,6 +753,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
       <GlobalScrollTopButton />
     </div>
+    </PageHeaderProvider>
   );
 }
 
