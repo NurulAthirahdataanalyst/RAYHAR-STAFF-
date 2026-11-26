@@ -1489,7 +1489,7 @@ export default function WorkforceInsights() {
           {/* Late Arrivals Today — Redesigned & Placed in Previous Employee Performance Slot */}
           {isAdminRole && (
             <Card className="col-span-1 lg:col-span-2 border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 sm:p-5 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all duration-300 hover:border-[#942392]/40">
-              <div className="flex items-center px-4 py-3.5 mb-3.5 rounded-lg border border-slate-200/90 dark:border-slate-800 border-l-[3px] border-l-[#F26522] bg-white dark:bg-slate-900/40">
+              <div className="flex items-center px-4 py-3.5 mb-3.5 rounded-lg border border-slate-200/90 dark:border-slate-800 border-l-[3px] border-l-[#942392] bg-white dark:bg-slate-900/40">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
                   Late Arrivals Today
                 </CardTitle>
