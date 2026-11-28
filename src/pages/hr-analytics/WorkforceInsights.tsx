@@ -78,33 +78,25 @@ const KPI_INTERACTIVE_STYLES = `
   }
   .kpi-tilt-carrier {
     position: relative;
-    height: 100%;
     transform-style: preserve-3d;
     will-change: transform;
+    border-radius: var(--card-radius, 24px);
     transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
     transition: transform 200ms ease;
   }
   .kpi-tilt-carrier.is-live {
     transition: transform 90ms ease-out;
   }
-  .kpi-interactive-card {
-    position: relative;
-    cursor: pointer;
-    transition: border-color 200ms ease;
-  }
-  .kpi-interactive-card:hover {
-    border-color: rgba(var(--kpi-rgb, 123, 0, 153), 0.38);
-  }
-  .kpi-interactive-card::before {
+  .kpi-tilt-carrier::before {
     content: "";
     position: absolute;
-    inset: -1px;
-    border-radius: inherit;
+    inset: 0;
+    border-radius: var(--card-radius, 24px);
     padding: 1px;
     background: radial-gradient(
-      130px circle at var(--mx, 50%) var(--my, 50%),
-      rgba(var(--kpi-rgb, 123, 0, 153), 0.95) 0%,
-      rgba(var(--kpi-rgb, 123, 0, 153), 0.35) 45%,
+      var(--spot-size, 140px) circle at var(--mx, 50%) var(--my, 50%),
+      rgba(var(--kpi-rgb, 148, 35, 146), 0.95) 0%,
+      rgba(var(--kpi-rgb, 148, 35, 146), 0.35) 45%,
       transparent 75%
     );
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -113,11 +105,19 @@ const KPI_INTERACTIVE_STYLES = `
     opacity: 0;
     transition: opacity 200ms ease;
     pointer-events: none;
-    z-index: 20;
+    z-index: 25;
   }
-  .kpi-tilt-scene:hover .kpi-interactive-card::before,
-  .kpi-interactive-card:hover::before {
+  .kpi-tilt-scene:hover > .kpi-tilt-carrier::before {
     opacity: 1;
+  }
+  .kpi-interactive-card {
+    position: relative;
+    cursor: pointer;
+    transition: border-color 200ms ease;
+  }
+  .kpi-tilt-scene:hover .kpi-interactive-card,
+  .kpi-interactive-card:hover {
+    border-color: rgba(var(--kpi-rgb, 148, 35, 146), 0.35);
   }
   @media (prefers-reduced-motion: reduce) {
     .kpi-tilt-carrier,
@@ -130,11 +130,13 @@ const KPI_INTERACTIVE_STYLES = `
 
 function TiltKpiCard({
   children,
-  kpiRgb = "123, 0, 153",
+  kpiRgb = "148, 35, 146",
+  fillHeight = true,
   className = "",
 }: {
   children: ReactNode;
   kpiRgb?: string;
+  fillHeight?: boolean;
   className?: string;
 }) {
   const carrierRef = useRef<HTMLDivElement | null>(null);
@@ -148,6 +150,15 @@ function TiltKpiCard({
     carrier.style.setProperty("--mx", `${x.toFixed(1)}px`);
     carrier.style.setProperty("--my", `${y.toFixed(1)}px`);
 
+    const childEl = carrier.firstElementChild as HTMLElement | null;
+    if (childEl) {
+      carrier.style.setProperty("--card-radius", getComputedStyle(childEl).borderRadius);
+    }
+
+    const maxDim = Math.max(r.width, r.height, 1);
+    const spotSize = Math.max(130, Math.min(280, Math.round(maxDim * 0.35)));
+    carrier.style.setProperty("--spot-size", `${spotSize}px`);
+
     if (
       !window.matchMedia("(hover: hover) and (pointer: fine)").matches ||
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -156,9 +167,9 @@ function TiltKpiCard({
     }
     const px = x / r.width;
     const py = y / r.height;
-    const MAX = 7;
-    carrier.style.setProperty("--rx", `${((0.5 - py) * MAX).toFixed(2)}deg`);
-    carrier.style.setProperty("--ry", `${((px - 0.5) * MAX).toFixed(2)}deg`);
+    const maxDeg = Math.min(7, 980 / maxDim);
+    carrier.style.setProperty("--rx", `${((0.5 - py) * maxDeg).toFixed(2)}deg`);
+    carrier.style.setProperty("--ry", `${((px - 0.5) * maxDeg).toFixed(2)}deg`);
     carrier.classList.add("is-live");
   };
 
@@ -172,12 +183,12 @@ function TiltKpiCard({
 
   return (
     <div
-      className={`kpi-tilt-scene h-full ${className}`}
+      className={`kpi-tilt-scene ${fillHeight ? "h-full" : "h-fit"} ${className}`}
       style={{ ["--kpi-rgb" as string]: kpiRgb }}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
     >
-      <div ref={carrierRef} className="kpi-tilt-carrier">
+      <div ref={carrierRef} className={`kpi-tilt-carrier ${fillHeight ? "h-full" : ""}`}>
         {children}
       </div>
     </div>
@@ -1098,7 +1109,8 @@ export default function WorkforceInsights() {
             const topPerformerCount = topPerformers.length;
 
             return (
-              <Card className={`col-span-1 xl:col-span-1 border border-slate-200 dark:border-slate-800 bg-card p-4 flex flex-col justify-between ${cardHoverEffect} rounded-2xl shadow-sm`}>
+              <TiltKpiCard className="col-span-1 xl:col-span-1">
+              <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card p-4 flex flex-col justify-between rounded-2xl shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Employee Distribution</span>
                 </div>
@@ -1155,6 +1167,7 @@ export default function WorkforceInsights() {
                    View All Employees <ChevronRight className="w-3 h-3 ml-1" />
                 </button>
               </Card>
+              </TiltKpiCard>
             );
           })()}
 
@@ -1171,7 +1184,8 @@ export default function WorkforceInsights() {
                 : rawBranchMetrics.filter((b:any) => regionMap[b.name] === selectedRegion || (b.name==='HQ' && selectedRegion==='Central'));
               
               return (
-                <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+                <TiltKpiCard fillHeight={false}>
+                <Card className="kpi-interactive-card border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                 <DayCardHeader title="Branch Workforce Distribution" wrapperClassName="px-5 pt-5" />
                 <CardContent className="px-5 pb-5 pt-0 flex flex-col">
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
@@ -1291,11 +1305,13 @@ export default function WorkforceInsights() {
                   </div>
                 </CardContent>
               </Card>
+              </TiltKpiCard>
             );
           })()}
 
           {/* Temporary Branch Assignments Summary */}
-          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard fillHeight={false}>
+          <Card className="kpi-interactive-card border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader
               title="Temporary Branch Assignment"
               wrapperClassName="px-5 pt-5"
@@ -1453,12 +1469,14 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
+          </TiltKpiCard>
 
 
           </div>
 
 
-          <Card className={`col-span-1 h-fit border border-slate-200 dark:border-slate-800 bg-card flex flex-col ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard fillHeight={false} className="col-span-1">
+          <Card className="kpi-interactive-card h-fit border border-slate-200 dark:border-slate-800 bg-card flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader
               title="Team Availability"
               wrapperClassName="px-4 pt-4"
@@ -1610,11 +1628,13 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
+          </TiltKpiCard>
         </div>
 
         {!['head_of_department', 'branch_leader'].includes(role) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard className="col-span-1">
+          <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader title="Leave Monitoring" wrapperClassName="px-5 pt-5" />
             <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
               <div className="flex flex-col gap-3">
@@ -1677,10 +1697,12 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
+          </TiltKpiCard>
 
           {/* Late Arrivals Today — Redesigned & Placed in Previous Employee Performance Slot */}
           {isAdminRole && (
-            <Card className="col-span-1 lg:col-span-2 border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 sm:p-5 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all duration-300 hover:border-[#942392]/40">
+            <TiltKpiCard className="col-span-1 lg:col-span-2">
+            <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 sm:p-5 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <DayCardHeader title="Late Arrivals Today" />
 
               <div className="flex-1 space-y-2.5 max-h-[290px] overflow-y-auto custom-scrollbar pr-0.5">
@@ -1755,6 +1777,7 @@ export default function WorkforceInsights() {
                 })}
               </div>
             </Card>
+            </TiltKpiCard>
           )}
         </div>
         )}
@@ -1769,7 +1792,8 @@ export default function WorkforceInsights() {
               return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                   {/* Clock-In/Out Card */}
-                  <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+                  <TiltKpiCard>
+                  <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                     <DayCardHeader
                       title="Clock-In/Out"
                       leftExtra={
@@ -1839,9 +1863,11 @@ export default function WorkforceInsights() {
                       View All Attendance
                     </Button>
                   </Card>
+                  </TiltKpiCard>
 
                   {/* Absent / Leave / Outstation Card */}
-                  <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+                  <TiltKpiCard>
+                  <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                     <DayCardHeader
                       title="Absent / Leave / Outstation"
                       leftExtra={
@@ -1920,8 +1946,10 @@ export default function WorkforceInsights() {
                       View All Attendance
                     </Button>
                   </Card>
+                  </TiltKpiCard>
                             {/* 3. Leave Monitoring */}
-          <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard className="col-span-1">
+          <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader title="Leave Monitoring" wrapperClassName="px-5 pt-5" />
             <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
               <div className="flex flex-col gap-3">
@@ -1984,6 +2012,7 @@ export default function WorkforceInsights() {
               </div>
             </CardContent>
           </Card>
+          </TiltKpiCard>
                   </div>
                 );
               })()}
@@ -1994,7 +2023,8 @@ export default function WorkforceInsights() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 
           {/* Card 1: Absent / Leave / Outstation — 50% width */}
-          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard>
+          <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader
               title="Absent / Leave / Outstation"
               leftExtra={
@@ -2075,9 +2105,11 @@ export default function WorkforceInsights() {
               View All Attendance
             </Button>
           </Card>
+          </TiltKpiCard>
 
           {/* Card 2: Clock-In/Out — 50% width */}
-          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard>
+          <Card className="kpi-interactive-card h-full border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader
               title="Clock-In/Out"
               leftExtra={
@@ -2153,6 +2185,7 @@ export default function WorkforceInsights() {
               View All Attendance
             </Button>
           </Card>
+          </TiltKpiCard>
 
           </div>
 
@@ -2160,7 +2193,8 @@ export default function WorkforceInsights() {
 
             <div className="flex flex-col gap-6">
               {/* Card: Active Outstation */}
-              <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <TiltKpiCard fillHeight={false}>
+              <Card className="kpi-interactive-card border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
                 <DayCardHeader
                   title="Active Outstation"
                   leftExtra={
@@ -2259,9 +2293,11 @@ export default function WorkforceInsights() {
                   })}
                 </div>
               </Card>
+              </TiltKpiCard>
 
           {/* Card 4: Pending Approvals — LIVE SSE */}
-          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard fillHeight={false}>
+          <Card className="kpi-interactive-card border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader
               title="Pending Approvals"
               leftExtra={
@@ -2364,10 +2400,12 @@ export default function WorkforceInsights() {
               )}
             </div>
           </Card>
+          </TiltKpiCard>
           </div>
 
           {/* Card 4: Upcoming Outstation */}
-          <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+          <TiltKpiCard fillHeight={false}>
+          <Card className="kpi-interactive-card border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
             <DayCardHeader title="Upcoming Outstation" />
             
             <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
@@ -2460,6 +2498,7 @@ export default function WorkforceInsights() {
               View All <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </Card>
+          </TiltKpiCard>
 
           </div>
           </>
@@ -3070,7 +3109,8 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
-            <Card className={`p-5 bg-card border border-slate-100 dark:border-slate-700 hover:border-[#942392] ${cardHoverEffect} flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+            <TiltKpiCard fillHeight={false}>
+            <Card className="kpi-interactive-card p-5 bg-card border border-slate-100 dark:border-slate-700 flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex flex-col">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Attendance Trend</CardTitle>
@@ -3347,8 +3387,10 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
            
-           <Card className={`p-5 border border-slate-200 dark:border-slate-800 bg-card flex flex-col hover:border-[#942392] ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+           <TiltKpiCard fillHeight={false}>
+           <Card className="kpi-interactive-card p-5 border border-slate-200 dark:border-slate-800 bg-card flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex flex-col">
                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Utilization Trend vs. Previous Month</CardTitle>
@@ -3371,11 +3413,13 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </ResponsiveContainer>
               </div>
             </Card>
+            </TiltKpiCard>
            </div>
            
            
             <div className="lg:col-span-1 flex flex-col gap-6">
-              <Card className={`p-5 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] ${cardHoverEffect} flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+              <TiltKpiCard fillHeight={false}>
+              <Card className="kpi-interactive-card p-5 border border-slate-100 dark:border-slate-700 bg-card flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
               <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex flex-col">
                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Monthly Comparison</CardTitle>
@@ -3431,20 +3475,25 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                <button onClick={() => { if(!["branch_leader", "head_of_department"].includes(currentRole || "")) navigate("/employees"); }} className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
              </Card>
+             </TiltKpiCard>
              
              {/* Missing Punch KPI Card */}
              {data?.performance?.missingPunchEmployees && (
+               <TiltKpiCard kpiRgb="239, 68, 68" fillHeight={false}>
                <MissingPunchCard 
                  employees={data.performance.missingPunchEmployees} 
                  indicator={data.performance.missingPunchIndicator || "Same as last month"} 
                />
+               </TiltKpiCard>
              )}
              
              {/* Total Absent KPI Card */}
              {data?.performance?.absentEmployees && (
+               <TiltKpiCard kpiRgb="239, 68, 68" fillHeight={false}>
                <TotalAbsentCard 
                  employees={data.performance.absentEmployees} 
                />
+               </TiltKpiCard>
              )}
            </div>
          </div>
@@ -3453,7 +3502,8 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
        {/* SECONDARY SECTION */}
        <div>
          {/* Employee Performance & Attendance Ranking (Month View Only) */}
-         <Card className={`w-full mb-6 border border-slate-200 dark:border-slate-800 bg-card hover:border-[#942392] ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+         <TiltKpiCard fillHeight={false} className="w-full mb-6">
+         <Card className="kpi-interactive-card w-full border border-slate-200 dark:border-slate-800 bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employee Performance &amp; Attendance</CardTitle>
              <div className="text-xs text-foreground mt-0.5 italic">Monitor attendance trends and identify top and low-performing employees.</div>
@@ -3532,12 +3582,14 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
              </div>
            </CardContent>
          </Card>
+         </TiltKpiCard>
          
          {/* Row 1: 2 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {currentRole !== 'branch_leader' && (
            /* Department Workforce Distribution */
-           <Card className={`lg:col-span-6 p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] ${cardHoverEffect} flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+           <TiltKpiCard className="lg:col-span-6">
+           <Card className="kpi-interactive-card h-full p-4 border border-slate-100 dark:border-slate-700 bg-card flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
@@ -3576,10 +3628,12 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                <button className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">View All <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
+           </TiltKpiCard>
 )}
 
         {/* Branch Workforce Distribution */}
-        <Card className={`border border-slate-100 dark:border-slate-800/80 bg-card hover:border-[#942392] ${cardHoverEffect} overflow-hidden ${currentRole === "branch_leader" ? "lg:col-span-12" : "lg:col-span-6"} flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+        <TiltKpiCard fillHeight={false} className={currentRole === "branch_leader" ? "lg:col-span-12" : "lg:col-span-6"}>
+        <Card className="kpi-interactive-card border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <div className="flex flex-col">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Average Attendance by Branch</CardTitle>
@@ -3695,12 +3749,14 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
           </div>
 
          {/* Row 2: 3 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
-           <Card className={`p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] ${cardHoverEffect} flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+           <TiltKpiCard>
+           <Card className="kpi-interactive-card h-full p-4 border border-slate-100 dark:border-slate-700 bg-card flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-start mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
@@ -3785,9 +3841,11 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                <button className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-[#942392] dark:hover:text-purple-300 transition-colors flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
+           </TiltKpiCard>
 
            {/* Travel & Outstation Summary */}
-           <Card className={`p-5 border border-slate-200 dark:border-slate-800 hover:border-[#942392] ${cardHoverEffect} flex flex-col relative bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+           <TiltKpiCard>
+           <Card className="kpi-interactive-card h-full p-5 border border-slate-200 dark:border-slate-800 flex flex-col relative bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              {feedConnected && (
                <div className="absolute top-4 right-4 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest z-10 shadow-sm">
                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
@@ -3849,9 +3907,11 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                <button onClick={() => navigate('/outstation/reports')} className="text-[11px] font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Explore <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
+           </TiltKpiCard>
 
            {/* Workforce Movement */}
-           <Card className={`p-4 border border-slate-200 dark:border-slate-800 hover:border-[#942392] ${cardHoverEffect} flex flex-col bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+           <TiltKpiCard>
+           <Card className="kpi-interactive-card h-full p-4 border border-slate-200 dark:border-slate-800 flex flex-col bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-foreground" />
@@ -3882,17 +3942,20 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                <button onClick={() => { if(!["branch_leader", "head_of_department"].includes(currentRole || "")) navigate("/employees"); }} className="text-xs font-bold text-foreground hover:text-[#942392] transition-colors flex items-center gap-1">Open Report <ChevronRight className="w-3 h-3" /></button>
              </div>
            </Card>
+           </TiltKpiCard>
           </div>
           </div>
 
         {/* Row 3: Employees Requiring Attention */}
          <div className="w-full mb-6">
+           <TiltKpiCard fillHeight={false}>
            <EmployeesRequiringAttentionCard
              data={data.performance?.attentionEmployees || []}
              variant="grid"
              onEmployeeClick={(id: string) => onEmployeeClick?.(id)}
-             className="transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-purple-50/50 dark:hover:bg-slate-900/50 hover:border-[#942392]"
+             className="kpi-interactive-card"
            />
+           </TiltKpiCard>
          </div>
      </div>
   )

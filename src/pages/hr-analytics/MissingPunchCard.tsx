@@ -36,7 +36,7 @@ export function MissingPunchCard({ employees, indicator }: MissingPunchCardProps
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Card className="p-5 shadow-sm border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 cursor-pointer hover:border-red-300 dark:hover:border-red-800 hover:-translate-y-1 hover:shadow-md hover:bg-red-100/50 dark:hover:bg-slate-900/50 transition-all duration-300">
+        <Card className="kpi-interactive-card p-5 shadow-sm border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 cursor-pointer">
           <div className="flex justify-between items-center mb-4 border-b border-red-100 dark:border-red-900/20 pb-3">
             <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">Missing Punches</CardTitle>
           </div>
