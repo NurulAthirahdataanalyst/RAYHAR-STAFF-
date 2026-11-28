@@ -1664,7 +1664,7 @@ export default function WorkforceInsights() {
                             <Skeleton className="h-2.5 w-20 rounded" />
                           </div>
                         </div>
-                        <Skeleton className="h-5 w-14 rounded" />
+                        <Skeleton className="h-5 w-14 rounded-full" />
                       </div>
                     ))}
                   </div>
@@ -1676,30 +1676,24 @@ export default function WorkforceInsights() {
                         </div>
                       )}
                       {(Array.isArray(displayClockIns) ? displayClockIns : []).map((emp) => (
-                        <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                        <div key={emp.user_id} className="flex items-center justify-between gap-2 p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
                               {emp.initials}
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                                 {emp.is_late && (
-                                  <>
-                                    <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
-                                    
-                                  </>
+                                  <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
+                              <p className="text-[10px] text-foreground font-medium truncate">{formatDeptBranch(emp.department, emp.branch)}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
                             <Clock className="w-3.5 h-3.5 text-foreground" />
-                            <span
-                              style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
-                              className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
-                            >
+                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E7F8EE] text-[#16A34A] dark:bg-emerald-950/60 dark:text-emerald-400 tabular-nums whitespace-nowrap">
                               {emp.clock_in}
                             </span>
                           </div>
@@ -1739,7 +1733,7 @@ export default function WorkforceInsights() {
                             <Skeleton className="h-2.5 w-20 rounded" />
                           </div>
                         </div>
-                        <Skeleton className="h-5 w-14 rounded" />
+                        <Skeleton className="h-5 w-14 rounded-full" />
                       </div>
                     ))}
                   </div>
@@ -1751,36 +1745,36 @@ export default function WorkforceInsights() {
                         </div>
                       )}
                       {(Array.isArray(displayAbsent) ? displayAbsent : []).map((emp) => (
-                        <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                        <div key={emp.user_id} className="flex items-center justify-between gap-2 p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
                               {emp.initials}
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
-                              <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
+                              <p className="text-[10px] text-foreground font-medium truncate">{formatDeptBranch(emp.department, emp.branch)}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
                             {(emp as any).status === 'companyLeave' ? (
                               <>
                                 <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-600 text-white text-center leading-tight">Company<br />Leave</span>
+                                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#F3EBFE] text-[#9333EA] dark:bg-purple-950/60 dark:text-purple-400 whitespace-nowrap">Company Leave</span>
                               </>
                             ) : (emp as any).status === 'outstation' ? (
                               <>
                                 <Plane className="w-3.5 h-3.5 text-pink-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-pink-500 text-white">Outstation</span>
+                                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FCEBF5] text-[#DB2777] dark:bg-pink-950/60 dark:text-pink-400 whitespace-nowrap">Outstation</span>
                               </>
                             ) : (emp as any).status === 'leave' || (emp as any).status === 'onLeave' ? (
                               <>
                                 <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-blue-500 text-white">Leave</span>
+                                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EBF3FE] text-[#2563EB] dark:bg-blue-950/60 dark:text-blue-400 whitespace-nowrap">Leave</span>
                               </>
                             ) : (
                               <>
                                 <XCircle className="w-3.5 h-3.5 text-red-400" />
-                                <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white">Absent</span>
+                                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FDECEB] text-[#E70D0D] dark:bg-red-950/60 dark:text-red-400 whitespace-nowrap">Absent</span>
                               </>
                             )}
                           </div>
@@ -1892,7 +1886,7 @@ export default function WorkforceInsights() {
                           <Skeleton className="h-2.5 w-20 rounded" />
                         </div>
                       </div>
-                      <Skeleton className="h-5 w-14 rounded" />
+                      <Skeleton className="h-5 w-14 rounded-full" />
                     </div>
                   ))}
                 </div>
@@ -1904,38 +1898,38 @@ export default function WorkforceInsights() {
                 </div>
               )}
               {(Array.isArray(absentList) ? absentList : []).map((emp) => (
-                <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                <div key={emp.user_id} className="flex items-center justify-between gap-2 p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
                       {emp.initials}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                       </div>
-                      <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
+                      <p className="text-[10px] text-foreground font-medium truncate">{formatDeptBranch(emp.department, emp.branch)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {(emp as any).status === 'companyLeave' ? (
                       <>
                         <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
-                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-600 text-white text-center leading-tight">Company<br />Leave</span>
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#F3EBFE] text-[#9333EA] dark:bg-purple-950/60 dark:text-purple-400 whitespace-nowrap">Company Leave</span>
                       </>
                     ) : (emp as any).status === 'outstation' ? (
                       <>
                         <Plane className="w-3.5 h-3.5 text-pink-400" />
-                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-pink-500 text-white text-center leading-tight">Outstation</span>
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FCEBF5] text-[#DB2777] dark:bg-pink-950/60 dark:text-pink-400 whitespace-nowrap">Outstation</span>
                       </>
                     ) : (emp as any).status === 'leave' || (emp as any).status === 'onLeave' ? (
                       <>
                         <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
-                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-blue-500 text-white text-center leading-tight">Leave</span>
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EBF3FE] text-[#2563EB] dark:bg-blue-950/60 dark:text-blue-400 whitespace-nowrap">Leave</span>
                       </>
                     ) : (
                       <>
                         <XCircle className="w-3.5 h-3.5 text-red-400" />
-                        <span className="px-2 py-0.5 text-[9px] font-bold rounded bg-red-500 text-white text-center leading-tight">Absent</span>
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FDECEB] text-[#E70D0D] dark:bg-red-950/60 dark:text-red-400 whitespace-nowrap">Absent</span>
                       </>
                     )}
                   </div>
@@ -1982,7 +1976,7 @@ export default function WorkforceInsights() {
                               <Skeleton className="h-2.5 w-20 rounded" />
                             </div>
                           </div>
-                          <Skeleton className="h-5 w-14 rounded" />
+                          <Skeleton className="h-5 w-14 rounded-full" />
                         </div>
                       ))}
                     </div>
@@ -1994,27 +1988,24 @@ export default function WorkforceInsights() {
                     </div>
                   )}
                   {(Array.isArray(displayClockIns) ? displayClockIns : []).map((emp) => (
-                    <div key={emp.user_id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
+                    <div key={emp.user_id} className="flex items-center justify-between gap-2 p-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-lg transition-colors">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-bold text-xs uppercase shadow-sm ${getAvatarColor(emp.full_name)}`}>
                           {emp.initials}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{emp.full_name.toUpperCase()}</p>
                             {emp.is_late && (
                               <span className="px-1 py-0.5 text-[8px] font-bold rounded bg-orange-100 text-orange-600 border border-orange-200">Late</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-foreground font-medium">{formatDeptBranch(emp.department, emp.branch)}</p>
+                          <p className="text-[10px] text-foreground font-medium truncate">{formatDeptBranch(emp.department, emp.branch)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <Clock className="w-3.5 h-3.5 text-foreground" />
-                        <span 
-                          style={emp.is_late ? { backgroundColor: '#ffbf00' } : undefined}
-                          className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-bold rounded text-white ${!emp.is_late ? 'bg-emerald-500' : ''}`}
-                        >
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E7F8EE] text-[#16A34A] dark:bg-emerald-950/60 dark:text-emerald-400 tabular-nums whitespace-nowrap">
                           {emp.clock_in}
                         </span>
                       </div>
