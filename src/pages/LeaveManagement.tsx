@@ -219,7 +219,17 @@ export default function LeaveManagement() {
       .catch(() => {});
   }, []);
 
-  // Automatik kira bilangan hari & baki cuti (supports Idea A single Half-Day + Idea B Multi-Day with Half-Day start/end)
+  const calcInclusiveFullDays = (startStr: string, endStr: string): number => {
+    if (!startStr || !endStr) return 0;
+    const d1 = new Date(startStr);
+    const d2 = new Date(endStr);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+    const diffTime = d2.getTime() - d1.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return diffDays > 0 ? roundLeaveDays(diffDays) : 0;
+  };
+
+  // Automatik kira bilangan hari & baki cuti (Full/Multi-Day = 1.0+ Hari vs Half Day = 0.5 Hari)
   useEffect(() => {
     if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
       const realDays = roundLeaveDays(formData.cutiGantiRows.length || 1);
@@ -234,22 +244,19 @@ export default function LeaveManagement() {
       return;
     }
 
-    const effectiveEnd = formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir;
+    const isHalfMode = formData.durationMode === "half";
+    const effectiveEnd = isHalfMode ? formData.tarikhMula : formData.tarikhAkhir;
 
     if (formData.tarikhMula && effectiveEnd) {
       const applyFallback = () => {
-        const d1 = new Date(formData.tarikhMula);
-        const d2 = new Date(effectiveEnd);
-        const diffTime = d2.getTime() - d1.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        const baseDays = diffDays > 0 ? diffDays : 0;
-        const realDays = computeHalfAwareLeaveDays({
-          baseDays,
-          durationMode: formData.durationMode,
-          halfDaySession: formData.halfDaySession,
-          startSession: formData.startSession,
-          endSession: formData.endSession,
-        });
+        const realDays = isHalfMode
+          ? 0.5
+          : computeHalfAwareLeaveDays({
+              baseDays: calcInclusiveFullDays(formData.tarikhMula, effectiveEnd),
+              durationMode: "full",
+              startSession: "FULL",
+              endSession: "FULL",
+            });
         setFormData(prev => ({
           ...prev,
           bilanganHari: realDays,
@@ -265,20 +272,27 @@ export default function LeaveManagement() {
             end: effectiveEnd,
             branch: userBranch || "",
             durationMode: formData.durationMode,
-            halfDaySession: formData.halfDaySession,
-            startSession: formData.durationMode === "half" ? formData.halfDaySession : formData.startSession,
-            endSession: formData.durationMode === "half" ? "FULL" : formData.endSession,
+            halfDaySession: isHalfMode ? formData.halfDaySession : "",
+            startSession: isHalfMode ? formData.halfDaySession : "FULL",
+            endSession: "FULL",
           });
           const res = await fetch(`${API_BASE_URL}/api/calculate-leave-days?${params.toString()}`);
           const data = await res.json();
           if (data.success) {
-            const realDays = roundLeaveDays(data.days);
+            const fullBaseDays = Number(data.baseDays);
+            const realDays = isHalfMode
+              ? 0.5
+              : roundLeaveDays(
+                  Number.isFinite(fullBaseDays) && fullBaseDays > 0
+                    ? fullBaseDays
+                    : Math.max(1, Number(data.days) || 1)
+                );
             setZoneDayMeta({
               zone: data.zone,
               isStartHalfWorkday: Boolean(data.isStartHalfWorkday),
               isEndHalfWorkday: Boolean(data.isEndHalfWorkday),
             });
-            if (formData.durationMode === "half" && data.isStartHalfWorkday && formData.halfDaySession === "PM") {
+            if (isHalfMode && data.isStartHalfWorkday && formData.halfDaySession === "PM") {
               setFormData(prev => ({
                 ...prev,
                 halfDaySession: "AM",
@@ -309,8 +323,6 @@ export default function LeaveManagement() {
     formData.tarikhAkhir,
     formData.durationMode,
     formData.halfDaySession,
-    formData.startSession,
-    formData.endSession,
     userBranch,
     formData.jenisCuti,
     formData.cutiGantiRows.length,
@@ -468,20 +480,18 @@ export default function LeaveManagement() {
       let displayEnd = formatDate(formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir);
       
       const daysStr = formatLeaveDays(formData.bilanganHari);
-      const resolvedLeaveSession =
-        formData.durationMode === "half"
-          ? `HALF_${formData.halfDaySession}`
-          : (formData.startSession !== "FULL" || formData.endSession !== "FULL")
-            ? "MULTI_HALF"
-            : "FULL";
-      const sessionNote = getLeaveSessionLabel({
-        leaveSession: resolvedLeaveSession,
-        startSession: formData.durationMode === "half" ? formData.halfDaySession : formData.startSession,
-        endSession: formData.durationMode === "half" ? "FULL" : formData.endSession,
-        from: formData.tarikhMula,
-        to: formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir,
-        days: formData.bilanganHari,
-      });
+      const isHalfMode = formData.durationMode === "half";
+      const resolvedLeaveSession = isHalfMode ? `HALF_${formData.halfDaySession}` : "FULL";
+      const sessionNote = isHalfMode
+        ? getLeaveSessionLabel({
+            leaveSession: resolvedLeaveSession,
+            startSession: formData.halfDaySession,
+            endSession: "FULL",
+            from: formData.tarikhMula,
+            to: formData.tarikhMula,
+            days: 0.5,
+          })
+        : null;
       
       let msg = "";
       if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
@@ -489,10 +499,10 @@ export default function LeaveManagement() {
         const tarikhCutiList = validRows.map(r => r.tarikhCuti ? formatDate(r.tarikhCuti) : '').filter(Boolean).join(', ');
         const tarikhGantiList = validRows.map(r => r.tarikhGanti ? formatDate(r.tarikhGanti) : '').filter(Boolean).join(', ');
         msg = `Adakah anda pasti untuk memohon ${typeStr}?\nTarikh Cuti: ${tarikhCutiList || '-'}\nTarikh/Hari Cuti Ganti: ${tarikhGantiList || '-'}\nTempoh Cuti Ganti: ${daysStr} Hari`;
-      } else if (formData.durationMode === "half") {
+      } else if (isHalfMode) {
         msg = `Adakah anda pasti untuk memohon ${typeStr} pada ${displayStart} selama ${daysStr} Hari (${sessionNote || 'Separuh Hari'})?`;
       } else {
-        msg = `Adakah anda pasti untuk memohon ${typeStr} dari : ${displayStart} hingga ${displayEnd} selama ${daysStr} Hari${sessionNote ? ` (${sessionNote})` : ''} ?`;
+        msg = `Adakah anda pasti untuk memohon ${typeStr} dari : ${displayStart} hingga ${displayEnd} selama ${daysStr} Hari ?`;
       }
       
       if (window.confirm(msg)) {
@@ -520,23 +530,10 @@ export default function LeaveManagement() {
       let endDatePayload = formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir;
 
       const isReplacementType = leaveType === "Replacement Leave" || leaveType === "Cuti Ganti";
-      const leaveSessionPayload = isReplacementType
-        ? "FULL"
-        : formData.durationMode === "half"
-          ? `HALF_${formData.halfDaySession}`
-          : (formData.startSession !== "FULL" || formData.endSession !== "FULL")
-            ? "MULTI_HALF"
-            : "FULL";
-      const startSessionPayload = isReplacementType
-        ? "FULL"
-        : formData.durationMode === "half"
-          ? formData.halfDaySession
-          : formData.startSession;
-      const endSessionPayload = isReplacementType
-        ? "FULL"
-        : formData.durationMode === "half"
-          ? "FULL"
-          : (startDatePayload === endDatePayload ? "FULL" : formData.endSession);
+      const isHalfLeave = !isReplacementType && formData.durationMode === "half";
+      const leaveSessionPayload = isHalfLeave ? `HALF_${formData.halfDaySession}` : "FULL";
+      const startSessionPayload = isHalfLeave ? formData.halfDaySession : "FULL";
+      const endSessionPayload = "FULL";
 
       if (leaveType === "Replacement Leave" || leaveType === "Cuti Ganti") {
         const validRows = formData.cutiGantiRows.filter(r => r.tarikhCuti);
@@ -821,7 +818,7 @@ export default function LeaveManagement() {
 
                   {!(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
                     <div className="space-y-4">
-                      {/* Idea A: Full / Multi-Day vs Single Half-Day (0.5 Hari) Toggle */}
+                      {/* Full / Multi-Day (1.0+ Hari) vs Single Half-Day (0.5 Hari) Toggle */}
                       {allowHalfDayPolicy && (
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
@@ -831,11 +828,24 @@ export default function LeaveManagement() {
                             <button
                               type="button"
                               onClick={() =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  durationMode: "full",
-                                  tarikhAkhir: prev.tarikhAkhir || prev.tarikhMula,
-                                }))
+                                setFormData((prev) => {
+                                  const nextEnd =
+                                    prev.tarikhAkhir && prev.tarikhMula && prev.tarikhAkhir >= prev.tarikhMula
+                                      ? prev.tarikhAkhir
+                                      : prev.tarikhMula;
+                                  const nextDays =
+                                    prev.tarikhMula && nextEnd ? calcInclusiveFullDays(prev.tarikhMula, nextEnd) : 0;
+                                  return {
+                                    ...prev,
+                                    durationMode: "full",
+                                    tarikhAkhir: nextEnd,
+                                    startSession: "FULL",
+                                    endSession: "FULL",
+                                    bilanganHari: nextDays,
+                                    mohon: nextDays,
+                                    bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - nextDays),
+                                  };
+                                })
                               }
                               className={`py-2.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                                 formData.durationMode === "full"
@@ -848,13 +858,21 @@ export default function LeaveManagement() {
                             <button
                               type="button"
                               onClick={() =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  durationMode: "half",
-                                  tarikhAkhir: prev.tarikhMula || prev.tarikhAkhir,
-                                  startSession: "FULL",
-                                  endSession: "FULL",
-                                }))
+                                setFormData((prev) => {
+                                  const singleDate = prev.tarikhMula || prev.tarikhAkhir;
+                                  const nextDays = singleDate ? 0.5 : 0;
+                                  return {
+                                    ...prev,
+                                    durationMode: "half",
+                                    tarikhMula: singleDate,
+                                    tarikhAkhir: singleDate,
+                                    startSession: "FULL",
+                                    endSession: "FULL",
+                                    bilanganHari: nextDays,
+                                    mohon: nextDays,
+                                    bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - nextDays),
+                                  };
+                                })
                               }
                               className={`py-2.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                                 formData.durationMode === "half"
@@ -869,7 +887,7 @@ export default function LeaveManagement() {
                       )}
 
                       {formData.durationMode === "half" ? (
-                        /* Idea A: Single Date + Morning (AM) / Afternoon (PM) Session Cards */
+                        /* Single Date + Morning (AM) / Afternoon (PM) Session Cards */
                         <div className="space-y-4 animate-in fade-in duration-300">
                           <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
@@ -879,11 +897,17 @@ export default function LeaveManagement() {
                               value={formData.tarikhMula}
                               minDate={new Date().toISOString().split('T')[0]}
                               onChange={(val) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  tarikhMula: val,
-                                  tarikhAkhir: val,
-                                }))
+                                setFormData((prev) => {
+                                  const nextDays = val ? 0.5 : 0;
+                                  return {
+                                    ...prev,
+                                    tarikhMula: val,
+                                    tarikhAkhir: val,
+                                    bilanganHari: nextDays,
+                                    mohon: nextDays,
+                                    bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - nextDays),
+                                  };
+                                })
                               }
                               className="bg-muted/30 border-border/50"
                             />
@@ -948,7 +972,7 @@ export default function LeaveManagement() {
                           </div>
                         </div>
                       ) : (
-                        /* Idea B: Start/End Date Pickers + Optional Start/End Half-Day Session Dropdowns (e.g. 1.5, 2.5 Days) */
+                        /* Full / Multi-Day (1.0+ Hari): Clean Start & End Date Pickers Only */
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-300">
                           <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Mula <span className="text-red-500">*</span></Label>
@@ -956,36 +980,23 @@ export default function LeaveManagement() {
                               value={formData.tarikhMula}
                               minDate={new Date().toISOString().split('T')[0]}
                               onChange={(val) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  tarikhMula: val,
-                                  tarikhAkhir: prev.tarikhAkhir && prev.tarikhAkhir >= val ? prev.tarikhAkhir : val,
-                                }))
+                                setFormData((prev) => {
+                                  const nextEnd = prev.tarikhAkhir && prev.tarikhAkhir >= val ? prev.tarikhAkhir : val;
+                                  const nextDays = val && nextEnd ? calcInclusiveFullDays(val, nextEnd) : 0;
+                                  return {
+                                    ...prev,
+                                    tarikhMula: val,
+                                    tarikhAkhir: nextEnd,
+                                    startSession: "FULL",
+                                    endSession: "FULL",
+                                    bilanganHari: nextDays,
+                                    mohon: nextDays,
+                                    bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - nextDays),
+                                  };
+                                })
                               }
                               className="bg-muted/30 border-border/50"
                             />
-                            {allowHalfDayPolicy && formData.tarikhMula && (
-                              <div className="pt-1">
-                                <Label className="text-[9px] font-black uppercase tracking-wider text-muted-foreground px-1 block mb-1">
-                                  Sesi Hari Mula (Start Session)
-                                </Label>
-                                <Select
-                                  value={formData.startSession}
-                                  onValueChange={(val) => setFormData((prev) => ({ ...prev, startSession: val as BoundarySession }))}
-                                >
-                                  <SelectTrigger className="h-9 text-xs font-bold rounded-xl bg-muted/20 border-border/50">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="rounded-xl">
-                                    <SelectItem value="FULL" className="text-xs font-bold">Sepenuh Hari • Full Day (1.0d)</SelectItem>
-                                    {formData.tarikhMula === formData.tarikhAkhir && (
-                                      <SelectItem value="AM" className="text-xs font-bold">Separuh Hari • Pagi / AM (0.5d)</SelectItem>
-                                    )}
-                                    <SelectItem value="PM" className="text-xs font-bold">Separuh Hari • Petang / PM (0.5d)</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
                           </div>
 
                           <div className="space-y-2">
@@ -994,34 +1005,21 @@ export default function LeaveManagement() {
                               value={formData.tarikhAkhir}
                               minDate={formData.tarikhMula || new Date().toISOString().split('T')[0]}
                               onChange={(val) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  tarikhAkhir: val,
-                                  startSession: val !== prev.tarikhMula && prev.startSession === "AM" ? "FULL" : prev.startSession,
-                                  endSession: val === prev.tarikhMula ? "FULL" : prev.endSession,
-                                }))
+                                setFormData((prev) => {
+                                  const nextDays = prev.tarikhMula && val ? calcInclusiveFullDays(prev.tarikhMula, val) : 0;
+                                  return {
+                                    ...prev,
+                                    tarikhAkhir: val,
+                                    startSession: "FULL",
+                                    endSession: "FULL",
+                                    bilanganHari: nextDays,
+                                    mohon: nextDays,
+                                    bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - nextDays),
+                                  };
+                                })
                               }
                               className="bg-muted/30 border-border/50"
                             />
-                            {allowHalfDayPolicy && formData.tarikhMula && formData.tarikhAkhir && formData.tarikhAkhir > formData.tarikhMula && (
-                              <div className="pt-1">
-                                <Label className="text-[9px] font-black uppercase tracking-wider text-muted-foreground px-1 block mb-1">
-                                  Sesi Hari Akhir (End Session)
-                                </Label>
-                                <Select
-                                  value={formData.endSession}
-                                  onValueChange={(val) => setFormData((prev) => ({ ...prev, endSession: val as BoundarySession }))}
-                                >
-                                  <SelectTrigger className="h-9 text-xs font-bold rounded-xl bg-muted/20 border-border/50">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="rounded-xl">
-                                    <SelectItem value="FULL" className="text-xs font-bold">Sepenuh Hari • Full Day (1.0d)</SelectItem>
-                                    <SelectItem value="AM" className="text-xs font-bold">Separuh Hari • Pagi / AM (0.5d)</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
                           </div>
                         </div>
                       )}
@@ -1032,14 +1030,14 @@ export default function LeaveManagement() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-5 bg-[#942392]/5 rounded-3xl border-2 border-[#942392]/10">
                       <div>
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#942392] block">Bilangan Hari</span>
-                        {(() => {
+                        {formData.durationMode === "half" && (() => {
                           const label = getLeaveSessionLabel({
-                            leaveSession: formData.durationMode === "half" ? `HALF_${formData.halfDaySession}` : (formData.startSession !== "FULL" || formData.endSession !== "FULL" ? "MULTI_HALF" : "FULL"),
-                            startSession: formData.durationMode === "half" ? formData.halfDaySession : formData.startSession,
-                            endSession: formData.durationMode === "half" ? "FULL" : formData.endSession,
+                            leaveSession: `HALF_${formData.halfDaySession}`,
+                            startSession: formData.halfDaySession,
+                            endSession: "FULL",
                             from: formData.tarikhMula,
-                            to: formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir,
-                            days: formData.bilanganHari,
+                            to: formData.tarikhMula,
+                            days: 0.5,
                           });
                           return label ? (
                             <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-[#942392]/15 text-[#942392] text-[10px] font-black uppercase tracking-wider">

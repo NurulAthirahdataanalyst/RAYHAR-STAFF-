@@ -6436,7 +6436,7 @@ app.get("/api/calculate-leave-days", async (req, res) => {
     let days = baseDays;
     if (baseDays <= 0) {
       days = 0;
-    } else if (durationMode === 'half' || (start === end && (halfDaySession === 'AM' || halfDaySession === 'PM' || startSession === 'AM' || startSession === 'PM'))) {
+    } else if (durationMode === 'half' || (durationMode !== 'full' && start === end && (halfDaySession === 'AM' || halfDaySession === 'PM'))) {
       days = 0.5;
     } else if (baseDays === 1) {
       days = (startSession === 'AM' || startSession === 'PM') ? 0.5 : 1.0;
