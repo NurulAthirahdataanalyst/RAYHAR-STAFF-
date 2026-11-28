@@ -13793,7 +13793,6 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       let missingClockOut = false;
       let isEarlyLeaver = false;
       let isOvertime = false;
-      const isReplacementLeave = Boolean(leaveRow?.leave_type && (leaveRow.leave_type.toUpperCase().includes('REPLACEMENT') || leaveRow.leave_type.toUpperCase().includes('GANTI')));
 
       // Check Company Leave first (Highest priority)
       const matchingLeave = companyLeaves.find(cl => {
@@ -13815,7 +13814,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       const matchingHoliday = malaysiaHolidays.find(h => h.date === queryDate);
 
       if (leaveRow) {
-        status = isReplacementLeave ? "Weekend" : "Approved Leave";
+        status = "Approved Leave";
         if (clockRow) {
           clock_in = clockRow.clock_in;
           clock_out = clockRow.clock_out;
@@ -13888,7 +13887,7 @@ app.get("/api/reports/daily-attendance", async (req, res) => {
       let statusClockOut = "Absent";
 
       if (leaveRow) {
-        statusClockIn = isReplacementLeave ? "Weekend" : "Approved Leave";
+        statusClockIn = "Approved Leave";
         statusClockOut = statusClockIn;
       } else if (matchingLeave) {
         statusClockIn = "Company Leave";

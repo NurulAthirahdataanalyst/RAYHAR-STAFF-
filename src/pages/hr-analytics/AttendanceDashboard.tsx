@@ -617,6 +617,48 @@ export default function AttendanceDashboard() {
     return () => eventSource.close();
   }, [activeTab, selectedMonth, selectedYear, selectedDate, role, userBranch, userDepartment, loading, activeCompany?.id]);
 
+  // Map of employees with approved leave on the selected date from /api/reports/on-leave-employees
+  const onLeaveByUserId = useMemo(() => {
+    const map = new Map<string, any>();
+    absentEmployees.forEach((emp: any) => {
+      if (
+        emp?.user_id &&
+        (emp.status === "On Leave" ||
+          emp.status === "Approved Leave" ||
+          (Boolean(emp.leave_type) && emp.leave_type !== "Company Holiday"))
+      ) {
+        map.set(emp.user_id, emp);
+      }
+    });
+    return map;
+  }, [absentEmployees]);
+
+  // Normalize display status consistently across Admin Attendance, Absenteeism & On Leave, exports, and branch distribution
+  const getEffectiveDisplayStatus = useCallback(
+    (record: any): string => {
+      const isOutstation = outstationRecords.some(
+        (o: any) =>
+          o.user_id === record.user_id &&
+          o.start_date.slice(0, 10) <= selectedDate &&
+          o.end_date.slice(0, 10) >= selectedDate
+      );
+      if (isOutstation) return "Outstation";
+
+      const rawStatus = record?.status || "Absent";
+      if (rawStatus === "Company Leave") return "Company Leave";
+      if (
+        rawStatus === "Approved Leave" ||
+        rawStatus === "On Leave" ||
+        (Boolean(record?.leave_type) && record.leave_type !== "Company Holiday") ||
+        onLeaveByUserId.has(record?.user_id)
+      ) {
+        return "Approved Leave";
+      }
+      return rawStatus;
+    },
+    [outstationRecords, selectedDate, onLeaveByUserId]
+  );
+
   // Export CSV Handler
   const handleExport = () => {
     if (dailyAttendance.length === 0) {
@@ -637,13 +679,7 @@ export default function AttendanceDashboard() {
     const headers = ["Employee Name", "Branch", "Time In", "Time Out", "Attendance Status", "Work Status"];
     const rows = dailyAttendance.map(r => {
       const { isClockInConfirmed, isClockOutConfirmed } = getPunchConfirmationState(r);
-      let attStatus = (r as any).status || "Absent";
-      const isOutstation = outstationRecords.some((o: any) => 
-        o.user_id === r.user_id && 
-        o.start_date.slice(0,10) <= selectedDate && 
-        o.end_date.slice(0,10) >= selectedDate
-      );
-      if (isOutstation) attStatus = "Outstation";
+      const attStatus = getEffectiveDisplayStatus(r);
       
       let workStatus = isClockInConfirmed ? "Checked In" : "--";
       if (isClockOutConfirmed) {
@@ -706,13 +742,7 @@ export default function AttendanceDashboard() {
       const timeIn = isClockInConfirmed ? formatAttendanceTime(r.clock_in) : "--:--";
       const timeOut = isClockOutConfirmed ? formatAttendanceTime(r.clock_out) : "--:--";
       
-      let attStatus = (r as any).status || "Absent";
-      const isOutstation = outstationRecords.some((o: any) => 
-        o.user_id === r.user_id && 
-        o.start_date.slice(0,10) <= selectedDate && 
-        o.end_date.slice(0,10) >= selectedDate
-      );
-      if (isOutstation) attStatus = "Outstation";
+      const attStatus = getEffectiveDisplayStatus(r);
       
       let workStatus = isClockInConfirmed ? "Checked In" : "--";
       if (isClockOutConfirmed) {
@@ -1003,18 +1033,21 @@ export default function AttendanceDashboard() {
 
         const presentOnTime = activePermanent.filter(isEmpOnTime).length;
         const presentLate = activePermanent.filter(isEmpLate).length;
-        const onLeave = activePermanent.filter(emp => !isEmpPresent(emp) && (emp.status === 'On Leave' || emp.status === 'Approved Leave')).length;
-        const companyLeave = activePermanent.filter(emp => !isEmpPresent(emp) && emp.status === 'Company Leave').length;
+        const onLeave = activePermanent.filter(emp => !isEmpPresent(emp) && getEffectiveDisplayStatus(emp) === 'Approved Leave').length;
+        const companyLeave = activePermanent.filter(emp => !isEmpPresent(emp) && getEffectiveDisplayStatus(emp) === 'Company Leave').length;
         const outstation = activePermanent.filter(emp => emp.status === 'Outstation' || emp.status_clock_in === 'Outstation').length;
         
         const tempPresent = activeTemporary.filter(isEmpOnTime).length;
         const tempLate = activeTemporary.filter(isEmpLate).length;
-        const tempOnLeave = activeTemporary.filter(emp => !isEmpPresent(emp) && (emp.status === 'On Leave' || emp.status === 'Approved Leave')).length;
-        const tempCompanyLeave = activeTemporary.filter(emp => !isEmpPresent(emp) && emp.status === 'Company Leave').length;
+        const tempOnLeave = activeTemporary.filter(emp => !isEmpPresent(emp) && getEffectiveDisplayStatus(emp) === 'Approved Leave').length;
+        const tempCompanyLeave = activeTemporary.filter(emp => !isEmpPresent(emp) && getEffectiveDisplayStatus(emp) === 'Company Leave').length;
         const tempOutstation = activeTemporary.filter(emp => emp.status === 'Outstation' || emp.status_clock_in === 'Outstation').length;
 
         const isWeekend = activePermanent.length > 0
-          ? activePermanent.every(r => r.status === "Weekend" || r.status === "Rest Day" || Boolean(r.is_rest_day))
+          ? activePermanent.every(r => {
+              const eff = getEffectiveDisplayStatus(r);
+              return eff === "Weekend" || eff === "Rest Day" || (Boolean(r.is_rest_day) && eff !== "Approved Leave" && eff !== "Company Leave" && eff !== "Outstation");
+            })
           : (function() {
               const parts = (selectedDate || '').split('-').map(Number);
               if (parts.length < 3) return false;
@@ -1068,7 +1101,7 @@ export default function AttendanceDashboard() {
          ...d,
          fill: d.isWeekend ? '#94A3B8' : d.rate >= 90 ? '#16A34A' : d.rate >= 75 ? '#EAB308' : '#DC2626'
       }));
-  }, [branchComparison, branches, dailyAttendance, absentEmployees, selectedDate, liveRegion, activeAssignments]);
+  }, [branchComparison, branches, dailyAttendance, absentEmployees, selectedDate, liveRegion, activeAssignments, getEffectiveDisplayStatus]);
 
   // Calculate live values
   const activeRateAvg = branchComparison.length > 0
@@ -1110,13 +1143,7 @@ export default function AttendanceDashboard() {
           }
         }
         
-        let displayStatus = (r as any).status || "Absent";
-        const isOutstation = outstationRecords.some((o: any) => 
-          o.user_id === r.user_id && 
-          o.start_date.slice(0,10) <= selectedDate && 
-          o.end_date.slice(0,10) >= selectedDate
-        );
-        if (isOutstation) displayStatus = "Outstation";
+        const displayStatus = getEffectiveDisplayStatus(r);
 
         const punctualityStatus = r.clock_in ? (isLate ? "Present (Late)" : "Present (On Time)") : null;
 
@@ -1148,7 +1175,7 @@ export default function AttendanceDashboard() {
           
         return matchesBranch && matchesDept && matchesSearch && matchesStatus;
       })
-  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter, outstationRecords, selectedDate]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, searchTerm, selectedStatusFilter, getEffectiveDisplayStatus]);
 
   const pendingPhotoReviewCount = useMemo(() => {
     if (!isSubsidiaryView) return 0;
@@ -1159,13 +1186,7 @@ export default function AttendanceDashboard() {
     return dailyAttendance.filter((r: any) => {
       // We want to show Absent, Absent (Expired), Absent (Rejected), Company Leave, and Approved Leave here.
       // Compute the display status exactly like in Admin Attendance list.
-      let displayStatus = r.status || "Absent";
-      const isOutstation = outstationRecords.some((o: any) => 
-        o.user_id === r.user_id && 
-        o.start_date.slice(0,10) <= selectedDate && 
-        o.end_date.slice(0,10) >= selectedDate
-      );
-      if (isOutstation) displayStatus = "Outstation";
+      const displayStatus = getEffectiveDisplayStatus(r);
 
       if (
         displayStatus !== "Absent" &&
@@ -1184,7 +1205,7 @@ export default function AttendanceDashboard() {
         r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
       return matchesBranch && matchesDept && matchesSearch;
     });
-  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, outstationRecords, selectedDate]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, getEffectiveDisplayStatus]);
 
 
 
@@ -1202,7 +1223,7 @@ export default function AttendanceDashboard() {
       if (!actualIsRest) return false;
       if (empZone !== 'ZONE_A') return false;
 
-      const displayStatus = r.status || "";
+      const displayStatus = getEffectiveDisplayStatus(r);
       const isActuallyOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation" || absentEmployees.some(ae => ae.user_id === r.user_id && ((ae.status || "").toLowerCase().includes("leave") || ae.status === "Outstation" || ae.type?.toLowerCase().includes("leave")));
       if (isActuallyOnLeave) return false;
       
@@ -1213,7 +1234,7 @@ export default function AttendanceDashboard() {
         r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
       return matchesBranch && matchesDept && matchesSearch;
     });
-  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, selectedDate, absentEmployees]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, selectedDate, absentEmployees, getEffectiveDisplayStatus]);
 
   const zoneBRestEmployees = useMemo(() => {
     return dailyAttendance.filter((r: any) => {
@@ -1229,7 +1250,7 @@ export default function AttendanceDashboard() {
       if (!actualIsRest) return false;
       if (empZone !== 'ZONE_B') return false;
 
-      const displayStatus = r.status || "";
+      const displayStatus = getEffectiveDisplayStatus(r);
       const isActuallyOnLeave = displayStatus.toLowerCase().includes("leave") || displayStatus === "Outstation" || absentEmployees.some(ae => ae.user_id === r.user_id && ((ae.status || "").toLowerCase().includes("leave") || ae.status === "Outstation" || ae.type?.toLowerCase().includes("leave")));
       if (isActuallyOnLeave) return false;
       
@@ -1240,7 +1261,7 @@ export default function AttendanceDashboard() {
         r.user_id?.toLowerCase().includes(absentSearchTerm.toLowerCase());
       return matchesBranch && matchesDept && matchesSearch;
     });
-  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, selectedDate, absentEmployees]);
+  }, [dailyAttendance, selectedBranchFilter, selectedDepartmentFilter, absentSearchTerm, selectedDate, absentEmployees, getEffectiveDisplayStatus]);
 
   const allAnomalies = useMemo(() => {
     const unconfirmedVerifs = new Set(["Pending Verification", "Rejected", "Expired"]);
@@ -1636,14 +1657,8 @@ export default function AttendanceDashboard() {
                       const totalWorkMins = matchH ? parseInt(matchH[1], 10) * 60 + parseInt(matchH[2], 10) : 0;
                       const isGoodHrs = totalWorkMins >= 8 * 60;
 
-                      let attStatus = (record as any).status || "Absent";
-                      
-                      const isOutstation = outstationRecords.some((o: any) => 
-                          o.user_id === record.user_id && 
-                          o.start_date.slice(0,10) <= selectedDate && 
-                          o.end_date.slice(0,10) >= selectedDate
-                      );
-                      if (isOutstation) attStatus = "Outstation";
+                      const attStatus = getEffectiveDisplayStatus(record);
+                      const effectiveLeaveType = (record as any).leave_type || onLeaveByUserId.get(record.user_id)?.leave_type || null;
                       
                       let isRecordLate = false;
                       if (isClockInConfirmed && record.clock_in && isFirstClockIn) {
@@ -1744,6 +1759,11 @@ export default function AttendanceDashboard() {
                               <span className={`inline-flex items-center justify-center px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap ${attStatusClass}`}>
                                 <span>{attStatus}</span>
                               </span>
+                              {(attStatus === "Approved Leave" || attStatus === "On Leave") && effectiveLeaveType && (
+                                <span className="text-[10px] text-muted-foreground font-semibold pl-1">
+                                  {effectiveLeaveType}
+                                </span>
+                              )}
                               {isClockInConfirmed && workStatus && (
                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium ${workStatusClass}`}>
                                   {workStatus}
@@ -1881,13 +1901,8 @@ export default function AttendanceDashboard() {
                   <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                     {filteredAbsentEmployees.length > 0 ? (
                       filteredAbsentEmployees.slice((absentCurrentPage - 1) * parseInt(absentLimit), absentCurrentPage * parseInt(absentLimit)).map((emp) => {
-                        let displayStatus = (emp as any).status || "Absent";
-                        const isOutstation = outstationRecords.some((o: any) => 
-                          o.user_id === emp.user_id && 
-                          o.start_date.slice(0,10) <= selectedDate && 
-                          o.end_date.slice(0,10) >= selectedDate
-                        );
-                        if (isOutstation) displayStatus = "Outstation";
+                        const displayStatus = getEffectiveDisplayStatus(emp);
+                        const effectiveLeaveType = (emp as any).leave_type || onLeaveByUserId.get(emp.user_id)?.leave_type || null;
 
                         return (
                         <tr key={emp.user_id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors">
@@ -1919,10 +1934,17 @@ export default function AttendanceDashboard() {
                                 <span>Company Leave</span>
                               </span>
                             ) : (displayStatus === 'On Leave' || displayStatus === 'Approved Leave') ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/50 shadow-sm">
-                                <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-500" />
-                                <span>On Leave</span>
-                              </span>
+                              <div className="flex flex-col gap-1 items-start">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/50 shadow-sm">
+                                  <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-500" />
+                                  <span>On Leave</span>
+                                </span>
+                                {effectiveLeaveType && (
+                                  <span className="text-[10px] text-muted-foreground font-semibold pl-1">
+                                    {effectiveLeaveType}
+                                  </span>
+                                )}
+                              </div>
                             ) : displayStatus === 'Absent (Expired)' ? (
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] tracking-wider font-extrabold uppercase rounded-full border shadow-2xs whitespace-nowrap bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-600">
