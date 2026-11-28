@@ -649,12 +649,18 @@ export default function WorkforceInsights() {
   if (loading) {
     return (
       <div className="space-y-6 py-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="p-4 rounded-2xl space-y-2.5">
-              <Skeleton className="h-3 w-24 rounded" />
-              <Skeleton className={`h-8 ${i % 2 === 0 ? "w-16" : "w-20"} rounded-lg`} />
-              <Skeleton className="h-2.5 w-28 rounded" />
+            <Card key={i} className="p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between space-y-2.5">
+              <div className="space-y-2.5">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className={`h-8 ${i % 2 === 0 ? "w-16" : "w-20"} rounded-lg`} />
+                <Skeleton className="h-2.5 w-24 rounded" />
+              </div>
+              <div className="pt-1 space-y-2">
+                <div className="h-px w-full bg-slate-900/[0.08] dark:bg-white/[0.10]" />
+                <Skeleton className="h-4 w-20 rounded-md" />
+              </div>
             </Card>
           ))}
         </div>
@@ -2873,126 +2879,215 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 
   return (
     <div className="space-y-6">
-       {/* PRIMARY SECTION — Compact 3x2 Monthly KPI Grid */}
+       {/* PRIMARY SECTION — Compact 1x6 Monthly KPI Grid */}
        <div>
-         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5 mb-5">
+         <style>{`
+           .monthly-kpi-card {
+             position: relative;
+             overflow: hidden;
+           }
+           .monthly-kpi-card::after {
+             content: "";
+             position: absolute;
+             inset: 3px;
+             border-radius: calc(1rem - 3px);
+             background: linear-gradient(
+               180deg,
+               rgba(var(--kpi-rgb, 99, 102, 241), 0) 42%,
+               rgba(var(--kpi-rgb, 99, 102, 241), 0.1) 100%
+             );
+             opacity: 0;
+             transition: opacity 300ms ease;
+             pointer-events: none;
+           }
+           .dark .monthly-kpi-card::after {
+             background: linear-gradient(
+               180deg,
+               rgba(var(--kpi-rgb, 99, 102, 241), 0) 42%,
+               rgba(var(--kpi-rgb, 99, 102, 241), 0.14) 100%
+             );
+           }
+           .monthly-kpi-card:hover {
+             box-shadow:
+               0 12px 24px -8px rgba(var(--kpi-rgb, 99, 102, 241), 0.22),
+               0 4px 12px -3px rgba(15, 23, 42, 0.06),
+               inset 0 -16px 22px -14px rgba(var(--kpi-rgb, 99, 102, 241), 0.18),
+               inset 0 0 0 3px rgba(255, 255, 255, 0.85) !important;
+           }
+           .dark .monthly-kpi-card:hover {
+             box-shadow:
+               0 14px 28px -8px rgba(0, 0, 0, 0.65),
+               0 6px 16px -6px rgba(var(--kpi-rgb, 99, 102, 241), 0.28),
+               inset 0 -16px 22px -14px rgba(var(--kpi-rgb, 99, 102, 241), 0.2),
+               inset 0 0 0 2px rgba(255, 255, 255, 0.06) !important;
+           }
+           .monthly-kpi-card:hover::after {
+             opacity: 1;
+           }
+         `}</style>
+         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
             {/* 1. Attendance Rate */}
-            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-indigo-200 dark:border-indigo-900/50 cursor-default bg-card hover:bg-indigo-50/40 dark:hover:bg-indigo-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+            <Card
+              style={{ ["--kpi-rgb" as string]: "99, 102, 241" }}
+              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-indigo-200 dark:border-indigo-900/50 hover:border-indigo-300 dark:hover:border-indigo-700/70 cursor-default bg-card hover:bg-indigo-50/40 dark:hover:bg-indigo-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
+            >
+              <div className="relative z-10 space-y-2.5">
+                <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
-                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Attendance Rate</p>
+                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Attendance Rate</p>
                 </div>
-                {feedConnected && <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest shrink-0"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>}
-              </div>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{attCurrent}%</h3>
+                  <h3 className="text-2xl xl:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{attCurrent}%</h3>
                   <p className="text-[10px] text-muted-foreground font-medium mt-1">Monthly Average</p>
                 </div>
-                {renderMoMBadge(attCurrent, attPrev, { suffix: '%', decimals: 1 })}
+              </div>
+              <div className="relative z-10">
+                <div className="h-px w-full bg-slate-900/[0.08] dark:bg-white/[0.10] my-1.5" />
+                <div className="pt-0.5">
+                  {renderMoMBadge(attCurrent, attPrev, { suffix: '%', decimals: 1 })}
+                </div>
               </div>
             </Card>
 
             {/* 2. Total Absenteeism */}
-            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-red-200 dark:border-red-900/50 cursor-default bg-card hover:bg-red-50/40 dark:hover:bg-red-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
-                  <XCircle className="w-4 h-4" />
+            <Card
+              style={{ ["--kpi-rgb" as string]: "239, 68, 68" }}
+              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-red-200 dark:border-red-900/50 hover:border-red-300 dark:hover:border-red-700/70 cursor-default bg-card hover:bg-red-50/40 dark:hover:bg-red-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
+            >
+              <div className="relative z-10 space-y-2.5">
+                <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
+                  <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <XCircle className="w-4 h-4" />
+                  </div>
+                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Total Absenteeism</p>
                 </div>
-                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Total Absenteeism</p>
-              </div>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{absCurrent}</h3>
+                  <h3 className="text-2xl xl:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{absCurrent}</h3>
                   <p className="text-[10px] text-muted-foreground font-medium mt-1">Absent Days</p>
                 </div>
-                {renderMoMBadge(absCurrent, absPrev, { invert: true })}
+              </div>
+              <div className="relative z-10">
+                <div className="h-px w-full bg-slate-900/[0.08] dark:bg-white/[0.10] my-1.5" />
+                <div className="pt-0.5">
+                  {renderMoMBadge(absCurrent, absPrev, { invert: true })}
+                </div>
               </div>
             </Card>
 
             {/* 3. Late Attendance */}
-            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-amber-200 dark:border-amber-900/50 cursor-default bg-card hover:bg-amber-50/40 dark:hover:bg-amber-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
-                  <Clock className="w-4 h-4" />
+            <Card
+              style={{ ["--kpi-rgb" as string]: "245, 158, 11" }}
+              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-amber-200 dark:border-amber-900/50 hover:border-amber-300 dark:hover:border-amber-700/70 cursor-default bg-card hover:bg-amber-50/40 dark:hover:bg-amber-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
+            >
+              <div className="relative z-10 space-y-2.5">
+                <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Late Attendance</p>
                 </div>
-                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Late Attendance</p>
-              </div>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{lateCurrent}</h3>
+                  <h3 className="text-2xl xl:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{lateCurrent}</h3>
                   <p className="text-[10px] text-muted-foreground font-medium mt-1">Late Records</p>
                 </div>
-                {renderMoMBadge(lateCurrent, latePrev, { invert: true })}
+              </div>
+              <div className="relative z-10">
+                <div className="h-px w-full bg-slate-900/[0.08] dark:bg-white/[0.10] my-1.5" />
+                <div className="pt-0.5">
+                  {renderMoMBadge(lateCurrent, latePrev, { invert: true })}
+                </div>
               </div>
             </Card>
 
             {/* 4. Avg Working Hrs */}
-            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-cyan-200 dark:border-cyan-900/50 cursor-default bg-card hover:bg-cyan-50/40 dark:hover:bg-cyan-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
-                  <TrendingUp className="w-4 h-4" />
+            <Card
+              style={{ ["--kpi-rgb" as string]: "6, 182, 212" }}
+              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-cyan-200 dark:border-cyan-900/50 hover:border-cyan-300 dark:hover:border-cyan-700/70 cursor-default bg-card hover:bg-cyan-50/40 dark:hover:bg-cyan-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
+            >
+              <div className="relative z-10 space-y-2.5">
+                <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Avg Working Hrs</p>
                 </div>
-                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Avg Working Hrs</p>
-              </div>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{avgHrsCurrent} <span className="text-sm font-bold">Hrs</span></h3>
+                  <h3 className="text-2xl xl:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{avgHrsCurrent} <span className="text-sm font-bold">Hrs</span></h3>
                   <p className="text-[10px] text-muted-foreground font-medium mt-1">Monthly Average / Day</p>
                 </div>
-                {renderMoMBadge(avgHrsCurrent, avgHrsPrev, { suffix: 'h', decimals: 1 })}
+              </div>
+              <div className="relative z-10">
+                <div className="h-px w-full bg-slate-900/[0.08] dark:bg-white/[0.10] my-1.5" />
+                <div className="pt-0.5">
+                  {renderMoMBadge(avgHrsCurrent, avgHrsPrev, { suffix: 'h', decimals: 1 })}
+                </div>
               </div>
             </Card>
 
             {/* 5. Leave Utilization */}
-            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-purple-200 dark:border-purple-900/50 cursor-default bg-card hover:bg-purple-50/40 dark:hover:bg-purple-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
-                  <CalendarDays className="w-4 h-4" />
+            <Card
+              style={{ ["--kpi-rgb" as string]: "168, 85, 247" }}
+              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-purple-200 dark:border-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700/70 cursor-default bg-card hover:bg-purple-50/40 dark:hover:bg-purple-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
+            >
+              <div className="relative z-10 space-y-2.5">
+                <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
+                  <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <CalendarDays className="w-4 h-4" />
+                  </div>
+                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Leave Utilization</p>
                 </div>
-                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Leave Utilization</p>
-              </div>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{leaveAppCurrent}</h3>
+                  <h3 className="text-2xl xl:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{leaveAppCurrent}</h3>
                   <p className="text-[10px] text-muted-foreground font-medium mt-1">Leave Applications</p>
                 </div>
-                {renderMoMBadge(leaveApprovedCurrent, leaveApprovedPrev, { invert: true })}
+              </div>
+              <div className="relative z-10">
+                <div className="h-px w-full bg-slate-900/[0.08] dark:bg-white/[0.10] my-1.5" />
+                <div className="pt-0.5">
+                  {renderMoMBadge(leaveApprovedCurrent, leaveApprovedPrev, { invert: true })}
+                </div>
               </div>
             </Card>
 
             {/* 6. Attendance Risk */}
-            <Card className="group p-3.5 sm:p-4 flex flex-col justify-between gap-2 border border-rose-200 dark:border-rose-900/50 cursor-default bg-card hover:bg-rose-50/40 dark:hover:bg-rose-900/20 relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
-                  <AlertTriangle className="w-4 h-4" />
+            <Card
+              style={{ ["--kpi-rgb" as string]: "244, 63, 94" }}
+              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-rose-200 dark:border-rose-900/50 hover:border-rose-300 dark:hover:border-rose-700/70 cursor-default bg-card hover:bg-rose-50/40 dark:hover:bg-rose-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
+            >
+              <div className="relative z-10 space-y-2.5">
+                <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
+                  <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Attendance Risk</p>
                 </div>
-                <p className="text-[10px] text-foreground font-bold uppercase tracking-wider truncate">Attendance Risk</p>
-              </div>
-              <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{riskCurrent}</h3>
+                  <h3 className="text-2xl xl:text-3xl font-black text-slate-800 dark:text-slate-100 leading-none">{riskCurrent}</h3>
                   <p className="text-[10px] text-muted-foreground font-medium mt-1">Need Attention</p>
                 </div>
-                <span
-                  className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold whitespace-nowrap ${
-                    riskCurrent > 0
-                      ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300'
-                      : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
-                  }`}
-                >
-                  {riskCurrent > 0 ? '3+ Lates / 2+ Absent' : 'All Clear'}
-                </span>
+              </div>
+              <div className="relative z-10">
+                <div className="h-px w-full bg-slate-900/[0.08] dark:bg-white/[0.10] my-1.5" />
+                <div className="pt-0.5">
+                  <span
+                    className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold whitespace-nowrap ${
+                      riskCurrent > 0
+                        ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300'
+                        : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
+                    }`}
+                  >
+                    {riskCurrent > 0 ? '3+ Lates / 2+ Absent' : 'All Clear'}
+                  </span>
+                </div>
               </div>
             </Card>
          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
            <div className="lg:col-span-2 flex flex-col gap-6">
-            <Card className="p-5 border border-slate-100 dark:border-slate-700 hover:border-[#942392] hover: transition-all duration-300 flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+            <Card className={`p-5 bg-card border border-slate-100 dark:border-slate-700 hover:border-[#942392] ${cardHoverEffect} flex flex-col relative overflow-hidden rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex flex-col">
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Attendance Trend</CardTitle>
@@ -3270,7 +3365,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
               </div>
             </Card>
            
-           <Card className="p-5 border border-slate-200 dark:border-slate-800 bg-card flex flex-col hover:border-[#942392] hover: transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className={`p-5 border border-slate-200 dark:border-slate-800 bg-card flex flex-col hover:border-[#942392] ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div className="flex items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex flex-col">
                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Utilization Trend vs. Previous Month</CardTitle>
@@ -3297,7 +3392,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
            
            
             <div className="lg:col-span-1 flex flex-col gap-6">
-              <Card className="p-5 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+              <Card className={`p-5 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] ${cardHoverEffect} flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
               <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex flex-col">
                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Monthly Comparison</CardTitle>
@@ -3375,7 +3470,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
        {/* SECONDARY SECTION */}
        <div>
          {/* Employee Performance & Attendance Ranking (Month View Only) */}
-         <Card className="w-full mb-6 border border-slate-200 dark:border-slate-800 bg-card hover:border-[#942392] transition-all duration-300 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+         <Card className={`w-full mb-6 border border-slate-200 dark:border-slate-800 bg-card hover:border-[#942392] ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Employee Performance &amp; Attendance</CardTitle>
              <div className="text-xs text-foreground mt-0.5 italic">Monitor attendance trends and identify top and low-performing employees.</div>
@@ -3459,7 +3554,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
            {currentRole !== 'branch_leader' && (
            /* Department Workforce Distribution */
-           <Card className="lg:col-span-6 p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className={`lg:col-span-6 p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] ${cardHoverEffect} flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Building2 className="w-4 h-4 text-foreground" />
@@ -3501,7 +3596,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 )}
 
         {/* Branch Workforce Distribution */}
-        <Card className={`border border-slate-100 dark:border-slate-800/80 bg-card overflow-hidden ${currentRole === "branch_leader" ? "lg:col-span-12" : "lg:col-span-6"} flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
+        <Card className={`border border-slate-100 dark:border-slate-800/80 bg-card hover:border-[#942392] ${cardHoverEffect} overflow-hidden ${currentRole === "branch_leader" ? "lg:col-span-12" : "lg:col-span-6"} flex flex-col h-fit rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
           <CardHeader className="pb-4 pt-5 px-6 border-b border-gray-100 dark:border-slate-800 flex flex-row items-start justify-between">
             <div className="flex flex-col">
               <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Average Attendance by Branch</CardTitle>
@@ -3622,7 +3717,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
          {/* Row 2: 3 Columns */}
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Leave Distribution (Donut Chart) */}
-           <Card className="p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] hover: transition-all duration-300 flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className={`p-4 border border-slate-100 dark:border-slate-700 bg-card hover:border-[#942392] ${cardHoverEffect} flex flex-col rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
              <div className="flex justify-between items-start mb-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <FileText className="w-4 h-4 text-foreground" />
@@ -3709,7 +3804,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
            </Card>
 
            {/* Travel & Outstation Summary */}
-           <Card className="p-5 border border-slate-200 dark:border-slate-800 hover:border-[#942392] hover: transition-all duration-300 flex flex-col relative bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className={`p-5 border border-slate-200 dark:border-slate-800 hover:border-[#942392] ${cardHoverEffect} flex flex-col relative bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
              {feedConnected && (
                <div className="absolute top-4 right-4 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest z-10 shadow-sm">
                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> LIVE
@@ -3773,7 +3868,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
            </Card>
 
            {/* Workforce Movement */}
-           <Card className="p-4 border border-slate-200 dark:border-slate-800 hover:border-[#942392] hover: transition-all duration-300 flex flex-col bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+           <Card className={`p-4 border border-slate-200 dark:border-slate-800 hover:border-[#942392] ${cardHoverEffect} flex flex-col bg-card rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
              <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
                <div className="flex items-center gap-2">
                  <Users className="w-4 h-4 text-foreground" />
@@ -3809,7 +3904,12 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
 
         {/* Row 3: Employees Requiring Attention */}
          <div className="w-full mb-6">
-           <EmployeesRequiringAttentionCard data={data.performance?.attentionEmployees || []} variant="grid" onEmployeeClick={(id: string) => onEmployeeClick?.(id)} />
+           <EmployeesRequiringAttentionCard
+             data={data.performance?.attentionEmployees || []}
+             variant="grid"
+             onEmployeeClick={(id: string) => onEmployeeClick?.(id)}
+             className="transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-purple-50/50 dark:hover:bg-slate-900/50 hover:border-[#942392]"
+           />
          </div>
      </div>
   )

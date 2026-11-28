@@ -65,7 +65,7 @@ const getColors = (percent: number, idx: number) => {
   };
 };
 
-export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', onEmployeeClick }: { data?: EmployeeAttentionData[], variant?: 'compact' | 'grid', onEmployeeClick?: (id: string) => void }) => {
+export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', onEmployeeClick, className = '' }: { data?: EmployeeAttentionData[], variant?: 'compact' | 'grid', onEmployeeClick?: (id: string) => void, className?: string }) => {
   const [allLeaves, setAllLeaves] = useState<any[]>([]);
   const [entitlements, setEntitlements] = useState<Record<string, number>>({});
   useEffect(() => {
@@ -120,7 +120,7 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
   const navigate = useNavigate();
   
   return (
-    <Card className="bg-card border border-border/80 rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full">
+    <Card className={`bg-card border border-border/80 rounded-[24px] shadow-sm overflow-hidden flex flex-col w-full ${className}`}>
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
