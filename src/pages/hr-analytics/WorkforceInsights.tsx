@@ -3,7 +3,7 @@ import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
-import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode, type PointerEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
@@ -71,6 +71,63 @@ const cardHoverEffects: Record<string, string> = {
   slate: "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-slate-50/50 dark:hover:bg-slate-900/50 group",
 };
 const cardHoverEffect = cardHoverEffects.purple;
+
+const kpiTiltCardHoverEffects: Record<string, string> = {
+  emerald: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-emerald-50/50 dark:hover:bg-slate-900/50 group",
+  orange: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-orange-50/50 dark:hover:bg-slate-900/50 group",
+  purple: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-purple-50/50 dark:hover:bg-slate-900/50 group",
+  red: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-red-50/50 dark:hover:bg-slate-900/50 group",
+  amber: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-amber-50/50 dark:hover:bg-slate-900/50 group",
+  blue: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-blue-50/50 dark:hover:bg-slate-900/50 group",
+};
+
+function TiltKpiCard({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const carrierRef = useRef<HTMLDivElement | null>(null);
+
+  const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    const carrier = carrierRef.current;
+    if (!carrier) return;
+    if (
+      !window.matchMedia("(hover: hover) and (pointer: fine)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    const MAX = 14;
+    carrier.style.setProperty("--rx", `${((0.5 - py) * MAX).toFixed(2)}deg`);
+    carrier.style.setProperty("--ry", `${((px - 0.5) * MAX).toFixed(2)}deg`);
+    carrier.classList.add("is-live");
+  };
+
+  const handlePointerLeave = () => {
+    const carrier = carrierRef.current;
+    if (!carrier) return;
+    carrier.classList.remove("is-live");
+    carrier.style.setProperty("--rx", "0deg");
+    carrier.style.setProperty("--ry", "0deg");
+  };
+
+  return (
+    <div
+      className={`kpi-tilt-scene ${className}`}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+    >
+      <div ref={carrierRef} className="kpi-tilt-carrier">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 const AVATAR_COLORS = [
   "bg-purple-100 text-purple-700",
@@ -753,11 +810,35 @@ export default function WorkforceInsights() {
           
           {/* 7 Compact KPI Cards */}
           <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} flex flex-col gap-3`}>
+            <style>{`
+              .kpi-tilt-scene {
+                perspective: 950px;
+              }
+              .kpi-tilt-carrier {
+                position: relative;
+                height: 100%;
+                transform-style: preserve-3d;
+                will-change: transform;
+                transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+                transition: transform 0.7s cubic-bezier(0.3, 0.8, 0.3, 1.1);
+              }
+              .kpi-tilt-carrier.is-live {
+                transition: transform 0.09s linear;
+              }
+              @media (prefers-reduced-motion: reduce) {
+                .kpi-tilt-carrier,
+                .kpi-tilt-carrier.is-live {
+                  transition: none;
+                  transform: none;
+                }
+              }
+            `}</style>
             {/* Top Row: 2 cols on mobile, 4 cols on md+ */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             
             {/* 1. Present Today */}
-            <Card className={`group border border-emerald-100 dark:border-emerald-900/40 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.emerald} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
+            <TiltKpiCard>
+            <Card className={`h-full group border border-emerald-100 dark:border-emerald-900/40 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.emerald} rounded-2xl shadow-sm`}>
               <div>
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
@@ -785,6 +866,7 @@ export default function WorkforceInsights() {
                 </span>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 2. Late Arrivals */}
             {(() => {
@@ -802,7 +884,8 @@ export default function WorkforceInsights() {
               }
               
               return (
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.orange} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
+            <TiltKpiCard>
+            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.orange} rounded-2xl shadow-sm`}>
               <div>
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-lg border border-orange-100 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
@@ -819,10 +902,12 @@ export default function WorkforceInsights() {
                 <p className="text-[10px] font-bold text-foreground truncate">Highest: <span className="text-orange-500 dark:text-orange-400">{highestLateTime}</span></p>
               </div>
             </Card>
+            </TiltKpiCard>
             );})()}
 
             {/* 3. On Leave Today */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.purple} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
+            <TiltKpiCard>
+            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.purple} rounded-2xl shadow-sm`}>
               <div>
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-lg border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
@@ -842,9 +927,11 @@ export default function WorkforceInsights() {
                 <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">UL {data.leave?.unpaid || 0}</span>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 4. Absent Today */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.red} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
+            <TiltKpiCard>
+            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.red} rounded-2xl shadow-sm`}>
               <div>
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-lg border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
@@ -861,12 +948,14 @@ export default function WorkforceInsights() {
                 <p className="text-[10px] font-bold text-red-500 dark:text-red-400">Needs Attention</p>
               </div>
             </Card>
+            </TiltKpiCard>
             </div>
 
             {/* Bottom Row: 2 cols on mobile (Active Workforce spans 2), 3 cols on sm+ */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* 5. Missing Punch */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.amber} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
+            <TiltKpiCard>
+            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.amber} rounded-2xl shadow-sm`}>
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
@@ -895,9 +984,11 @@ export default function WorkforceInsights() {
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 6. Outstation */}
-            <Card className={`group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.blue} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
+            <TiltKpiCard>
+            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.blue} rounded-2xl shadow-sm`}>
               <div>
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-lg border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
@@ -919,9 +1010,11 @@ export default function WorkforceInsights() {
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 7. Active Workforce */}
-            <Card className={`col-span-2 sm:col-span-1 group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.emerald} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
+            <TiltKpiCard className="col-span-2 sm:col-span-1">
+            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.emerald} rounded-2xl shadow-sm`}>
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
@@ -945,6 +1038,7 @@ export default function WorkforceInsights() {
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
           </div>
 
