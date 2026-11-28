@@ -2109,7 +2109,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       {/* ROW 6: Personal Missing Punch & Total Absent Cards (50% / 50%) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
         <PersonalAttendanceAlertCard
-          title="Missing Punch"
+          title="Total Missing Punch Out"
           subtitle="Total Number of Missing Punches"
           badgeLabel="Critical"
           modalTitle="Missing Punch Details"
