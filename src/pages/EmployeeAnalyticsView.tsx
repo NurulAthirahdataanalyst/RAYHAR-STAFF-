@@ -3,10 +3,152 @@ import { createPortal } from "react-dom";
 import { API_BASE_URL } from "../config/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
 } from "recharts";
-import { Flame, Info, Trophy, Briefcase, CalendarCheck2, ArrowUpRight, ArrowDownRight, Clock, Zap, MapPin, Search, PlusCircle, AlertCircle, Calendar, Maximize, Minimize } from "lucide-react";
+import { Flame, Info, Trophy, Briefcase, CalendarCheck2, ArrowUpRight, ArrowDownRight, Clock, Zap, MapPin, Search, PlusCircle, AlertCircle, Calendar, Maximize, Minimize, FileText, X } from "lucide-react";
+
+const formatShortDisplayDate = (dateStr: string): string => {
+  if (!dateStr) return "-";
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return dateStr;
+  const [y, m, d] = parts;
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+};
+
+interface PersonalAttendanceAlertCardProps {
+  title: string;
+  subtitle: string;
+  badgeLabel: string;
+  modalTitle: string;
+  modalDescription: string;
+  emptyMessage: string;
+  dates: string[];
+  isLoading: boolean;
+}
+
+function PersonalAttendanceAlertCard({
+  title,
+  subtitle,
+  badgeLabel,
+  modalTitle,
+  modalDescription,
+  emptyMessage,
+  dates,
+  isLoading,
+}: PersonalAttendanceAlertCardProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const query = searchTerm.trim().toLowerCase();
+  const filteredDates = dates.filter((d) => {
+    if (!query) return true;
+    return formatShortDisplayDate(d).toLowerCase().includes(query) || d.includes(query);
+  });
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Card className="p-5 shadow-sm border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 cursor-pointer hover:border-red-300 dark:hover:border-red-800 transition-all duration-300 rounded-[20px]">
+          <div className="flex justify-between items-center mb-4 border-b border-red-100 dark:border-red-900/20 pb-3">
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">{title}</h3>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-foreground dark:text-foreground font-medium">{subtitle}</p>
+            <div className="flex items-end gap-3 mt-1">
+              {isLoading ? (
+                <Skeleton className="h-10 w-24 mt-1" />
+              ) : (
+                <>
+                  <h2 className="text-4xl font-black text-red-600 dark:text-red-500">
+                    {dates.length.toString().padStart(2, "0")}
+                  </h2>
+                  <span
+                    className={`px-2 py-0.5 text-xs font-bold rounded mb-1 ${
+                      dates.length > 0
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                    }`}
+                  >
+                    {dates.length > 0 ? badgeLabel : "Clear"}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-white dark:bg-slate-900 border-none rounded-xl">
+        <DialogHeader className="px-6 py-4 border-b border-red-100 dark:border-red-900/40 bg-red-50 dark:bg-red-950/40">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white">
+              {modalTitle}
+            </DialogTitle>
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{modalDescription}</p>
+        </DialogHeader>
+
+        <div className="p-6">
+          <div className="relative mb-4">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground" />
+            <Input
+              placeholder="Search date (e.g. Nov, 25)..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 bg-slate-50/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground z-10 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
+            {filteredDates.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center">
+                <FileText className="w-12 h-12 text-slate-200 dark:text-slate-700 mb-3" />
+                <p className="text-sm font-semibold text-foreground dark:text-foreground">{emptyMessage}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {filteredDates.map((dateStr) => (
+                  <div
+                    key={dateStr}
+                    className="flex items-center justify-center p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-red-200 dark:hover:border-red-900/50 transition-colors text-center"
+                  >
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                      {formatShortDisplayDate(dateStr)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // Types
 interface EmployeeAnalyticsViewProps {
@@ -392,6 +534,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
   
   let daysInMonth = 0;
   let absentDays = 0;
+  const absentDatesRaw: string[] = [];
   let leaveDaysCount = 0;
   let totalWorkingDaysPassed = 0;
   let companyLeaveDaysCount = 0;
@@ -456,6 +599,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
           const logsOnDay = myLogs.filter(l => {
             if (!l.clock_in) return false;
+            if (l.date) return l.date === dateStr;
             const clockDate = new Date(l.clock_in);
             const y = clockDate.getFullYear();
             const mo = String(clockDate.getMonth() + 1).padStart(2, '0');
@@ -489,6 +633,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           } else if (isPastOrToday) {
             totalWorkingDaysPassed++;
             absentDays++;
+            absentDatesRaw.push(dateStr);
           }
         }
       }
@@ -598,11 +743,68 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
         } else if (isPastOrToday) {
           totalWorkingDaysPassed++;
           absentDays++;
+          absentDatesRaw.push(dateStr);
           heatmapData[d] = 'Absent';
         }
       }
     }
   }
+
+  // Personal Missing Punch & Total Absent dates filtered by selected Month & Year
+  const absentDates = [...absentDatesRaw].sort((a, b) => b.localeCompare(a));
+  const missingPunchDates = (() => {
+    const todayKlStr = getLocalDateString(new Date());
+    const targetPrefix = month === "all" ? `${year}-` : `${year}-${month.padStart(2, "0")}-`;
+    const logsByDate = new Map<string, any[]>();
+    myLogs.forEach((l) => {
+      if (!l?.clock_in) return;
+      const dStr = l.date || getLocalDateString(l.clock_in);
+      if (!dStr || !dStr.startsWith(targetPrefix) || dStr >= todayKlStr) return;
+      if (!logsByDate.has(dStr)) logsByDate.set(dStr, []);
+      logsByDate.get(dStr)!.push(l);
+    });
+
+    const dates: string[] = [];
+    logsByDate.forEach((dayLogs, dStr) => {
+      const hasLeave = approvedLeaves.some((l) => {
+        const s = getLocalDateString(l.start_date);
+        const e = getLocalDateString(l.end_date);
+        return dStr >= s && dStr <= e;
+      });
+      if (hasLeave) return;
+
+      const hasOutstation = outstations.some((o) => {
+        const s = getLocalDateString(o.start_date);
+        const e = getLocalDateString(o.end_date);
+        return dStr >= s && dStr <= e && o.status !== "Cancelled";
+      });
+      if (hasOutstation) return;
+
+      const sorted = [...dayLogs].sort((a, b) => new Date(a.clock_in).getTime() - new Date(b.clock_in).getTime());
+      const finalLog = sorted[sorted.length - 1];
+      const st = String(finalLog?.status || "").toUpperCase();
+      if (
+        st.includes("LEAVE") ||
+        st.includes("ABSENT") ||
+        st.includes("REJECTED") ||
+        st.includes("EXPIRED") ||
+        st.includes("PENDING") ||
+        st.includes("OUTSTATION") ||
+        st.includes("HOLIDAY") ||
+        st.includes("WEEKEND")
+      ) {
+        return;
+      }
+
+      const hasClockOut =
+        Boolean(finalLog?.clock_out) ||
+        (Boolean(finalLog?.time_out) && finalLog.time_out !== "--" && finalLog.time_out !== "N/A");
+      if (!hasClockOut) {
+        dates.push(dStr);
+      }
+    });
+    return dates.sort((a, b) => b.localeCompare(a));
+  })();
 
   // Attendance Rate calculation (excludes weekend clock-ins from masking absences)
   const calcRate = (workingDays: number, absent: number) => {
@@ -1903,6 +2105,31 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           </Card>
         </div>
       )}
+
+      {/* ROW 6: Personal Missing Punch & Total Absent Cards (50% / 50%) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+        <PersonalAttendanceAlertCard
+          title="Missing Punch"
+          subtitle="Total Number of Missing Punches"
+          badgeLabel="Critical"
+          modalTitle="Missing Punch Details"
+          modalDescription={`Dates where clock out was missed (${monthNameFull} ${year}).`}
+          emptyMessage="No missing punch dates found"
+          dates={missingPunchDates}
+          isLoading={isLoading}
+        />
+        <PersonalAttendanceAlertCard
+          title="Total Absent"
+          subtitle="Most Absent Day"
+          badgeLabel="Attention"
+          modalTitle="Total Absent Details"
+          modalDescription={`Dates marked absent (${monthNameFull} ${year}).`}
+          emptyMessage="No absent dates found"
+          dates={absentDates}
+          isLoading={isLoading}
+        />
+      </div>
+
       {/* Maximized Chart Modal */}
       {isChartMaximized && month === "all" && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-8 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsChartMaximized(false)}>

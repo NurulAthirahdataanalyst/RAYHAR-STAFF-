@@ -3,7 +3,7 @@ import { UserAvatar, getSavedAvatar } from "@/utils/avatarUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ExportDropdown } from "@/components/shared/ExportDropdown";
 import PageActions from "@/components/layout/PageActions";
@@ -99,6 +99,32 @@ const formatDeptBranch = (dept?: string, branch?: string) => {
   }
   return '—';
 };
+
+function DayCardHeader({
+  title,
+  leftExtra,
+  rightExtra,
+  wrapperClassName = "",
+}: {
+  title: string;
+  leftExtra?: ReactNode;
+  rightExtra?: ReactNode;
+  wrapperClassName?: string;
+}) {
+  return (
+    <div className={wrapperClassName}>
+      <div className="flex items-center justify-between gap-2 px-4 py-3.5 mb-3.5 rounded-lg border border-slate-200/90 dark:border-slate-800 border-l-[3px] border-l-[#942392] bg-white dark:bg-slate-900/40">
+        <div className="flex items-center gap-2 min-w-0">
+          <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+            {title}
+          </CardTitle>
+          {leftExtra}
+        </div>
+        {rightExtra}
+      </div>
+    </div>
+  );
+}
 
 interface LiveEmp {
   user_id: string;
@@ -1016,13 +1042,8 @@ export default function WorkforceInsights() {
               
               return (
                 <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-                <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4 flex flex-row justify-between items-center">
-                  <div className="flex flex-col">
-                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Branch Workforce Distribution</CardTitle>
-                  <div className="text-xs text-foreground mt-0.5 italic">View workforce distribution across all company branches and regions.</div>
-                </div>
-                </CardHeader>
-                <CardContent className="p-5 flex flex-col">
+                <DayCardHeader title="Branch Workforce Distribution" wrapperClassName="px-5 pt-5" />
+                <CardContent className="px-5 pb-5 pt-0 flex flex-col">
                   <div className={`space-y-4 flex-1 pr-2 ${filteredBranches.length > 5 ? 'overflow-y-auto custom-scrollbar max-h-[220px] custom-scrollbar' : 'overflow-y-visible'}`}>
                     <TooltipProvider>
                       {(Array.isArray(filteredBranches) ? filteredBranches : []).map((branch: any, idx: number) => {
@@ -1145,21 +1166,19 @@ export default function WorkforceInsights() {
 
           {/* Temporary Branch Assignments Summary */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col h-fit ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex flex-col">
-                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Temporary Branch Assignment</CardTitle>
-                  <div className="text-xs text-foreground mt-0.5 italic">Monitor active, upcoming, and completed temporary branch assignments.</div>
-                </div>
+            <DayCardHeader
+              title="Temporary Branch Assignment"
+              wrapperClassName="px-5 pt-5"
+              rightExtra={
                 <Link to="/branches/temporary-assignments" className="text-[11px] font-bold text-[#942392] hover:text-[#7a1d78] transition-colors flex items-center group/link shrink-0">
                   View All Assignments
                   <ChevronRight className="w-3 h-3 ml-0.5 group-hover/link:translate-x-0.5 transition-transform" />
                 </Link>
-              </div>
-            </CardHeader>
+              }
+            />
             <CardContent className="p-0 flex flex-col">
               {/* Summary Stats */}
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+              <div className="px-5 pb-5 pt-1 border-b border-slate-100 dark:border-slate-800">
                 {(() => {
                   const today = new Date();
                   today.setHours(0,0,0,0);
@@ -1310,16 +1329,14 @@ export default function WorkforceInsights() {
 
 
           <Card className={`col-span-1 h-fit border border-slate-200 dark:border-slate-800 bg-card flex flex-col ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <CardHeader className="p-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex flex-row items-start justify-between">
-                <div>
-                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Team Availability</CardTitle>
-                  <CardDescription className="text-xs text-foreground mt-0.5 italic">Real-time status for the current shift</CardDescription>
-                </div>
-                <span className="bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold px-2 py-0.5 rounded-md">Live</span>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 flex flex-col">
+            <DayCardHeader
+              title="Team Availability"
+              wrapperClassName="px-4 pt-4"
+              rightExtra={
+                <span className="bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0">Live</span>
+              }
+            />
+            <CardContent className="px-4 pb-4 pt-0 flex flex-col">
               
               {/* Chart Section */}
               <div className="w-full relative h-[130px] flex items-center justify-center mt-1 mb-2">
@@ -1468,11 +1485,8 @@ export default function WorkforceInsights() {
         {!['head_of_department', 'branch_leader'].includes(role) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Monitoring</CardTitle>
-              <div className="text-xs text-foreground mt-0.5 italic">Track leave requests, approvals, and employee leave status.</div>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-5">
+            <DayCardHeader title="Leave Monitoring" wrapperClassName="px-5 pt-5" />
+            <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
               <div className="flex flex-col gap-3">
                 <div 
                   onClick={() => navigate("/leave/admin?tab=pending")}
@@ -1537,11 +1551,7 @@ export default function WorkforceInsights() {
           {/* Late Arrivals Today — Redesigned & Placed in Previous Employee Performance Slot */}
           {isAdminRole && (
             <Card className="col-span-1 lg:col-span-2 border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 sm:p-5 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] transition-all duration-300 hover:border-[#942392]/40">
-              <div className="flex items-center px-4 py-3.5 mb-3.5 rounded-lg border border-slate-200/90 dark:border-slate-800 border-l-[3px] border-l-[#942392] bg-white dark:bg-slate-900/40">
-                <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
-                  Late Arrivals Today
-                </CardTitle>
-              </div>
+              <DayCardHeader title="Late Arrivals Today" />
 
               <div className="flex-1 space-y-2.5 max-h-[290px] overflow-y-auto custom-scrollbar pr-0.5">
                 {lateList.length === 0 && !feedConnected && (
@@ -1630,16 +1640,17 @@ export default function WorkforceInsights() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                   {/* Clock-In/Out Card */}
                   <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
-                        
-                        {feedConnected
-                          ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
-                        {scopeLabel && <span className="text-[9px] font-bold text-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
-                      </div>
-                    </div>
+                    <DayCardHeader
+                      title="Clock-In/Out"
+                      leftExtra={
+                        <>
+                          {feedConnected
+                            ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
+                            : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
+                          {scopeLabel && <span className="text-[9px] font-bold text-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[100px]">{scopeLabel}</span>}
+                        </>
+                      }
+                    />
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
                       {displayClockIns.length === 0 && !feedConnected && (
@@ -1707,15 +1718,14 @@ export default function WorkforceInsights() {
 
                   {/* Absent / Leave / Outstation Card */}
                   <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
-                        
-                        {feedConnected
+                    <DayCardHeader
+                      title="Absent / Leave / Outstation"
+                      leftExtra={
+                        feedConnected
                           ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-white animate-pulse" />LIVE</span>
-                          : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
-                      </div>
-                    </div>
+                          : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>
+                      }
+                    />
 
                     <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
                       {displayAbsent.length === 0 && !feedConnected && (
@@ -1788,11 +1798,8 @@ export default function WorkforceInsights() {
                   </Card>
                             {/* 3. Leave Monitoring */}
           <Card className={`col-span-1 border border-slate-200 dark:border-slate-800 bg-card ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <CardHeader className="p-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Leave Monitoring</CardTitle>
-              <div className="text-xs text-foreground mt-0.5 italic">Track leave requests, approvals, and employee leave status.</div>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-5">
+            <DayCardHeader title="Leave Monitoring" wrapperClassName="px-5 pt-5" />
+            <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
               <div className="flex flex-col gap-3">
                 <div 
                   onClick={() => navigate("/leave/admin?tab=pending")}
@@ -1864,15 +1871,14 @@ export default function WorkforceInsights() {
 
           {/* Card 1: Absent / Leave / Outstation — 50% width */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Absent / Leave / Outstation</h3>
-                
-                {feedConnected
+            <DayCardHeader
+              title="Absent / Leave / Outstation"
+              leftExtra={
+                feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
-              </div>
-            </div>
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>
+              }
+            />
 
             <div className="flex-1 space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-0.5">
               {absentList.length === 0 && !feedConnected && (
@@ -1948,15 +1954,14 @@ export default function WorkforceInsights() {
 
           {/* Card 2: Clock-In/Out — 50% width */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Clock-In/Out</h3>
-                
-                {feedConnected
+            <DayCardHeader
+              title="Clock-In/Out"
+              leftExtra={
+                feedConnected
                   ? <span className="flex items-center gap-1 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
-              </div>
-            </div>
+                  : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>
+              }
+            />
 
             {/* allClockIns = on-time + late merged, sorted by clock_in */}
             {(() => {
@@ -2035,17 +2040,14 @@ export default function WorkforceInsights() {
             <div className="flex flex-col gap-6">
               {/* Card: Active Outstation */}
               <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-                <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Active Outstation</h3>
-                    {feedConnected
+                <DayCardHeader
+                  title="Active Outstation"
+                  leftExtra={
+                    feedConnected
                       ? <span className="flex items-center gap-1 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest"><span className="w-1 h-1 rounded-full bg-card animate-pulse" />LIVE</span>
-                      : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>}
-                    </div>
-                    <div className="text-xs text-foreground mt-0.5 italic">Employees currently assigned to outstation duties.</div>
-                  </div>
-                </div>
+                      : <span className="text-[8px] text-foreground font-bold uppercase">Connecting…</span>
+                  }
+                />
                 
                 <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
                   {activeOutstationList.length === 0 && !feedConnected && (
@@ -2139,24 +2141,23 @@ export default function WorkforceInsights() {
 
           {/* Card 4: Pending Approvals — LIVE SSE */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Pending Approvals</h3>
-                {pendingApprovalsList.length > 0 && (
+            <DayCardHeader
+              title="Pending Approvals"
+              leftExtra={
+                pendingApprovalsList.length > 0 && (
                   <span className="px-1.5 py-0.5 text-[8px] font-black bg-amber-500 text-white rounded">{pendingApprovalsList.length}</span>
-                )}
-                </div>
-                <div className="text-xs text-foreground mt-0.5 italic">Requests awaiting review and approval from authorized personnel.</div>
-              </div>
-              <Button
-                onClick={() => navigate("/leave/admin?tab=pending")}
-                variant="outline"
-                className="h-7 px-2.5 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card text-slate-600 dark:text-slate-300 rounded"
-              >
-                View All
-              </Button>
-            </div>
+                )
+              }
+              rightExtra={
+                <Button
+                  onClick={() => navigate("/leave/admin?tab=pending")}
+                  variant="outline"
+                  className="h-7 px-2.5 text-[10px] font-bold border border-slate-300 dark:border-slate-700 bg-card text-slate-600 dark:text-slate-300 rounded shrink-0"
+                >
+                  View All
+                </Button>
+              }
+            />
 
             <div className="flex-1 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
               {pendingApprovalsList.length === 0 && !feedConnected && (
@@ -2246,12 +2247,7 @@ export default function WorkforceInsights() {
 
           {/* Card 4: Upcoming Outstation */}
           <Card className={`border border-slate-200 dark:border-slate-800 bg-card flex flex-col p-4 ${cardHoverEffect} rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]`}>
-            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div className="flex flex-col">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Upcoming Outstation</h3>
-                <div className="text-xs text-foreground mt-0.5 italic">View scheduled employee outstation assignments and details.</div>
-              </div>
-            </div>
+            <DayCardHeader title="Upcoming Outstation" />
             
             <div className="flex-1 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-0.5">
               {upcomingOutstationList.length === 0 && !feedConnected && (
