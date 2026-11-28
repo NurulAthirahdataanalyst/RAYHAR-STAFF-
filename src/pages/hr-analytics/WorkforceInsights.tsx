@@ -759,14 +759,11 @@ export default function WorkforceInsights() {
             {/* 1. Present Today */}
             <Card className={`group border border-emerald-100 dark:border-emerald-900/40 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${cardHoverEffects.emerald} rounded-2xl shadow-sm hover:shadow-md transition-all duration-300`}>
               <div>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
-                      <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <p className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider truncate">Present Today</p>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  {feedConnected && <span className="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full shrink-0"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
+                  <p className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider truncate">Present Today</p>
                 </div>
                 <div className="flex items-baseline gap-1.5 mt-2.5">
                   <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white leading-none tracking-tight">{feedConnected && clockInOut.length > 0 ? clockInOut.length : data.teamAvailability.present}</h3>
