@@ -72,20 +72,69 @@ const cardHoverEffects: Record<string, string> = {
 };
 const cardHoverEffect = cardHoverEffects.purple;
 
-const kpiTiltCardHoverEffects: Record<string, string> = {
-  emerald: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-emerald-50/50 dark:hover:bg-slate-900/50 group",
-  orange: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-orange-50/50 dark:hover:bg-slate-900/50 group",
-  purple: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-purple-50/50 dark:hover:bg-slate-900/50 group",
-  red: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-red-50/50 dark:hover:bg-slate-900/50 group",
-  amber: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-amber-50/50 dark:hover:bg-slate-900/50 group",
-  blue: "cursor-pointer transition-[box-shadow,background-color,border-color] duration-300 hover:shadow-[0_18px_34px_-16px_rgba(15,23,42,0.18)] dark:hover:shadow-[0_18px_34px_-16px_rgba(0,0,0,0.6)] hover:bg-blue-50/50 dark:hover:bg-slate-900/50 group",
-};
+const KPI_INTERACTIVE_STYLES = `
+  .kpi-tilt-scene {
+    perspective: 1000px;
+  }
+  .kpi-tilt-carrier {
+    position: relative;
+    height: 100%;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 200ms ease;
+  }
+  .kpi-tilt-carrier.is-live {
+    transition: transform 90ms ease-out;
+  }
+  .kpi-interactive-card {
+    position: relative;
+    cursor: pointer;
+    transition: border-color 200ms ease;
+  }
+  .kpi-interactive-card:hover {
+    border-color: rgba(var(--kpi-rgb, 123, 0, 153), 0.38);
+  }
+  .kpi-interactive-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      130px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(var(--kpi-rgb, 123, 0, 153), 0.95) 0%,
+      rgba(var(--kpi-rgb, 123, 0, 153), 0.35) 45%,
+      transparent 75%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 200ms ease;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .kpi-tilt-scene:hover .kpi-interactive-card::before,
+  .kpi-interactive-card:hover::before {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .kpi-tilt-carrier,
+    .kpi-tilt-carrier.is-live {
+      transition: none;
+      transform: none;
+    }
+  }
+`;
 
 function TiltKpiCard({
   children,
+  kpiRgb = "123, 0, 153",
   className = "",
 }: {
   children: ReactNode;
+  kpiRgb?: string;
   className?: string;
 }) {
   const carrierRef = useRef<HTMLDivElement | null>(null);
@@ -93,16 +142,21 @@ function TiltKpiCard({
   const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const carrier = carrierRef.current;
     if (!carrier) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    carrier.style.setProperty("--mx", `${x.toFixed(1)}px`);
+    carrier.style.setProperty("--my", `${y.toFixed(1)}px`);
+
     if (
       !window.matchMedia("(hover: hover) and (pointer: fine)").matches ||
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
       return;
     }
-    const r = e.currentTarget.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width;
-    const py = (e.clientY - r.top) / r.height;
-    const MAX = 14;
+    const px = x / r.width;
+    const py = y / r.height;
+    const MAX = 7;
     carrier.style.setProperty("--rx", `${((0.5 - py) * MAX).toFixed(2)}deg`);
     carrier.style.setProperty("--ry", `${((px - 0.5) * MAX).toFixed(2)}deg`);
     carrier.classList.add("is-live");
@@ -118,7 +172,8 @@ function TiltKpiCard({
 
   return (
     <div
-      className={`kpi-tilt-scene ${className}`}
+      className={`kpi-tilt-scene h-full ${className}`}
+      style={{ ["--kpi-rgb" as string]: kpiRgb }}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
     >
@@ -751,6 +806,7 @@ export default function WorkforceInsights() {
   };
   return (
     <div className="space-y-6 animate-in fade-in duration-500 w-full">
+        <style>{KPI_INTERACTIVE_STYLES}</style>
         <PageActions>
           <div className="flex flex-wrap items-center justify-end gap-2.5">
             {/* DAY | MONTH View Toggle Bar */}
@@ -816,38 +872,15 @@ export default function WorkforceInsights() {
           
           {/* 7 Compact KPI Cards */}
           <div className={`col-span-1 ${['head_of_department', 'branch_leader'].includes(role) ? 'xl:col-span-4' : 'xl:col-span-3'} flex flex-col gap-3`}>
-            <style>{`
-              .kpi-tilt-scene {
-                perspective: 950px;
-              }
-              .kpi-tilt-carrier {
-                position: relative;
-                height: 100%;
-                transform-style: preserve-3d;
-                will-change: transform;
-                transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-                transition: transform 0.7s cubic-bezier(0.3, 0.8, 0.3, 1.1);
-              }
-              .kpi-tilt-carrier.is-live {
-                transition: transform 0.09s linear;
-              }
-              @media (prefers-reduced-motion: reduce) {
-                .kpi-tilt-carrier,
-                .kpi-tilt-carrier.is-live {
-                  transition: none;
-                  transform: none;
-                }
-              }
-            `}</style>
             {/* Top Row: 2 cols on mobile, 4 cols on md+ */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             
             {/* 1. Present Today */}
-            <TiltKpiCard>
-            <Card className={`h-full group border border-emerald-100 dark:border-emerald-900/40 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.emerald} rounded-2xl shadow-sm`}>
+            <TiltKpiCard kpiRgb="16, 185, 129">
+            <Card className="kpi-interactive-card h-full border border-emerald-100 dark:border-emerald-900/40 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between rounded-2xl shadow-sm">
               <div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
                     <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <p className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider truncate">Present Today</p>
@@ -890,11 +923,11 @@ export default function WorkforceInsights() {
               }
               
               return (
-            <TiltKpiCard>
-            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.orange} rounded-2xl shadow-sm`}>
+            <TiltKpiCard kpiRgb="249, 115, 22">
+            <Card className="kpi-interactive-card h-full border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between rounded-2xl shadow-sm">
               <div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-lg border border-orange-100 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-lg border border-orange-100 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/40 flex items-center justify-center shrink-0">
                     <Clock className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                   </div>
                   <p className="text-[10px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider truncate">Late Arrival</p>
@@ -912,11 +945,11 @@ export default function WorkforceInsights() {
             );})()}
 
             {/* 3. On Leave Today */}
-            <TiltKpiCard>
-            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.purple} rounded-2xl shadow-sm`}>
+            <TiltKpiCard kpiRgb="147, 51, 234">
+            <Card className="kpi-interactive-card h-full border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between rounded-2xl shadow-sm">
               <div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-lg border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-lg border border-purple-100 dark:border-purple-800/60 bg-purple-50/50 dark:bg-purple-950/40 flex items-center justify-center shrink-0">
                     <CalendarDays className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   </div>
                   <p className="text-[10px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider truncate">On Leave Today</p>
@@ -936,11 +969,11 @@ export default function WorkforceInsights() {
             </TiltKpiCard>
 
             {/* 4. Absent Today */}
-            <TiltKpiCard>
-            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.red} rounded-2xl shadow-sm`}>
+            <TiltKpiCard kpiRgb="239, 68, 68">
+            <Card className="kpi-interactive-card h-full border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between rounded-2xl shadow-sm">
               <div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-lg border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-lg border border-red-100 dark:border-red-800/60 bg-red-50/50 dark:bg-red-950/40 flex items-center justify-center shrink-0">
                     <XCircle className="w-4 h-4 text-red-500 dark:text-red-400" />
                   </div>
                   <p className="text-[10px] font-extrabold text-red-500 dark:text-red-400 uppercase tracking-wider truncate">Absent Today</p>
@@ -960,12 +993,12 @@ export default function WorkforceInsights() {
             {/* Bottom Row: 2 cols on mobile (Active Workforce spans 2), 3 cols on sm+ */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {/* 5. Missing Punch */}
-            <TiltKpiCard>
-            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.amber} rounded-2xl shadow-sm`}>
+            <TiltKpiCard kpiRgb="245, 158, 11">
+            <Card className="kpi-interactive-card h-full border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between rounded-2xl shadow-sm">
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 rounded-lg border border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <div className="w-8 h-8 rounded-lg border border-amber-100 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/40 flex items-center justify-center shrink-0">
                       <AlertTriangle className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                     </div>
                     <p className="text-[10px] font-extrabold text-amber-500 dark:text-amber-400 uppercase tracking-wider truncate">Missing Punch</p>
@@ -993,11 +1026,11 @@ export default function WorkforceInsights() {
             </TiltKpiCard>
 
             {/* 6. Outstation */}
-            <TiltKpiCard>
-            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.blue} rounded-2xl shadow-sm`}>
+            <TiltKpiCard kpiRgb="59, 130, 246">
+            <Card className="kpi-interactive-card h-full border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between rounded-2xl shadow-sm">
               <div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-lg border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-lg border border-blue-100 dark:border-blue-800/60 bg-blue-50/50 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
                     <Plane className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                   </div>
                   <p className="text-[10px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-wider truncate">Outstation</p>
@@ -1019,12 +1052,12 @@ export default function WorkforceInsights() {
             </TiltKpiCard>
 
             {/* 7. Active Workforce */}
-            <TiltKpiCard className="col-span-2 sm:col-span-1">
-            <Card className={`h-full group border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between ${kpiTiltCardHoverEffects.emerald} rounded-2xl shadow-sm`}>
+            <TiltKpiCard kpiRgb="16, 185, 129" className="col-span-2 sm:col-span-1">
+            <Card className="kpi-interactive-card h-full border border-slate-100 dark:border-slate-800 bg-card p-3.5 sm:p-4 flex flex-col min-h-[126px] sm:min-h-[136px] justify-between rounded-2xl shadow-sm">
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 rounded-lg border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                    <div className="w-8 h-8 rounded-lg border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
                       <Users className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                     </div>
                     <p className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider truncate">Active Workforce</p>
@@ -2881,59 +2914,13 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
     <div className="space-y-6">
        {/* PRIMARY SECTION — Compact 1x6 Monthly KPI Grid */}
        <div>
-         <style>{`
-           .monthly-kpi-card {
-             position: relative;
-             overflow: hidden;
-           }
-           .monthly-kpi-card::after {
-             content: "";
-             position: absolute;
-             inset: 3px;
-             border-radius: calc(1rem - 3px);
-             background: linear-gradient(
-               180deg,
-               rgba(var(--kpi-rgb, 99, 102, 241), 0) 42%,
-               rgba(var(--kpi-rgb, 99, 102, 241), 0.1) 100%
-             );
-             opacity: 0;
-             transition: opacity 300ms ease;
-             pointer-events: none;
-           }
-           .dark .monthly-kpi-card::after {
-             background: linear-gradient(
-               180deg,
-               rgba(var(--kpi-rgb, 99, 102, 241), 0) 42%,
-               rgba(var(--kpi-rgb, 99, 102, 241), 0.14) 100%
-             );
-           }
-           .monthly-kpi-card:hover {
-             box-shadow:
-               0 12px 24px -8px rgba(var(--kpi-rgb, 99, 102, 241), 0.22),
-               0 4px 12px -3px rgba(15, 23, 42, 0.06),
-               inset 0 -16px 22px -14px rgba(var(--kpi-rgb, 99, 102, 241), 0.18),
-               inset 0 0 0 3px rgba(255, 255, 255, 0.85) !important;
-           }
-           .dark .monthly-kpi-card:hover {
-             box-shadow:
-               0 14px 28px -8px rgba(0, 0, 0, 0.65),
-               0 6px 16px -6px rgba(var(--kpi-rgb, 99, 102, 241), 0.28),
-               inset 0 -16px 22px -14px rgba(var(--kpi-rgb, 99, 102, 241), 0.2),
-               inset 0 0 0 2px rgba(255, 255, 255, 0.06) !important;
-           }
-           .monthly-kpi-card:hover::after {
-             opacity: 1;
-           }
-         `}</style>
          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
             {/* 1. Attendance Rate */}
-            <Card
-              style={{ ["--kpi-rgb" as string]: "99, 102, 241" }}
-              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-indigo-200 dark:border-indigo-900/50 hover:border-indigo-300 dark:hover:border-indigo-700/70 cursor-default bg-card hover:bg-indigo-50/40 dark:hover:bg-indigo-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
-            >
+            <TiltKpiCard kpiRgb="99, 102, 241">
+            <Card className="kpi-interactive-card h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-indigo-200 dark:border-indigo-900/50 bg-card rounded-2xl shadow-sm">
               <div className="relative z-10 space-y-2.5">
                 <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Attendance Rate</p>
@@ -2950,15 +2937,14 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 2. Total Absenteeism */}
-            <Card
-              style={{ ["--kpi-rgb" as string]: "239, 68, 68" }}
-              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-red-200 dark:border-red-900/50 hover:border-red-300 dark:hover:border-red-700/70 cursor-default bg-card hover:bg-red-50/40 dark:hover:bg-red-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
-            >
+            <TiltKpiCard kpiRgb="239, 68, 68">
+            <Card className="kpi-interactive-card h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-red-200 dark:border-red-900/50 bg-card rounded-2xl shadow-sm">
               <div className="relative z-10 space-y-2.5">
                 <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
-                  <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
                     <XCircle className="w-4 h-4" />
                   </div>
                   <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Total Absenteeism</p>
@@ -2975,15 +2961,14 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 3. Late Attendance */}
-            <Card
-              style={{ ["--kpi-rgb" as string]: "245, 158, 11" }}
-              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-amber-200 dark:border-amber-900/50 hover:border-amber-300 dark:hover:border-amber-700/70 cursor-default bg-card hover:bg-amber-50/40 dark:hover:bg-amber-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
-            >
+            <TiltKpiCard kpiRgb="245, 158, 11">
+            <Card className="kpi-interactive-card h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-amber-200 dark:border-amber-900/50 bg-card rounded-2xl shadow-sm">
               <div className="relative z-10 space-y-2.5">
                 <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                     <Clock className="w-4 h-4" />
                   </div>
                   <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Late Attendance</p>
@@ -3000,15 +2985,14 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 4. Avg Working Hrs */}
-            <Card
-              style={{ ["--kpi-rgb" as string]: "6, 182, 212" }}
-              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-cyan-200 dark:border-cyan-900/50 hover:border-cyan-300 dark:hover:border-cyan-700/70 cursor-default bg-card hover:bg-cyan-50/40 dark:hover:bg-cyan-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
-            >
+            <TiltKpiCard kpiRgb="6, 182, 212">
+            <Card className="kpi-interactive-card h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-cyan-200 dark:border-cyan-900/50 bg-card rounded-2xl shadow-sm">
               <div className="relative z-10 space-y-2.5">
                 <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
-                  <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                   <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Avg Working Hrs</p>
@@ -3025,15 +3009,14 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 5. Leave Utilization */}
-            <Card
-              style={{ ["--kpi-rgb" as string]: "168, 85, 247" }}
-              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-purple-200 dark:border-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700/70 cursor-default bg-card hover:bg-purple-50/40 dark:hover:bg-purple-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
-            >
+            <TiltKpiCard kpiRgb="168, 85, 247">
+            <Card className="kpi-interactive-card h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-purple-200 dark:border-purple-900/50 bg-card rounded-2xl shadow-sm">
               <div className="relative z-10 space-y-2.5">
                 <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
-                  <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
                     <CalendarDays className="w-4 h-4" />
                   </div>
                   <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Leave Utilization</p>
@@ -3050,15 +3033,14 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
 
             {/* 6. Attendance Risk */}
-            <Card
-              style={{ ["--kpi-rgb" as string]: "244, 63, 94" }}
-              className="monthly-kpi-card group h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-rose-200 dark:border-rose-900/50 hover:border-rose-300 dark:hover:border-rose-700/70 cursor-default bg-card hover:bg-rose-50/40 dark:hover:bg-rose-900/20 hover:-translate-y-1 rounded-2xl shadow-sm transition-all duration-300"
-            >
+            <TiltKpiCard kpiRgb="244, 63, 94">
+            <Card className="kpi-interactive-card h-full p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 border border-rose-200 dark:border-rose-900/50 bg-card rounded-2xl shadow-sm">
               <div className="relative z-10 space-y-2.5">
                 <div className="flex items-center gap-2 min-w-0 min-h-[2.25rem]">
-                  <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105">
+                  <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                   <p className="text-[10px] text-foreground font-bold uppercase tracking-wider leading-tight">Attendance Risk</p>
@@ -3083,6 +3065,7 @@ function MonthViewDashboard({ data, branches = [], clockInOut, lateList, absentL
                 </div>
               </div>
             </Card>
+            </TiltKpiCard>
          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
