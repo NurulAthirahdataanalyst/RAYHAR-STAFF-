@@ -25,8 +25,8 @@ export function getBreadcrumbs(rawPathname: string, rawSearch?: string, _role?: 
   // Leave Pages (Personal & Team)
   if (pathname === "/leave/team") return [home, { label: "APPROVAL CENTER", path: "/leave/admin" }, { label: "TEAM LEAVE REQUESTS" }];
   if (pathname === "/leave") return [home, { label: "MY LEAVE" }, { label: "LEAVE OVERVIEW" }];
-  if (pathname === "/leave/apply") return [home, { label: "MY LEAVE", path: "/leave/apply" }, { label: "LEAVE APPLICATION" }];
-  if (pathname === "/leave/forms") return [home, { label: "MY LEAVE", path: "/leave/apply" }, { label: "MY LEAVE REQUESTS" }];
+  if (pathname === "/leave/apply") return [home, { label: "MY LEAVE", path: "/leave" }, { label: "LEAVE APPLICATION" }];
+  if (pathname === "/leave/forms") return [home, { label: "MY LEAVE", path: "/leave" }, { label: "MY LEAVE REQUESTS" }];
 
   // Outstation Pages (Personal vs Operations)
   if (pathname === "/outstation/my-calendar" || pathname === "/outstation/my_calendar") {

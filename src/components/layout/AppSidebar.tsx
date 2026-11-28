@@ -145,6 +145,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: CalendarDays,
           path: "/leave",
           children: [
+            { title: "Leave Overview", icon: ClipboardList, path: "/leave" },
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
           ],
@@ -184,8 +185,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "main_leave",
           title: "My Leave",
           icon: CalendarDays,
-          path: "/leave/apply",
+          path: "/leave",
           children: [
+            { title: "Leave Overview", icon: ClipboardList, path: "/leave" },
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
           ],
@@ -311,6 +313,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           icon: CalendarDays,
           path: "/leave",
           children: [
+            { title: "Leave Overview", icon: ClipboardList, path: "/leave", permission: ["leave.apply", "leave.my_requests"] },
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", permission: "leave.apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms", permission: "leave.my_requests" },
           ],
@@ -404,8 +407,9 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
           id: "main_leave",
           title: "My Leave",
           icon: CalendarDays,
-          path: "/leave/apply",
+          path: "/leave",
           children: [
+            { title: "Leave Overview", icon: ClipboardList, path: "/leave" },
             { title: "Leave Application", icon: FilePlus2, path: "/leave/apply" },
             { title: "My Leave Requests", icon: FileText, path: "/leave/forms" },
           ],
@@ -529,6 +533,7 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
         icon: CalendarDays,
         path: "/leave",
         children: [
+          { title: "Leave Overview", icon: ClipboardList, path: "/leave", permission: ["leave.apply", "leave.my_requests"] },
           { title: "Leave Application", icon: FilePlus2, path: "/leave/apply", permission: "leave.apply" },
           { title: "My Leave Requests", icon: FileText, path: "/leave/forms", permission: "leave.my_requests" },
         ],
@@ -651,10 +656,12 @@ const AppSidebar = ({ mobileOpen, onMobileClose }: AppSidebarProps) => {
       let resolvedItem = { ...item };
 
       if (item.children) {
+        const checkPermEnabled = (perm: string | string[]) =>
+          Array.isArray(perm) ? perm.some((p) => isPermissionEnabled(p)) : isPermissionEnabled(perm);
         const visibleChildren = item.children.filter((child: any) => {
           const childMod = getModuleKeyForMenuItem(child);
           if (childMod && !isModuleEnabled(childMod)) return false;
-          if (child.permission && !isPermissionEnabled(child.permission)) return false;
+          if (child.permission && !checkPermEnabled(child.permission)) return false;
           return !child.permission || hasPermission(child.permission);
         });
         if (visibleChildren.length > 0) {
