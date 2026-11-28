@@ -23,6 +23,7 @@ import {
   type LeaveType,
   
 } from "@/lib/leaveStorage";
+import { formatLeaveDays, getCompactSessionBadge } from "@/utils/leaveFormat";
 
 const leaveTypes: Array<{ type: LeaveType; total?: number }> = [
   { type: "Annual/Emergency Leave", total: 14 },
@@ -296,6 +297,9 @@ export default function LeaveOverview() {
             from: formatDate(request.start_date),
             to: formatDate(request.end_date),
             days: Number(request.days || 0),
+            leaveSession: request.leave_session,
+            startSession: request.start_session,
+            endSession: request.end_session,
             branch: reqBranch,
             companyName: reqCompany,
             department: request.department || "",
@@ -495,11 +499,11 @@ export default function LeaveOverview() {
               
               <div className="flex flex-col flex-1 gap-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{item.used}</span>
+                  <span className="text-xl sm:text-2xl font-black text-foreground group-hover:scale-105 transition-transform origin-left duration-500">{formatLeaveDays(item.used)}</span>
                   <span className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase">
                     {isNoEntitlement
                       ? "Days Taken"
-                      : `/ ${item.total || 0} DAYS`}
+                      : `/ ${formatLeaveDays(item.total || 0)} DAYS`}
                   </span>
                 </div>
                 
@@ -517,7 +521,7 @@ export default function LeaveOverview() {
                   <div className="flex items-center justify-between pt-1">
                     {!isNoEntitlement && item.total > 0 ? (
                       <p className="text-[7px] font-black text-foreground text-right uppercase tracking-widest w-full">
-                        {Math.max(item.total - item.used, 0)} DAYS REMAINING
+                        {formatLeaveDays(Math.max(item.total - item.used, 0))} DAYS REMAINING
                       </p>
                     ) : isNoEntitlement ? (
                       <p className="text-[7px] font-black text-foreground uppercase tracking-widest text-right w-full">
@@ -597,7 +601,16 @@ export default function LeaveOverview() {
                       <TableCell className="px-5 py-3.5 font-black text-[#942392] dark:text-purple-400">{leaveTypeLabels[req.type]}</TableCell>
                       <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.from}</TableCell>
                       <TableCell className="px-5 py-3.5 text-foreground font-bold">{req.to}</TableCell>
-                      <TableCell className="px-5 py-3.5 text-center font-black text-foreground">{req.days}</TableCell>
+                      <TableCell className="px-5 py-3.5 text-center font-black text-foreground">
+                        <div className="inline-flex flex-col items-center gap-0.5">
+                          <span>{formatLeaveDays(req.days)} Days</span>
+                          {getCompactSessionBadge(req) && (
+                            <span className="px-1.5 py-0 rounded bg-[#942392]/10 text-[#942392] text-[8px] font-black uppercase tracking-wider">
+                              {getCompactSessionBadge(req)}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="px-5 py-3.5 text-center">
                         <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
                           req.status === "Approved" ? "bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:border-green-500/20" :
@@ -641,7 +654,10 @@ export default function LeaveOverview() {
                       <span className="opacity-30">→</span>
                       <span>{req.to}</span>
                     </div>
-                    <span className="text-[11px] font-black text-[#942392]">{req.days} DAYS</span>
+                    <span className="text-[11px] font-black text-[#942392]">
+                      {formatLeaveDays(req.days)} DAYS
+                      {getCompactSessionBadge(req) ? ` • ${getCompactSessionBadge(req)}` : ""}
+                    </span>
                   </div>
                 </div>
               ))

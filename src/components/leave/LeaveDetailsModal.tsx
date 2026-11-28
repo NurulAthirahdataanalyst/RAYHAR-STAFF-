@@ -19,6 +19,7 @@ import { FileText, Printer, PhoneCall, Clock, Check, X, Download, Loader2, User 
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "@/config/api";
 import { canUserActOnLeaveStage } from "@/utils/leaveDiscussionPermissions";
+import { formatLeaveDays, formatNullableLeaveDays, getLeaveSessionLabel } from "@/utils/leaveFormat";
 
 const formatRole = (role: string) => {
   if (!role) return "APPROVER";
@@ -353,12 +354,23 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                       </div>
                       <div className="space-y-1 print:space-y-1">
                         <span className="text-[9px] print:text-[11px] print:normal-case uppercase font-black print:font-bold text-slate-950 dark:text-slate-50">Bilangan Hari</span>
-                        <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">{selectedRequest.days}</p>
+                        <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">
+                          {formatLeaveDays(selectedRequest.days)} Days
+                          {getLeaveSessionLabel(selectedRequest) ? (
+                            <span className="block text-[10px] text-[#942392] font-black">{getLeaveSessionLabel(selectedRequest)}</span>
+                          ) : null}
+                        </p>
                       </div>
                       {!(selectedRequest.type === "Unpaid Leave" || selectedRequest.type === "Cuti Tanpa Gaji") && (
                         <div className="space-y-1 print:space-y-1">
                           <span className="text-[9px] print:text-[11px] print:normal-case uppercase font-black print:font-bold text-slate-950 dark:text-slate-50">Baki Layak</span>
-                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">{selectedRequest.balance ?? "-"} Hari</p>
+                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">
+                            {bakiLayak !== '-'
+                              ? `${formatNullableLeaveDays(bakiLayak)} Days`
+                              : selectedRequest.balance !== undefined && selectedRequest.balance !== null
+                                ? `${formatNullableLeaveDays(selectedRequest.balance)} Days`
+                                : "-"}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -366,8 +378,8 @@ export function LeaveDetailsModal({ selectedRequest, onClose, role, onApprove, o
                     <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
                       <span className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                       <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                        <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Hari</p>
-                        <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedRequest.days}</p>
+                        <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Days</p>
+                        <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{formatLeaveDays(selectedRequest.days)}</p>
                       </div>
                     </div>
                   )}

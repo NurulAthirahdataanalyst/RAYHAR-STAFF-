@@ -6,6 +6,7 @@ import { getHistoryLogs, clearAllEntitlementHistory, EntitlementHistoryLog } fro
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { EntitlementDetailModal } from "./EntitlementDetailModal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatSignedLeaveDays } from "@/utils/leaveFormat";
 
 // ——— Badge config ———
 export const ACTION_BADGE: Record<string, { bg: string; text: string; dot: string; label: string; border: string }> = {
@@ -236,7 +237,7 @@ export default function EntitlementActivityCard({ onViewHistory }: Props) {
                       </div>
                       <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                         <span className={`text-xs font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {isPositive ? '+' : ''}{log.adjustment} Days
+                          {formatSignedLeaveDays(log.adjustment, "Days")}
                         </span>
                         <span className="text-[10px] text-foreground">
                           {formatRelativeDate(log.date, log.time)}

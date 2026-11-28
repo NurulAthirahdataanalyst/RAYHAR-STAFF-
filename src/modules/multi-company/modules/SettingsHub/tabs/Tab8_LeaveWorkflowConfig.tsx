@@ -28,6 +28,7 @@ import { multiCompanyApi } from '../../../services/multiCompanyApi';
 import { LeaveTypeSetting } from '../../../types/multiCompany.types';
 import { ApprovalBuilder } from '../../../workflow/ApprovalBuilder';
 import { toProperCase } from '@/utils/branchUtils';
+import { formatLeaveDays, roundLeaveDays } from '@/utils/leaveFormat';
 
 export const Tab8_LeaveWorkflowConfig: React.FC = () => {
   const { companies, activeCompany } = useCompany();
@@ -35,20 +36,24 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
   const [leaveTypes, setLeaveTypes] = useState<LeaveTypeSetting[]>([]);
   const [escalateToParent, setEscalateToParent] = useState(true);
   const [mcRequired, setMcRequired] = useState(true);
+  const [allowHalfDay, setAllowHalfDay] = useState(true);
 
-  // 4 Leave Types State
+  // 4 Leave Types State (stored as 0.5-capable numbers, rendered as 14.0 Days)
   // 1. Annual & Emergency Leave
-  const [annualDays, setAnnualDays] = useState(14);
-  const [emergencyDays, setEmergencyDays] = useState(5);
+  const [annualDays, setAnnualDays] = useState(14.0);
+  const [emergencyDays, setEmergencyDays] = useState(5.0);
 
   // 2. Replacement Leave (Cuti Ganti)
-  const [replacementDays, setReplacementDays] = useState(0);
+  const [replacementDays, setReplacementDays] = useState(0.0);
 
   // 3. Unpaid Leave (Cuti Tanpa Gaji)
-  const [unpaidDays, setUnpaidDays] = useState(30);
+  const [unpaidDays, setUnpaidDays] = useState(30.0);
 
   // 4. Medical Leave (Sick Leave)
-  const [sickDays, setSickDays] = useState(14);
+  const [sickDays, setSickDays] = useState(14.0);
+
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editingRawValue, setEditingRawValue] = useState<string>('');
 
   const [savingPolicies, setSavingPolicies] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -80,13 +85,16 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         const rep = data.leave_types.find(l => l.leave_type === 'Replacement Leave');
         const unpaid = data.leave_types.find(l => l.leave_type === 'Unpaid Leave');
 
-        if (annual) setAnnualDays(annual.default_entitlement_days ?? 14);
-        if (sick) setSickDays(sick.default_entitlement_days ?? 14);
-        if (emerg) setEmergencyDays(emerg.default_entitlement_days ?? 5);
-        if (rep) setReplacementDays(rep.default_entitlement_days ?? 0);
-        if (unpaid) setUnpaidDays(unpaid.default_entitlement_days ?? 30);
+        if (annual) setAnnualDays(roundLeaveDays(annual.default_entitlement_days, 14));
+        if (sick) setSickDays(roundLeaveDays(sick.default_entitlement_days, 14));
+        if (emerg) setEmergencyDays(roundLeaveDays(emerg.default_entitlement_days, 5));
+        if (rep) setReplacementDays(roundLeaveDays(rep.default_entitlement_days, 0));
+        if (unpaid) setUnpaidDays(roundLeaveDays(unpaid.default_entitlement_days, 30));
 
-        if (annual) setEscalateToParent(annual.escalate_to_parent !== false);
+        if (annual) {
+          setEscalateToParent(annual.escalate_to_parent !== false);
+          setAllowHalfDay(annual.allow_half_day !== false);
+        }
         if (sick) setMcRequired(sick.mc_required !== false);
       } catch (err) {
         console.error('Failed to load leave settings:', err);
@@ -100,24 +108,39 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
   const handleSavePolicies = async () => {
     try {
       setSavingPolicies(true);
+      const nextAnnual = roundLeaveDays(annualDays, 14);
+      const nextSick = roundLeaveDays(sickDays, 14);
+      const nextEmerg = roundLeaveDays(emergencyDays, nextAnnual);
+      const nextRep = roundLeaveDays(replacementDays, 0);
+      const nextUnpaid = roundLeaveDays(unpaidDays, 30);
+
       await multiCompanyApi.saveLeaveSettings(selectedCompanyId, {
-        annual_days: Number(annualDays),
-        sick_days: Number(sickDays),
-        emergency_days: Number(emergencyDays),
-        replacement_days: Number(replacementDays),
-        unpaid_days: Number(unpaidDays),
+        annual_days: nextAnnual,
+        sick_days: nextSick,
+        emergency_days: nextEmerg,
+        replacement_days: nextRep,
+        unpaid_days: nextUnpaid,
         mc_required: mcRequired,
-        escalate_to_parent: escalateToParent
+        escalate_to_parent: escalateToParent,
+        allow_half_day: allowHalfDay
       });
       await multiCompanyApi.logActivity({
         category: 'LEAVE_SETTINGS_UPDATE',
-        description: `HR saved leave entitlements & policies for ${currentCompanyName} (Annual & Emergency: ${annualDays} days, Medical: ${sickDays} days)`,
+        description: `HR saved leave entitlements & policies for ${currentCompanyName} (Annual & Emergency: ${formatLeaveDays(nextAnnual)} Days, Medical: ${formatLeaveDays(nextSick)} Days, Half-Day: ${allowHalfDay ? 'Enabled' : 'Disabled'})`,
         company_id: selectedCompanyId,
-        new_values: { annual_days: annualDays, sick_days: sickDays, replacement_days: replacementDays, unpaid_days: unpaidDays, mc_required: mcRequired }
+        new_values: {
+          annual_days: nextAnnual,
+          sick_days: nextSick,
+          replacement_days: nextRep,
+          unpaid_days: nextUnpaid,
+          mc_required: mcRequired,
+          allow_half_day: allowHalfDay
+        }
       });
       try {
+        localStorage.setItem(`rayhar_allow_half_day_${selectedCompanyId}`, allowHalfDay ? 'true' : 'false');
         window.dispatchEvent(new CustomEvent('rayhar_leave_refresh', {
-          detail: { companyId: selectedCompanyId, annualDays: Number(annualDays), sickDays: Number(sickDays) }
+          detail: { companyId: selectedCompanyId, annualDays: nextAnnual, sickDays: nextSick, allowHalfDay }
         }));
         new BroadcastChannel('rayhar_leave_refresh').postMessage('refresh');
       } catch (_) {}
@@ -184,12 +207,19 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
           {/* 1. Annual & Emergency Leave */}
           <div className="p-4 rounded-xl border border-purple-500/25 bg-gradient-to-b from-purple-500/5 to-transparent dark:bg-neutral-900/80 space-y-3.5 relative overflow-hidden flex flex-col justify-between">
             <div className="space-y-2">
-              <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider">
-                Annual & Emergency Leave
-              </h5>
+              <div className="flex items-start justify-between gap-2">
+                <h5 className="text-[11px] font-black text-foreground uppercase tracking-wider">
+                  Annual & Emergency Leave
+                </h5>
+                {allowHalfDay && (
+                  <Badge variant="outline" className="text-[9px] font-black px-1.5 py-0 h-4 border-[#942392]/30 bg-[#942392]/10 text-[#942392] dark:text-purple-300 shrink-0">
+                    0.5d Ready
+                  </Badge>
+                )}
+              </div>
 
               <p className="text-[10.5px] text-muted-foreground leading-relaxed">
-                Standard paid vacation and sudden emergency leave allowance.
+                Standard paid vacation and sudden emergency leave allowance (supports 0.5 half-day balance).
               </p>
             </div>
 
@@ -200,15 +230,22 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                   <Input
                     type="number"
                     min={0}
-                    value={annualDays}
+                    step={0.5}
+                    value={editingField === 'annual' ? editingRawValue : formatLeaveDays(annualDays)}
+                    onFocus={() => {
+                      setEditingField('annual');
+                      setEditingRawValue(formatLeaveDays(annualDays));
+                    }}
                     onChange={(e) => {
-                      const val = Number(e.target.value);
+                      setEditingRawValue(e.target.value);
+                      const val = roundLeaveDays(e.target.value, 0);
                       setAnnualDays(val);
                       setEmergencyDays(val);
                     }}
-                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
+                    onBlur={() => setEditingField(null)}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">Days</span>
                 </div>
               </div>
             </div>
@@ -233,11 +270,20 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                   <Input
                     type="number"
                     min={0}
-                    value={replacementDays}
-                    onChange={(e) => setReplacementDays(Number(e.target.value))}
-                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
+                    step={0.5}
+                    value={editingField === 'replacement' ? editingRawValue : formatLeaveDays(replacementDays)}
+                    onFocus={() => {
+                      setEditingField('replacement');
+                      setEditingRawValue(formatLeaveDays(replacementDays));
+                    }}
+                    onChange={(e) => {
+                      setEditingRawValue(e.target.value);
+                      setReplacementDays(roundLeaveDays(e.target.value, 0));
+                    }}
+                    onBlur={() => setEditingField(null)}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">Days</span>
                 </div>
               </div>
             </div>
@@ -262,11 +308,20 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                   <Input
                     type="number"
                     min={0}
-                    value={unpaidDays}
-                    onChange={(e) => setUnpaidDays(Number(e.target.value))}
-                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
+                    step={0.5}
+                    value={editingField === 'unpaid' ? editingRawValue : formatLeaveDays(unpaidDays)}
+                    onFocus={() => {
+                      setEditingField('unpaid');
+                      setEditingRawValue(formatLeaveDays(unpaidDays));
+                    }}
+                    onChange={(e) => {
+                      setEditingRawValue(e.target.value);
+                      setUnpaidDays(roundLeaveDays(e.target.value, 0));
+                    }}
+                    onBlur={() => setEditingField(null)}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">Days</span>
                 </div>
               </div>
             </div>
@@ -291,11 +346,20 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
                   <Input
                     type="number"
                     min={0}
-                    value={sickDays}
-                    onChange={(e) => setSickDays(Number(e.target.value))}
-                    className="w-14 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
+                    step={0.5}
+                    value={editingField === 'sick' ? editingRawValue : formatLeaveDays(sickDays)}
+                    onFocus={() => {
+                      setEditingField('sick');
+                      setEditingRawValue(formatLeaveDays(sickDays));
+                    }}
+                    onChange={(e) => {
+                      setEditingRawValue(e.target.value);
+                      setSickDays(roundLeaveDays(e.target.value, 0));
+                    }}
+                    onBlur={() => setEditingField(null)}
+                    className="w-16 h-7 text-xs text-center font-bold text-black dark:text-white px-1"
                   />
-                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">days</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold shrink-0">Days</span>
                 </div>
               </div>
             </div>
@@ -303,7 +367,23 @@ export const Tab8_LeaveWorkflowConfig: React.FC = () => {
         </div>
 
         {/* Global Policy Switches */}
-        <div className="pt-3 border-t border-border/50 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+        <div className="pt-3 border-t border-border/50 dark:border-neutral-800 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div className="flex items-center gap-2.5">
+            <Switch
+              checked={allowHalfDay}
+              onCheckedChange={setAllowHalfDay}
+              className="data-[state=checked]:bg-[#942392]"
+            />
+            <div className="leading-tight">
+              <span className="font-bold text-foreground block">
+                Allow Half-Day (0.5 Days) Leave Applications
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                Staff can apply Morning (AM) / Afternoon (PM) or multi-day + 0.5d
+              </span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2.5">
             <Switch
               checked={mcRequired}

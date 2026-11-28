@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ApprovalHistoryTimeline, LeaveStatusDecisionBy } from "@/components/leave/ApprovalHistoryTimeline";
 import { LeaveDiscussionCard } from "@/components/leave/LeaveDiscussionCard";
 import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
+import { formatLeaveBalance, formatLeaveDays, formatNullableLeaveDays, getCompactSessionBadge, getLeaveSessionLabel } from "@/utils/leaveFormat";
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
@@ -196,6 +197,10 @@ export default function TeamLeaveRequests() {
             from: formatDate(request.start_date),
             to: formatDate(request.end_date),
             days: Number(request.days || 0),
+            leaveSession: request.leave_session,
+            startSession: request.start_session,
+            endSession: request.end_session,
+            balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
             reason: request.reason || "-",
             status: request.status || "Pending HOD",
             warisNama: request.waris_nama || "N/A",
@@ -381,7 +386,16 @@ export default function TeamLeaveRequests() {
                         <TableCell>{req.type}</TableCell>
                         <TableCell>{req.from}</TableCell>
                         <TableCell>{req.to}</TableCell>
-                        <TableCell>{req.days}</TableCell>
+                        <TableCell>
+                          <div className="inline-flex flex-col items-start gap-0.5">
+                            <span className="font-bold">{formatLeaveBalance(req.days)}</span>
+                            {getCompactSessionBadge(req) && (
+                              <span className="px-1.5 py-0 rounded bg-[#942392]/10 text-[#942392] text-[8px] font-black uppercase tracking-wider">
+                                {getCompactSessionBadge(req)}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <div className="flex flex-col items-start gap-1">
                             <Badge 
@@ -531,19 +545,28 @@ export default function TeamLeaveRequests() {
                         </div>
                         <div className="space-y-1 print:space-y-1">
                           <span className="text-[9px] print:text-[11px] print:normal-case uppercase font-black print:font-bold text-slate-950 dark:text-slate-50">Bilangan Hari</span>
-                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">{selectedRequest.days}</p>
+                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">
+                            {formatLeaveDays(selectedRequest.days)} Days
+                            {getLeaveSessionLabel(selectedRequest) ? (
+                              <span className="block text-[10px] text-[#942392] font-black">{getLeaveSessionLabel(selectedRequest)}</span>
+                            ) : null}
+                          </p>
                         </div>
                         <div className="space-y-1 print:space-y-1">
                           <span className="text-[9px] print:text-[11px] print:normal-case uppercase font-black print:font-bold text-slate-950 dark:text-slate-50">Baki Layak</span>
-                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">{selectedRequest.balance ?? "-"} Hari</p>
+                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">
+                            {selectedRequest.balance !== undefined && selectedRequest.balance !== null
+                              ? `${formatNullableLeaveDays(selectedRequest.balance)} Days`
+                              : "-"}
+                          </p>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
                         <span className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                         <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Hari</p>
-                          <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedRequest.days}</p>
+                          <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Days</p>
+                          <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{formatLeaveDays(selectedRequest.days)}</p>
                         </div>
                       </div>
                     )}

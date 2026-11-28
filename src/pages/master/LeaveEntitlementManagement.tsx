@@ -65,6 +65,7 @@ import EntitlementActivityCard from "./EntitlementActivityCard";
 import EntitlementHistoryPanel from "./EntitlementHistoryPanel";
 import { WorkforceLeaveBalancePanel } from "./WorkforceLeaveBalancePanel";
 import { YearPopover } from "@/components/shared/YearPopover";
+import { formatLeaveDays, formatLeaveBalance, formatSignedLeaveDays, roundLeaveDays } from "@/utils/leaveFormat";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
@@ -620,8 +621,8 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
       const updates = filtered.map((emp) => {
         const baseEntitlement = Number(emp.annual_leave_entitlement ?? 14);
         const currentAdj = Number(emp.annual_adj ?? 0);
-        const currentAllocated = baseEntitlement + currentAdj;
-        const delta = leaveDays - currentAllocated;
+        const currentAllocated = roundLeaveDays(baseEntitlement + currentAdj);
+        const delta = roundLeaveDays(leaveDays - currentAllocated);
         return { emp, currentAllocated, delta };
       });
 
@@ -629,7 +630,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
       if (changedUpdates.length === 0) {
         toast({
           title: "Already Up to Date",
-          description: `All ${filtered.length} selected employees already have ${leaveDays} days allocated.`,
+          description: `All ${filtered.length} selected employees already have ${formatLeaveBalance(leaveDays)} allocated.`,
         });
         onCancel();
         return;
@@ -684,7 +685,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
 
       toast({
         title: "Annual Leave Allocated",
-        description: `Successfully set Annual Leave allocation to ${leaveDays} days for ${results.length} employee${results.length > 1 ? "s" : ""}.`,
+        description: `Successfully set Annual Leave allocation to ${formatLeaveBalance(leaveDays)} for ${results.length} employee${results.length > 1 ? "s" : ""}.`,
       });
       onCancel();
     } catch (err) {
@@ -827,7 +828,14 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-sm font-bold">Base Entitlement (Days)</Label>
-                  <Input type="number" value={leaveDays} onChange={(e) => setLeaveDays(Number(e.target.value))} className="bg-card text-xs h-9" />
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    value={leaveDays}
+                    onChange={(e) => setLeaveDays(roundLeaveDays(e.target.value, 0))}
+                    className="bg-card text-xs h-9 font-bold"
+                  />
                 </div>
               </div>
             </div>
@@ -1029,7 +1037,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                         <TableCell className="text-sm font-bold">{emp.full_name}</TableCell>
                         <TableCell className="text-xs">{emp.branch}</TableCell>
                         <TableCell className="text-xs">{emp.department || "-"}</TableCell>
-                        <TableCell className="text-right text-xs font-black text-[#942392]">{leaveDays} Days</TableCell>
+                        <TableCell className="text-right text-xs font-black text-[#942392]">{formatLeaveBalance(leaveDays)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -1126,7 +1134,7 @@ function AnnualLeaveAllocationForm({ employees, onCancel, onRefresh }: { employe
                   </div>
                   <div className="text-right">
                     <span className="text-foreground block font-medium">Replacement Days Granted</span>
-                    <span className="font-black text-sm text-amber-600">+{allocatedDays} Days</span>
+                    <span className="font-black text-sm text-amber-600">+{formatLeaveDays(allocatedDays)} Days</span>
                   </div>
                 </div>
 
@@ -1329,7 +1337,7 @@ function CarryForwardLeaveForm({
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Max Carry Forward (Days)</Label>
-              <Input type="number" value={maxCarry} onChange={(e) => setMaxCarry(Number(e.target.value))} className="bg-card h-10 text-sm" />
+              <Input type="number" min={0} step={0.5} value={maxCarry} onChange={(e) => setMaxCarry(roundLeaveDays(e.target.value, 0))} className="bg-card h-10 text-sm font-bold" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-bold">Expiry Date</Label>
@@ -1559,10 +1567,10 @@ function CarryForwardLeaveForm({
                         <div className="text-[10px] text-foreground">{emp.user_id} • {emp.branch}</div>
                       </TableCell>
                       <TableCell>{emp.department || "--"}</TableCell>
-                      <TableCell className="text-center font-bold">{unused}d</TableCell>
-                      <TableCell className="text-center font-bold text-amber-600">{eligible}d</TableCell>
-                      <TableCell className="text-center font-black text-emerald-600">{cf}d</TableCell>
-                      <TableCell className="text-center font-bold text-rose-600">{forfeit}d</TableCell>
+                      <TableCell className="text-center font-bold">{formatLeaveDays(unused)}d</TableCell>
+                      <TableCell className="text-center font-bold text-amber-600">{formatLeaveDays(eligible)}d</TableCell>
+                      <TableCell className="text-center font-black text-emerald-600">{formatLeaveDays(cf)}d</TableCell>
+                      <TableCell className="text-center font-bold text-rose-600">{formatLeaveDays(forfeit)}d</TableCell>
                     </TableRow>
                   );
                 })}
@@ -1729,11 +1737,13 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
                 <div>
                   <span className="text-foreground block">Current Balance</span>
                   <span className="font-bold text-foreground text-sm">
-                    {leaveType.includes("Sick")
-                      ? (selectedEmp.medical_leave_balance ?? selectedEmp.medical_leave_entitlement ?? 14)
-                      : leaveType.includes("Replacement")
-                        ? (selectedEmp.replacement_leave_balance ?? 0)
-                        : (selectedEmp.annual_leave_balance ?? selectedEmp.annual_leave_entitlement ?? 14)} Days
+                    {formatLeaveBalance(
+                      leaveType.includes("Sick")
+                        ? (selectedEmp.medical_leave_balance ?? selectedEmp.medical_leave_entitlement ?? 14)
+                        : leaveType.includes("Replacement")
+                          ? (selectedEmp.replacement_leave_balance ?? 0)
+                          : (selectedEmp.annual_leave_balance ?? selectedEmp.annual_leave_entitlement ?? 14)
+                    )}
                   </span>
                 </div>
                 <div>
@@ -1770,8 +1780,10 @@ function AdditionalLeaveAllocationForm({ employees, onCancel, onRefresh }: { emp
                 <span className="text-xs font-bold text-foreground mr-2">+</span>
                 <input
                   type="number"
+                  min={0.5}
+                  step={0.5}
                   value={addDays}
-                  onChange={(e) => setAddDays(Number(e.target.value))}
+                  onChange={(e) => setAddDays(roundLeaveDays(e.target.value, 0.5))}
                   className="bg-transparent border-0 outline-none w-full text-xs font-bold"
                 />
               </div>
@@ -1960,8 +1972,8 @@ function ManualLeaveAdjustmentForm({
     }
   }
 
-  const adjValue = adjustmentType === "Add Leave" ? adjDays : -adjDays;
-  const newBalance = currentBalance + adjValue;
+  const adjValue = roundLeaveDays(adjustmentType === "Add Leave" ? adjDays : -adjDays);
+  const newBalance = roundLeaveDays(currentBalance + adjValue);
 
   const handleSave = async () => {
     if (!selectedEmp) {
@@ -2015,9 +2027,9 @@ function ManualLeaveAdjustmentForm({
         branch: selectedEmp.branch || 'HQ',
         department: selectedEmp.department || '',
         leave_type: leaveType,
-        action: `Manual Leave Adjustment (${adjValue >= 0 ? '+' : ''}${adjValue} Days)`,
+        action: `Manual Leave Adjustment (${formatSignedLeaveDays(adjValue, "Days")})`,
         action_type: actionType,
-        previous_balance: currentBalance,
+        previous_balance: roundLeaveDays(currentBalance),
         adjustment: adjValue,
         new_balance: newBalance,
         reason: `${reasonCategory}: ${reasonDetails}`,
@@ -2027,7 +2039,7 @@ function ManualLeaveAdjustmentForm({
       }));
 
       // Always: send notification to the employee
-      createHRNotification(selectedEmp.user_id, adjValue >= 0 ? "Leave Added" : "Leave Deducted", `${performedByStr} has ${adjValue >= 0 ? 'added' : 'deducted'} ${Math.abs(adjValue)} days ${adjValue >= 0 ? 'to' : 'from'} your ${leaveType}.`);
+      createHRNotification(selectedEmp.user_id, adjValue >= 0 ? "Leave Added" : "Leave Deducted", `${performedByStr} has ${adjValue >= 0 ? 'added' : 'deducted'} ${formatLeaveDays(Math.abs(adjValue))} Days ${adjValue >= 0 ? 'to' : 'from'} your ${leaveType}.`);
       
       toast({
         title: "Leave balance updated successfully.",
@@ -2035,8 +2047,8 @@ function ManualLeaveAdjustmentForm({
           <div className="mt-1 space-y-1 text-xs">
             <div>Employee: {selectedEmp.full_name}</div>
             <div>{leaveType}</div>
-            <div>Adjustment: {adjValue > 0 ? '+' : ''}{adjValue} Days</div>
-            <div>New Balance: {newBalance} Days</div>
+            <div>Adjustment: {formatSignedLeaveDays(adjValue, "Days")}</div>
+            <div>New Balance: {formatLeaveBalance(newBalance)}</div>
             {!apiSuccess && <div className="text-amber-600 font-medium">⚠ Saved locally. DB sync pending.</div>}
           </div>
         ),
@@ -2148,9 +2160,34 @@ function ManualLeaveAdjustmentForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-sm font-bold flex items-center">Adjustment Amount <span className="text-red-500 ml-1">*</span></Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-bold flex items-center">Adjustment Amount <span className="text-red-500 ml-1">*</span></Label>
+              <div className="flex items-center gap-1">
+                {[0.5, 1.0, 2.0].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setAdjDays(preset)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-black transition-colors cursor-pointer ${
+                      adjDays === preset
+                        ? 'bg-[#942392] text-white'
+                        : 'bg-muted text-foreground hover:bg-[#942392]/15 hover:text-[#942392]'
+                    }`}
+                  >
+                    {preset.toFixed(1)}d
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="relative">
-              <Input type="number" value={adjDays} onChange={(e) => setAdjDays(Number(e.target.value))} className="bg-card h-10 text-sm pr-12 font-bold" min={1} />
+              <Input
+                type="number"
+                value={adjDays}
+                onChange={(e) => setAdjDays(roundLeaveDays(e.target.value, 0.5))}
+                className="bg-card h-10 text-sm pr-12 font-bold"
+                min={0.5}
+                step={0.5}
+              />
               <span className="absolute right-3 top-2.5 text-xs text-foreground font-medium">Days</span>
             </div>
           </div>
@@ -2199,19 +2236,19 @@ function ManualLeaveAdjustmentForm({
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-foreground">Annual Entitlement</span>
-                <span className="font-medium">{selectedEmp ? `${entitlement} Days` : "-"}</span>
+                <span className="font-medium">{selectedEmp ? formatLeaveBalance(entitlement) : "-"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground">Current Adjustments</span>
-                <span className="font-medium">{selectedEmp ? `${currentAdjustments > 0 ? '+' : ''}${currentAdjustments} Days` : "-"}</span>
+                <span className="font-medium">{selectedEmp ? formatSignedLeaveDays(currentAdjustments, "Days") : "-"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-foreground">Approved Leave Taken</span>
-                <span className="font-medium">{selectedEmp ? `${approvedLeaveTaken} Days` : "-"}</span>
+                <span className="font-medium">{selectedEmp ? formatLeaveBalance(approvedLeaveTaken) : "-"}</span>
               </div>
               <div className="border-t border-border/60 my-1 pt-1 flex justify-between font-bold text-[#942392] dark:text-purple-400">
                 <span>Current Balance</span>
-                <span>{selectedEmp ? `${currentBalance} Days` : "-"}</span>
+                <span>{selectedEmp ? formatLeaveBalance(currentBalance) : "-"}</span>
               </div>
             </div>
           </div>
@@ -2222,12 +2259,12 @@ function ManualLeaveAdjustmentForm({
               <div className="flex justify-between">
                 <span className="text-foreground">Adjustment</span>
                 <span className={`font-bold ${!selectedEmp ? 'text-foreground' : (adjValue > 0 ? 'text-emerald-600' : 'text-rose-600')}`}>
-                  {selectedEmp ? `${adjValue > 0 ? '+' : ''}${adjValue} Days` : "-"}
+                  {selectedEmp ? formatSignedLeaveDays(adjValue, "Days") : "-"}
                 </span>
               </div>
               <div className="border-t border-border/60 mt-7 pt-1 flex justify-between font-black text-amber-600">
                 <span>New Balance</span>
-                <span>{selectedEmp ? `${newBalance} Days` : "-"}</span>
+                <span>{selectedEmp ? formatLeaveBalance(newBalance) : "-"}</span>
               </div>
             </div>
           </div>

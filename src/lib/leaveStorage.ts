@@ -36,7 +36,10 @@ export type LeaveRequest = {
   from: string;
   to: string;
   days: number;
-  status: "Pending Branch Leader" | "Pending HOD" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected";
+  leaveSession?: string;
+  startSession?: string;
+  endSession?: string;
+  status: "Pending Branch Leader" | "Pending HOD" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected" | string;
   reason: string;
   appliedAt: string;
   formFileName: string;
@@ -117,7 +120,7 @@ export const getUsedLeaveDays = (
 
       return isSameType && isApproved && isSameEmployee;
     })
-    .reduce((total, request) => total + request.days, 0);
+    .reduce((total, request) => Math.round((total + Number(request.days || 0)) * 10) / 10, 0);
 };
 
 export const getLeaveFormFileName = (appliedAt: string, type: LeaveType, employeeName?: string) => {

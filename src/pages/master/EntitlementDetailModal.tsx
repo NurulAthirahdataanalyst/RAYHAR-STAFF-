@@ -3,6 +3,7 @@ import { EntitlementHistoryLog } from "@/lib/entitlementHistory";
 import { getBadge } from "./EntitlementActivityCard";
 import { Button } from "@/components/ui/button";
 import { createPortal } from "react-dom";
+import { formatLeaveDays, formatSignedLeaveDays } from "@/utils/leaveFormat";
 
 export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHistoryLog; onClose: () => void }) {
   const badge = getBadge(log.action_type);
@@ -39,14 +40,14 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
           <div class="balance-box">
             <div>
               <div class="label">Previous Balance</div>
-              <div class="balance-val">${log.previous_balance} <span style="font-size:12px; font-weight:normal;">Days</span></div>
+              <div class="balance-val">${formatLeaveDays(log.previous_balance)} <span style="font-size:12px; font-weight:normal;">Days</span></div>
             </div>
             <div class="adjustment">
-              ${isPositive ? '+' : ''}${log.adjustment} Days
+              ${formatSignedLeaveDays(log.adjustment, "Days")}
             </div>
             <div>
               <div class="label">New Balance</div>
-              <div class="balance-val">${log.new_balance} <span style="font-size:12px; font-weight:normal;">Days</span></div>
+              <div class="balance-val">${formatLeaveDays(log.new_balance)} <span style="font-size:12px; font-weight:normal;">Days</span></div>
             </div>
           </div>
 
@@ -122,7 +123,7 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
                 {badge.label}
               </span>
               <span className={`text-sm font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {isPositive ? '+' : ''}{log.adjustment} Days
+                {formatSignedLeaveDays(log.adjustment, "Days")}
               </span>
             </div>
 
@@ -130,17 +131,17 @@ export function EntitlementDetailModal({ log, onClose }: { log: EntitlementHisto
             <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border/50">
               <div className="text-center flex-1">
                 <p className="text-[10px] text-foreground font-semibold uppercase">Previous</p>
-                <p className="text-xl font-black text-slate-700 dark:text-slate-200">{log.previous_balance}</p>
+                <p className="text-xl font-black text-slate-700 dark:text-slate-200">{formatLeaveDays(log.previous_balance)}</p>
                 <p className="text-[9px] text-foreground">Days</p>
               </div>
               <div className="text-center px-2">
                 <p className={`text-lg font-black ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {isPositive ? '+' : ''}{log.adjustment}
+                  {formatSignedLeaveDays(log.adjustment)}
                 </p>
               </div>
               <div className="text-center flex-1">
                 <p className="text-[10px] text-foreground font-semibold uppercase">New Balance</p>
-                <p className="text-xl font-black text-foreground">{log.new_balance}</p>
+                <p className="text-xl font-black text-foreground">{formatLeaveDays(log.new_balance)}</p>
                 <p className="text-[9px] text-foreground">Days</p>
               </div>
             </div>

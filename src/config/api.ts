@@ -241,13 +241,13 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
                 const lv = data.analytics.leave;
                 const annualAdj = Number(lv.annual?.adjustment || 0);
                 const annualTaken = Number(lv.annual?.taken ?? lv.used ?? 0);
-                const totalAnnual = Math.max(0, policy.annual + annualAdj);
-                const remAnnual = Math.max(0, totalAnnual - annualTaken);
+                const totalAnnual = Math.round(Math.max(0, policy.annual + annualAdj) * 10) / 10;
+                const remAnnual = Math.round(Math.max(0, totalAnnual - annualTaken) * 10) / 10;
 
                 const sickAdj = Number(lv.sick?.adjustment || 0);
                 const sickTaken = Number(lv.sick?.taken || 0);
-                const totalSick = Math.max(0, policy.sick + sickAdj);
-                const remSick = Math.max(0, totalSick - sickTaken);
+                const totalSick = Math.round(Math.max(0, policy.sick + sickAdj) * 10) / 10;
+                const remSick = Math.round(Math.max(0, totalSick - sickTaken) * 10) / 10;
 
                 if (lv.annual) {
                   lv.annual.entitlement = totalAnnual;
@@ -288,9 +288,9 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
                   const medicalUsed = Number(emp.medical_days_used ?? 0);
                   emp.annual_leave_entitlement = policy.annual;
                   emp.medical_leave_entitlement = policy.sick;
-                  emp.annual_leave_balance = Math.max(0, policy.annual + annualAdj - annualUsed);
+                  emp.annual_leave_balance = Math.round(Math.max(0, policy.annual + annualAdj - annualUsed) * 10) / 10;
                   if (emp.medical_leave_balance !== undefined) {
-                    emp.medical_leave_balance = Math.max(0, policy.sick + medicalAdj - medicalUsed);
+                    emp.medical_leave_balance = Math.round(Math.max(0, policy.sick + medicalAdj - medicalUsed) * 10) / 10;
                   }
                 }
               }
@@ -315,10 +315,10 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
                   const used = Number(row.annual_days_used || 0);
                   const oldBase = Number(row.annual_leave_entitlement || 14);
                   const adj = Number(row.total_entitled ?? oldBase) - oldBase;
-                  const newEntitled = Math.max(0, policy.annual + adj);
+                  const newEntitled = Math.round(Math.max(0, policy.annual + adj) * 10) / 10;
                   row.annual_leave_entitlement = policy.annual;
                   row.total_entitled = newEntitled;
-                  row.balance = Math.max(0, newEntitled - used);
+                  row.balance = Math.round(Math.max(0, newEntitled - used) * 10) / 10;
                 }
               }
               if (Array.isArray(data.data)) {
@@ -347,13 +347,13 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
                 if (policy && emp.annual && emp.medical) {
                   const annualTaken = Number(emp.annual.taken || 0);
                   const annualAdj = emp.annual.entitlement === 14 && policy.annual !== 14 ? 0 : (Number(emp.annual.entitlement || policy.annual) - policy.annual);
-                  const newAnnualEnt = Math.max(0, policy.annual + annualAdj);
-                  const newAnnualRem = Math.max(0, newAnnualEnt - annualTaken);
+                  const newAnnualEnt = Math.round(Math.max(0, policy.annual + annualAdj) * 10) / 10;
+                  const newAnnualRem = Math.round(Math.max(0, newAnnualEnt - annualTaken) * 10) / 10;
 
                   const medTaken = Number(emp.medical.taken || 0);
                   const medAdj = emp.medical.entitlement === 14 && policy.sick !== 14 ? 0 : (Number(emp.medical.entitlement || policy.sick) - policy.sick);
-                  const newMedEnt = Math.max(0, policy.sick + medAdj);
-                  const newMedRem = Math.max(0, newMedEnt - medTaken);
+                  const newMedEnt = Math.round(Math.max(0, policy.sick + medAdj) * 10) / 10;
+                  const newMedRem = Math.round(Math.max(0, newMedEnt - medTaken) * 10) / 10;
 
                   emp.annual.entitlement = newAnnualEnt;
                   emp.annual.remaining = newAnnualRem;
@@ -362,12 +362,12 @@ if (typeof window !== 'undefined' && !((window as any).__rayhar_fetch_intercepto
 
                   const replEnt = Number(emp.replacement?.entitlement || 0);
                   const replRem = Number(emp.replacement?.remaining || 0);
-                  emp.totalEntitlement = newAnnualEnt + newMedEnt + replEnt;
-                  emp.totalBalance = newAnnualRem + newMedRem + replRem;
+                  emp.totalEntitlement = Math.round((newAnnualEnt + newMedEnt + replEnt) * 10) / 10;
+                  emp.totalBalance = Math.round((newAnnualRem + newMedRem + replRem) * 10) / 10;
                 }
-                sumEntitlement += Number(emp.annual?.entitlement || 0);
-                sumTaken += Number(emp.annual?.taken || 0);
-                sumBalance += Number(emp.annual?.remaining || 0);
+                sumEntitlement = Math.round((sumEntitlement + Number(emp.annual?.entitlement || 0)) * 10) / 10;
+                sumTaken = Math.round((sumTaken + Number(emp.annual?.taken || 0)) * 10) / 10;
+                sumBalance = Math.round((sumBalance + Number(emp.annual?.remaining || 0)) * 10) / 10;
               }
               if (data.summary) {
                 data.summary.totalEntitlement = sumEntitlement;

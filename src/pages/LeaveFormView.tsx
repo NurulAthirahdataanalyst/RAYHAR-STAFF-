@@ -32,6 +32,7 @@ import {
   parseCutiGantiRows,
   getCleanReason,
 } from "@/lib/leaveStorage";
+import { formatLeaveDays, formatNullableLeaveDays, getCompactSessionBadge, getLeaveSessionLabel } from "@/utils/leaveFormat";
 
 const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
   const isRayRent = 
@@ -102,6 +103,9 @@ type LeaveForm = {
   from: string;
   to: string;
   days: number;
+  leaveSession?: string;
+  startSession?: string;
+  endSession?: string;
   reason: string;
   status: "Pending HOD" | "Pending Branch Leader" | "Pending Operation Manager" | "Pending Finance" | "Pending MD" | "Approved" | "Rejected" | string;
   appliedAt: string;
@@ -350,6 +354,9 @@ export default function LeaveFormView() {
           from: formatDate(request.start_date),
           to: formatDate(request.end_date),
           days: Number(request.days || 0),
+          leaveSession: request.leave_session,
+          startSession: request.start_session,
+          endSession: request.end_session,
           reason: request.reason || "-",
           status: request.status || "Pending HOD",
           appliedAt,
@@ -623,7 +630,16 @@ export default function LeaveFormView() {
                         </TableCell>
                         <TableCell className="px-6 py-4 text-foreground font-bold">{form.from}</TableCell>
                         <TableCell className="px-6 py-4 text-foreground font-bold">{form.to}</TableCell>
-                        <TableCell className="px-6 py-4 text-center font-black text-foreground">{form.days}</TableCell>
+                        <TableCell className="px-6 py-4 text-center font-black text-foreground">
+                          <div className="inline-flex flex-col items-center gap-0.5">
+                            <span>{formatLeaveDays(form.days)} Days</span>
+                            {getCompactSessionBadge(form) && (
+                              <span className="px-1.5 py-0 rounded bg-[#942392]/10 text-[#942392] text-[8px] font-black uppercase tracking-wider">
+                                {getCompactSessionBadge(form)}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="px-6 py-4 text-center">
                           <div className="inline-flex flex-col items-center gap-1">
                             <Badge
@@ -733,7 +749,7 @@ export default function LeaveFormView() {
                               {form.from} → {form.to}
                             </span>
                             <span className="text-foreground font-black">
-                              {form.days} DAYS
+                              {formatLeaveDays(form.days)} DAYS{getCompactSessionBadge(form) ? ` (${getCompactSessionBadge(form)})` : ""}
                             </span>
                           </div>
                         </div>
@@ -892,12 +908,21 @@ export default function LeaveFormView() {
                         </div>
                         <div className="space-y-1 print:space-y-1">
                           <span className="text-[9px] print:text-[11px] print:normal-case uppercase font-black print:font-bold text-slate-950 dark:text-slate-50">Bilangan Hari</span>
-                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">{selectedForm.days}</p>
+                          <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">
+                            {formatLeaveDays(selectedForm.days)} Days
+                            {getLeaveSessionLabel(selectedForm) ? (
+                              <span className="block text-[10px] text-[#942392] font-black">{getLeaveSessionLabel(selectedForm)}</span>
+                            ) : null}
+                          </p>
                         </div>
                         {!(selectedForm.type === "Unpaid Leave" || selectedForm.type === "Cuti Tanpa Gaji") && (
                           <div className="space-y-1 print:space-y-1">
                             <span className="text-[9px] print:text-[11px] print:normal-case uppercase font-black print:font-bold text-slate-950 dark:text-slate-50">Baki Layak</span>
-                            <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">{selectedForm.balance ?? "-"} Hari</p>
+                            <p className="font-bold print:font-normal print:text-[12.5px] text-foreground">
+                              {selectedForm.balance !== undefined && selectedForm.balance !== null
+                                ? `${formatNullableLeaveDays(selectedForm.balance)} Days`
+                                : "-"}
+                            </p>
                           </div>
                         )}
                       </div>
@@ -905,8 +930,8 @@ export default function LeaveFormView() {
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-[20px] border border-border/50">
                         <span className="text-[10px] print:text-[13px] font-black uppercase text-slate-950 dark:text-slate-50 tracking-wider pl-2">Jumlah Hari Cuti Ganti</span>
                         <div className="text-center bg-white dark:bg-slate-900 rounded-[14px] border border-border/50 px-6 py-1.5 shadow-sm flex flex-col justify-center">
-                          <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Hari</p>
-                          <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{selectedForm.days}</p>
+                          <p className="text-[9px] print:text-[13px] uppercase font-black text-[#942392]">Days</p>
+                          <p className="font-black text-lg text-[#942392] leading-none mt-0.5">{formatLeaveDays(selectedForm.days)}</p>
                         </div>
                       </div>
                     )}

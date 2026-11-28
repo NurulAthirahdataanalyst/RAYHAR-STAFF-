@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { getHistoryLogs, EntitlementHistoryLog } from "@/lib/entitlementHistory";
 import { EntitlementDetailModal } from "./EntitlementDetailModal";
 import { getBadge, formatRelativeDate, ACTION_BADGE } from "./EntitlementActivityCard";
+import { formatLeaveDays, formatSignedLeaveDays } from "@/utils/leaveFormat";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
@@ -105,7 +106,7 @@ function CustomDatePicker({ value, onChange, placeholder, className }: { value: 
 function exportCSV(logs: EntitlementHistoryLog[], filename: string) {
   const headers = ['History ID', 'Date', 'Time', 'Employee Name', 'Employee ID', 'Action Type', 'Leave Type', 'Adjustment', 'Previous Balance', 'New Balance', 'Performed By', 'Reason'];
   const rows = logs.map(l => [
-    l.history_id, l.date, l.time, `"${l.employee_name}"`, l.employee_id || '', l.action_type, l.leave_type, l.adjustment, l.previous_balance, l.new_balance, `"${l.performed_by}"`, `"${l.reason || ''}"`
+    l.history_id, l.date, l.time, `"${l.employee_name}"`, l.employee_id || '', l.action_type, l.leave_type, formatLeaveDays(l.adjustment), formatLeaveDays(l.previous_balance), formatLeaveDays(l.new_balance), `"${l.performed_by}"`, `"${l.reason || ''}"`
   ]);
   const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -126,8 +127,8 @@ function exportPDF(logs: EntitlementHistoryLog[], title: string) {
       <td><b>${l.employee_name}</b><br/><span style="font-size:10px;color:#64748b">${l.employee_id}</span></td>
       <td><span class="badge badge-${l.action_type.toLowerCase().replace(/ /g,'-')}">${l.action_type}</span></td>
       <td>${l.leave_type}</td>
-      <td class="${l.adjustment >= 0 ? 'pos' : 'neg'}">${l.adjustment >= 0 ? '+' : ''}${l.adjustment}</td>
-      <td>${l.previous_balance} → ${l.new_balance}</td>
+      <td class="${l.adjustment >= 0 ? 'pos' : 'neg'}">${formatSignedLeaveDays(l.adjustment, "Days")}</td>
+      <td>${formatLeaveDays(l.previous_balance)} → ${formatLeaveDays(l.new_balance)} Days</td>
       <td>${l.performed_by}</td>
       <td style="font-size:10px;color:#64748b">${l.reason}</td>
     </tr>`).join('');
@@ -567,10 +568,10 @@ export default function EntitlementHistoryPanel({ onCancel }: { onCancel: () => 
 
                             <div className="shrink-0 text-right">
                               <p className={`text-sm font-black ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                {isPos ? '+' : ''}{log.adjustment} Days
+                                {formatSignedLeaveDays(log.adjustment, "Days")}
                               </p>
                               <p className="text-[10px] font-medium text-foreground mt-0.5">
-                                {log.previous_balance} → {log.new_balance}
+                                {formatLeaveDays(log.previous_balance)} → {formatLeaveDays(log.new_balance)} Days
                               </p>
                               <div className="flex justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button variant="ghost" size="icon" className="h-6 w-6">

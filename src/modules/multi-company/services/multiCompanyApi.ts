@@ -301,6 +301,7 @@ export const multiCompanyApi = {
       unpaid_days?: number;
       mc_required?: boolean;
       escalate_to_parent?: boolean;
+      allow_half_day?: boolean;
     }
   ): Promise<LeaveTypeSetting[]> {
     const res = await fetch(`${API_BASE_URL}/api/companies/${companyId}/leave-settings`, {

@@ -32,6 +32,7 @@ import { parseCutiGantiRows, getCleanReason } from "@/lib/leaveStorage";
 import { API_BASE_URL } from "../config/api";
 import { useCompany } from "@/modules/multi-company/contexts/CompanyContext";
 import { canUserActOnLeaveStage } from "@/utils/leaveDiscussionPermissions";
+import { formatLeaveBalance, formatLeaveDays, getCompactSessionBadge } from "@/utils/leaveFormat";
 
 const getDisplayStatus = (status: string, branch?: string, companyName?: string) => {
   const isRayRent = 
@@ -682,6 +683,9 @@ export default function LeaveAdmin() {
           from: formatDate(request.start_date),
           to: formatDate(request.end_date),
           days: Number(request.days || 0),
+          leaveSession: request.leave_session,
+          startSession: request.start_session,
+          endSession: request.end_session,
           phone: request.phone || request.applicant_phone || "-",
           balance: request.balance !== undefined && request.balance !== null ? Number(request.balance) : (request.annual_leave_balance !== undefined ? Number(request.annual_leave_balance) : undefined),
           annual_leave_balance: request.annual_leave_balance,
@@ -1306,9 +1310,16 @@ export default function LeaveAdmin() {
                           {req.to}
                         </TableCell>
                         <TableCell className="px-3 py-3.5">
-                          <Badge variant="secondary" className="bg-muted/50 font-medium text-foreground rounded-md px-2 py-0.5">
-                            {req.days} {req.days > 1 ? 'Days' : 'Day'}
-                          </Badge>
+                          <div className="inline-flex flex-col items-start gap-0.5">
+                            <Badge variant="secondary" className="bg-muted/50 font-bold text-foreground rounded-md px-2 py-0.5">
+                              {formatLeaveBalance(req.days)}
+                            </Badge>
+                            {getCompactSessionBadge(req) && (
+                              <span className="px-1.5 py-0 rounded bg-[#942392]/10 text-[#942392] text-[8px] font-black uppercase tracking-wider">
+                                {getCompactSessionBadge(req)}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="px-3 py-3.5">
                           <div className="flex flex-col items-start gap-1">

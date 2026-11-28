@@ -25,6 +25,22 @@ function createMultiCompanyRouter(pgPool) {
     ALTER TABLE employee_company_history ADD COLUMN IF NOT EXISTS end_date DATE;
   `).catch((err) => console.warn('Could not alter employee_company_history columns:', err.message));
 
+  // Ensure leave tables support 0.5-day decimal balances, entitlements, adjustments, and half-day sessions
+  pgPool.query(`
+    ALTER TABLE profiles ALTER COLUMN annual_leave_entitlement TYPE NUMERIC(5,1) USING annual_leave_entitlement::numeric(5,1);
+    ALTER TABLE profiles ALTER COLUMN annual_leave_entitlement SET DEFAULT 14.0;
+    ALTER TABLE profiles ALTER COLUMN medical_leave_entitlement TYPE NUMERIC(5,1) USING medical_leave_entitlement::numeric(5,1);
+    ALTER TABLE profiles ALTER COLUMN medical_leave_entitlement SET DEFAULT 14.0;
+    ALTER TABLE leave_settings ALTER COLUMN default_entitlement_days TYPE NUMERIC(5,1) USING default_entitlement_days::numeric(5,1);
+    ALTER TABLE leave_settings ALTER COLUMN default_entitlement_days SET DEFAULT 14.0;
+    ALTER TABLE leave_settings ADD COLUMN IF NOT EXISTS allow_half_day BOOLEAN DEFAULT TRUE;
+    ALTER TABLE leave_requests ALTER COLUMN days TYPE NUMERIC(5,1) USING days::numeric(5,1);
+    ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS leave_session VARCHAR(30) DEFAULT 'FULL';
+    ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS start_session VARCHAR(20) DEFAULT 'FULL';
+    ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS end_session VARCHAR(20) DEFAULT 'FULL';
+    ALTER TABLE leave_balance_adjustments ALTER COLUMN adjustment_days TYPE NUMERIC(5,1) USING adjustment_days::numeric(5,1);
+  `).catch((err) => console.warn('Could not alter leave columns to decimal:', err.message));
+
   // Helper to normalize zone codes consistently ('Zone A' -> 'ZONE_A', 'Zone B' -> 'ZONE_B')
   function cleanString(val) {
     return typeof val === 'string' ? val.trim() : '';
@@ -2090,10 +2106,10 @@ function createMultiCompanyRouter(pgPool) {
       const annualRow = lsRes.rows.find((r) => r.leave_type === 'Annual Leave');
       const sickRow = lsRes.rows.find((r) => r.leave_type === 'Sick Leave');
       const annualDays = annualRow?.default_entitlement_days !== undefined && annualRow?.default_entitlement_days !== null
-        ? parseInt(annualRow.default_entitlement_days, 10)
+        ? Math.round(parseFloat(annualRow.default_entitlement_days) * 10) / 10
         : null;
       const sickDays = sickRow?.default_entitlement_days !== undefined && sickRow?.default_entitlement_days !== null
-        ? parseInt(sickRow.default_entitlement_days, 10)
+        ? Math.round(parseFloat(sickRow.default_entitlement_days) * 10) / 10
         : null;
 
       if (annualDays === null && sickDays === null) return;
@@ -2176,9 +2192,18 @@ function createMultiCompanyRouter(pgPool) {
         `, [companyId])
       ]);
 
+      const normalizedLeaveTypes = (leaveSettings.rows || []).map((row) => ({
+        ...row,
+        default_entitlement_days:
+          row.default_entitlement_days !== undefined && row.default_entitlement_days !== null
+            ? Number(row.default_entitlement_days)
+            : 0,
+        allow_half_day: row.allow_half_day !== false,
+      }));
+
       res.json({
         success: true,
-        leave_types: leaveSettings.rows,
+        leave_types: normalizedLeaveTypes,
         approval_workflow: workflow.rows
       });
     } catch (err) {
@@ -2197,23 +2222,42 @@ function createMultiCompanyRouter(pgPool) {
         replacement_days = 0,
         unpaid_days = 0,
         mc_required = true,
-        escalate_to_parent = true
+        escalate_to_parent = true,
+        allow_half_day = true,
       } = req.body;
 
+      const roundHalf = (val, fallback) => {
+        const n = Number(val);
+        return Number.isFinite(n) ? Math.round(n * 10) / 10 : fallback;
+      };
+
+      await pgPool.query(`ALTER TABLE leave_settings ADD COLUMN IF NOT EXISTS allow_half_day BOOLEAN DEFAULT TRUE`).catch(() => {});
+
       await pgPool.query(
-        `INSERT INTO leave_settings (company_id, leave_type, default_entitlement_days, escalate_to_parent, mc_required, updated_at)
+        `INSERT INTO leave_settings (company_id, leave_type, default_entitlement_days, escalate_to_parent, mc_required, allow_half_day, updated_at)
          VALUES
-           ($1, 'Annual Leave', $2, $7, FALSE, CURRENT_TIMESTAMP),
-           ($1, 'Sick Leave', $3, $7, $8, CURRENT_TIMESTAMP),
-           ($1, 'Emergency Leave', $4, $7, FALSE, CURRENT_TIMESTAMP),
-           ($1, 'Replacement Leave', $5, $7, FALSE, CURRENT_TIMESTAMP),
-           ($1, 'Unpaid Leave', $6, $7, FALSE, CURRENT_TIMESTAMP)
+           ($1, 'Annual Leave', $2, $7, FALSE, $9, CURRENT_TIMESTAMP),
+           ($1, 'Sick Leave', $3, $7, $8, $9, CURRENT_TIMESTAMP),
+           ($1, 'Emergency Leave', $4, $7, FALSE, $9, CURRENT_TIMESTAMP),
+           ($1, 'Replacement Leave', $5, $7, FALSE, $9, CURRENT_TIMESTAMP),
+           ($1, 'Unpaid Leave', $6, $7, FALSE, $9, CURRENT_TIMESTAMP)
          ON CONFLICT (company_id, leave_type) DO UPDATE SET
            default_entitlement_days = EXCLUDED.default_entitlement_days,
            escalate_to_parent = EXCLUDED.escalate_to_parent,
            mc_required = EXCLUDED.mc_required,
+           allow_half_day = EXCLUDED.allow_half_day,
            updated_at = CURRENT_TIMESTAMP`,
-        [companyId, annual_days, sick_days, emergency_days, replacement_days, unpaid_days, escalate_to_parent, mc_required]
+        [
+          companyId,
+          roundHalf(annual_days, 14),
+          roundHalf(sick_days, 14),
+          roundHalf(emergency_days, 5),
+          roundHalf(replacement_days, 0),
+          roundHalf(unpaid_days, 0),
+          escalate_to_parent,
+          mc_required,
+          allow_half_day !== false,
+        ]
       );
 
       // Sync updated baseline entitlements into profiles of employees assigned to this company
@@ -2225,8 +2269,16 @@ function createMultiCompanyRouter(pgPool) {
       }
 
       const updated = await pgPool.query('SELECT * FROM leave_settings WHERE company_id = $1 ORDER BY id ASC', [companyId]);
-      await logAudit(req, 'LEAVE_SETTINGS_UPDATE', `Updated leave entitlement policies for company ${companyId}`, null, updated.rows, companyId);
-      res.json({ success: true, leave_types: updated.rows });
+      const normalizedUpdated = (updated.rows || []).map((row) => ({
+        ...row,
+        default_entitlement_days:
+          row.default_entitlement_days !== undefined && row.default_entitlement_days !== null
+            ? Number(row.default_entitlement_days)
+            : 0,
+        allow_half_day: row.allow_half_day !== false,
+      }));
+      await logAudit(req, 'LEAVE_SETTINGS_UPDATE', `Updated leave entitlement policies for company ${companyId}`, null, normalizedUpdated, companyId);
+      res.json({ success: true, leave_types: normalizedUpdated });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

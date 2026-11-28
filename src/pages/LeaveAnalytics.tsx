@@ -2102,7 +2102,7 @@ export default function LeaveAnalytics() {
                 <div className="flex items-start gap-2 p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                   <p className="text-xs text-blue-800 dark:text-blue-300 font-medium leading-relaxed">
-                    Total <span className="font-black">{totalDays} leave days</span> recorded across <span className="font-black">{uniqueEmployees}</span> employee(s).
+                    Total <span className="font-black">{Number(totalDays || 0).toFixed(1)} Days</span> recorded across <span className="font-black">{uniqueEmployees}</span> employee(s).
                   </p>
                 </div>
                 <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">

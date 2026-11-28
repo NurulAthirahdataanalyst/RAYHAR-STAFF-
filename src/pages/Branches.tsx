@@ -1243,7 +1243,7 @@ export default function Branches() {
                               {(employee.role === "operation_manager" || employee.role === "finance_manager") ? "Operation Manager" : employee.role === "hr_admin" ? "HR Admin" : employee.role ? String(employee.role).split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "Employee"}
                             </td>
                             <td className="py-4 px-6 font-bold text-foreground text-xs uppercase">
-                              {employee.annual_leave_balance} DAYS
+                              {Number(employee.annual_leave_balance || 0).toFixed(1)} DAYS
                             </td>
                             <td className="py-4 px-6 font-bold text-foreground text-xs">
                               {employee.attendance_rate || 0}%
@@ -1581,10 +1581,10 @@ export default function Branches() {
                           <div className="rounded-[16px] border border-border/50 p-4 bg-card/50 hover:border-[#942392]/30 transition-colors group">
                             <CalendarCheck className="mb-2 h-4 w-4 text-[#942392] group-hover:scale-110 transition-transform" />
                             <p className="text-2xl font-black text-foreground">
-                              {selectedEmployee.annual_leave_balance}
+                              {Number(selectedEmployee.annual_leave_balance || 0).toFixed(1)}
                             </p>
                             <p className="text-[10px] print:text-[13px] font-black uppercase tracking-wider text-foreground">
-                              Annual Left
+                              Annual Days Left
                             </p>
                           </div>
                           <div className="rounded-[16px] border border-border/50 p-4 bg-card/50 hover:border-emerald-500/30 transition-colors group">

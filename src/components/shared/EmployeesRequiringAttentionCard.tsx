@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { API_BASE_URL } from '@/config/api';
+import { formatLeaveDays } from '@/utils/leaveFormat';
 
 export interface EmployeeAttentionData {
   id: string;
@@ -191,10 +192,10 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                         </div>
 
                     <div className="flex items-center gap-1.5 pl-[22px] mt-2 flex-wrap pb-1">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50" title="Annual Leave">AL {getLeaveBreakdown(emp.id).AL}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-600 border border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-900/50" title="Unpaid Leave">UL {getLeaveBreakdown(emp.id).UL}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900/50" title="Replacement Leave">RL {getLeaveBreakdown(emp.id).RL}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50" title="Medical Leave">MC {getLeaveBreakdown(emp.id).MC}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50" title="Annual Leave">AL {formatLeaveDays(getLeaveBreakdown(emp.id).AL)}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-600 border border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-900/50" title="Unpaid Leave">UL {formatLeaveDays(getLeaveBreakdown(emp.id).UL)}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900/50" title="Replacement Leave">RL {formatLeaveDays(getLeaveBreakdown(emp.id).RL)}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50" title="Medical Leave">MC {formatLeaveDays(getLeaveBreakdown(emp.id).MC)}</span>
                     </div>
                       </div>
 
@@ -202,8 +203,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                       <div className="col-span-3 pr-4">
                         <div className="flex justify-between items-baseline mb-1.5">
                           <div>
-                            <span className={`text-base font-black ${takenColor}`}>{taken}</span>
-                            <span className="text-xs font-semibold text-foreground"> / {total} days</span>
+                            <span className={`text-base font-black ${takenColor}`}>{formatLeaveDays(taken)}</span>
+                            <span className="text-xs font-semibold text-foreground"> / {formatLeaveDays(total)} Days</span>
                           </div>
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{percent}%</span>
                         </div>
@@ -215,8 +216,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                       {/* Balance Left */}
                       <div className="col-span-2 flex items-center justify-between pl-4">
                         <div className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-xl ${badgeColor}`}>
-                          <span className="text-lg font-black leading-none">{left}</span>
-                          <span className="text-[10px] font-bold">days left</span>
+                          <span className="text-lg font-black leading-none">{formatLeaveDays(left)}</span>
+                          <span className="text-[10px] font-bold">Days left</span>
                         </div>
                         <button 
                           onClick={() => onEmployeeClick ? onEmployeeClick(emp.id) : navigate('/employees')}
@@ -259,8 +260,8 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                       </div>
                     </div>
                     <div className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-xl flex-shrink-0 ${badgeColor}`}>
-                      <span className="text-sm font-black leading-none">{left}</span>
-                      <span className="text-[9px] font-bold mt-0.5">days left</span>
+                      <span className="text-sm font-black leading-none">{formatLeaveDays(left)}</span>
+                      <span className="text-[9px] font-bold mt-0.5">Days left</span>
                     </div>
                   </div>
 
@@ -275,18 +276,18 @@ export const EmployeesRequiringAttentionCard = ({ data = [], variant = 'grid', o
                     </div>
 
                     <div className="flex items-center gap-1.5 pl-[22px] mt-2 flex-wrap pb-1">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50" title="Annual Leave">AL {getLeaveBreakdown(emp.id).AL}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-600 border border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-900/50" title="Unpaid Leave">UL {getLeaveBreakdown(emp.id).UL}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900/50" title="Replacement Leave">RL {getLeaveBreakdown(emp.id).RL}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50" title="Medical Leave">MC {getLeaveBreakdown(emp.id).MC}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50" title="Annual Leave">AL {formatLeaveDays(getLeaveBreakdown(emp.id).AL)}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-600 border border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-900/50" title="Unpaid Leave">UL {formatLeaveDays(getLeaveBreakdown(emp.id).UL)}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-600 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-900/50" title="Replacement Leave">RL {formatLeaveDays(getLeaveBreakdown(emp.id).RL)}</span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50" title="Medical Leave">MC {formatLeaveDays(getLeaveBreakdown(emp.id).MC)}</span>
                     </div>
                   </div>
 
                   <div className="mt-auto">
                     <div className="flex justify-between items-baseline mb-1.5">
                       <div>
-                        <span className={`text-sm font-black ${takenColor}`}>{taken}</span>
-                        <span className="text-[10px] font-semibold text-foreground uppercase tracking-wider ml-1">Taken of {total}</span>
+                        <span className={`text-sm font-black ${takenColor}`}>{formatLeaveDays(taken)}</span>
+                        <span className="text-[10px] font-semibold text-foreground uppercase tracking-wider ml-1">Taken of {formatLeaveDays(total)} Days</span>
                       </div>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{percent}%</span>
                     </div>

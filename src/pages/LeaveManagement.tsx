@@ -45,6 +45,14 @@ import {
   type CutiGantiRow,
 } from "@/lib/leaveStorage";
 import { DatePickerInput } from "@/components/shared/DatePickerInput";
+import {
+  computeHalfAwareLeaveDays,
+  formatLeaveDays,
+  getLeaveSessionLabel,
+  roundLeaveDays,
+  type BoundarySession,
+} from "@/utils/leaveFormat";
+import { getActiveCompanyId } from "@/config/api";
 
 export default function LeaveManagement() {
   const navigate = useNavigate();
@@ -138,14 +146,18 @@ export default function LeaveManagement() {
     cawangan: "",
     tarikhMula: "",
     tarikhAkhir: "",
+    durationMode: "full" as "full" | "half",
+    halfDaySession: "AM" as "AM" | "PM",
+    startSession: "FULL" as BoundarySession,
+    endSession: "FULL" as BoundarySession,
     bilanganHari: 0,
     tujuanCuti: "",
     jenisCuti: "",
     lampiranMc: null as File | null,
     // Tambahan untuk pengiraan cuti tahunan
-    bakiTerdahulu: 14,
+    bakiTerdahulu: 14.0,
     mohon: 0,
-    bakiAkhir: 14,
+    bakiAkhir: 14.0,
     // Maklumat Waris
     warisNama: "",
     warisPhone: "",
@@ -186,52 +198,101 @@ export default function LeaveManagement() {
     }));
   }, [userName, userBranch]);
 
-  const [totalEntitlement, setTotalEntitlement] = useState(14);
-  const [medicalEntitlement, setMedicalEntitlement] = useState(14);
-  const [replacementEntitlement, setReplacementEntitlement] = useState(0);
-  // Removed unused RL states and attendance checks
+  const [totalEntitlement, setTotalEntitlement] = useState(14.0);
+  const [medicalEntitlement, setMedicalEntitlement] = useState(14.0);
+  const [replacementEntitlement, setReplacementEntitlement] = useState(0.0);
+  const [allowHalfDayPolicy, setAllowHalfDayPolicy] = useState(true);
+  const [zoneDayMeta, setZoneDayMeta] = useState<{ zone?: string; isStartHalfWorkday?: boolean; isEndHalfWorkday?: boolean }>({});
 
-  // Automatik kira bilangan hari & baki cuti
+  useEffect(() => {
+    const cid = getActiveCompanyId() || "1";
+    fetch(`${API_BASE_URL}/api/multi-company/companies/${encodeURIComponent(cid)}/leave-settings`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.success && Array.isArray(d.leave_types)) {
+          const annual = d.leave_types.find((l: any) => l.leave_type === "Annual Leave");
+          if (annual && annual.allow_half_day !== undefined) {
+            setAllowHalfDayPolicy(annual.allow_half_day !== false);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Automatik kira bilangan hari & baki cuti (supports Idea A single Half-Day + Idea B Multi-Day with Half-Day start/end)
   useEffect(() => {
     if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
-      const realDays = formData.cutiGantiRows.length || 1;
+      const realDays = roundLeaveDays(formData.cutiGantiRows.length || 1);
       if (formData.bilanganHari !== realDays) {
         setFormData(prev => ({
           ...prev,
           bilanganHari: realDays,
           mohon: realDays,
-          bakiAkhir: prev.bakiTerdahulu - realDays
+          bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - realDays)
         }));
       }
       return;
     }
 
-    if (formData.tarikhMula && formData.tarikhAkhir) {
+    const effectiveEnd = formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir;
+
+    if (formData.tarikhMula && effectiveEnd) {
       const applyFallback = () => {
         const d1 = new Date(formData.tarikhMula);
-        const d2 = new Date(formData.tarikhAkhir);
+        const d2 = new Date(effectiveEnd);
         const diffTime = d2.getTime() - d1.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        const realDays = diffDays > 0 ? diffDays : 0;
+        const baseDays = diffDays > 0 ? diffDays : 0;
+        const realDays = computeHalfAwareLeaveDays({
+          baseDays,
+          durationMode: formData.durationMode,
+          halfDaySession: formData.halfDaySession,
+          startSession: formData.startSession,
+          endSession: formData.endSession,
+        });
         setFormData(prev => ({
           ...prev,
           bilanganHari: realDays,
           mohon: realDays,
-          bakiAkhir: prev.bakiTerdahulu - realDays
+          bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - realDays)
         }));
       };
 
       const fetchDays = async () => {
         try {
-          const res = await fetch(`${API_BASE_URL}/api/calculate-leave-days?start=${formData.tarikhMula}&end=${formData.tarikhAkhir}&branch=${encodeURIComponent(userBranch)}`);
+          const params = new URLSearchParams({
+            start: formData.tarikhMula,
+            end: effectiveEnd,
+            branch: userBranch || "",
+            durationMode: formData.durationMode,
+            halfDaySession: formData.halfDaySession,
+            startSession: formData.durationMode === "half" ? formData.halfDaySession : formData.startSession,
+            endSession: formData.durationMode === "half" ? "FULL" : formData.endSession,
+          });
+          const res = await fetch(`${API_BASE_URL}/api/calculate-leave-days?${params.toString()}`);
           const data = await res.json();
           if (data.success) {
-            const realDays = data.days;
+            const realDays = roundLeaveDays(data.days);
+            setZoneDayMeta({
+              zone: data.zone,
+              isStartHalfWorkday: Boolean(data.isStartHalfWorkday),
+              isEndHalfWorkday: Boolean(data.isEndHalfWorkday),
+            });
+            if (formData.durationMode === "half" && data.isStartHalfWorkday && formData.halfDaySession === "PM") {
+              setFormData(prev => ({
+                ...prev,
+                halfDaySession: "AM",
+                bilanganHari: 0.5,
+                mohon: 0.5,
+                bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - 0.5),
+              }));
+              return;
+            }
             setFormData(prev => ({
               ...prev,
               bilanganHari: realDays,
               mohon: realDays,
-              bakiAkhir: prev.bakiTerdahulu - realDays
+              bakiAkhir: roundLeaveDays(prev.bakiTerdahulu - realDays)
             }));
           } else {
             applyFallback();
@@ -241,9 +302,19 @@ export default function LeaveManagement() {
           applyFallback();
         }
       };
-      fetchDays();
+      void fetchDays();
     }
-  }, [formData.tarikhMula, formData.tarikhAkhir, userBranch, formData.jenisCuti, formData.cutiGantiRows.length]);
+  }, [
+    formData.tarikhMula,
+    formData.tarikhAkhir,
+    formData.durationMode,
+    formData.halfDaySession,
+    formData.startSession,
+    formData.endSession,
+    userBranch,
+    formData.jenisCuti,
+    formData.cutiGantiRows.length,
+  ]);
 
   useEffect(() => {
     if (!userId) return;
@@ -290,8 +361,8 @@ export default function LeaveManagement() {
 
     setFormData(prev => ({
       ...prev,
-      bakiTerdahulu,
-      bakiAkhir: bakiTerdahulu - prev.bilanganHari
+      bakiTerdahulu: roundLeaveDays(bakiTerdahulu),
+      bakiAkhir: roundLeaveDays(bakiTerdahulu - prev.bilanganHari)
     }));
   }, [liveRequests, formData.jenisCuti, userId, totalEntitlement, medicalEntitlement, replacementEntitlement]);
 
@@ -394,9 +465,23 @@ export default function LeaveManagement() {
       
       const typeStr = String(formData.jenisCuti || "").toUpperCase();
       let displayStart = formatDate(formData.tarikhMula);
-      let displayEnd = formatDate(formData.tarikhAkhir);
+      let displayEnd = formatDate(formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir);
       
-      const daysStr = Number(formData.bilanganHari).toFixed(2);
+      const daysStr = formatLeaveDays(formData.bilanganHari);
+      const resolvedLeaveSession =
+        formData.durationMode === "half"
+          ? `HALF_${formData.halfDaySession}`
+          : (formData.startSession !== "FULL" || formData.endSession !== "FULL")
+            ? "MULTI_HALF"
+            : "FULL";
+      const sessionNote = getLeaveSessionLabel({
+        leaveSession: resolvedLeaveSession,
+        startSession: formData.durationMode === "half" ? formData.halfDaySession : formData.startSession,
+        endSession: formData.durationMode === "half" ? "FULL" : formData.endSession,
+        from: formData.tarikhMula,
+        to: formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir,
+        days: formData.bilanganHari,
+      });
       
       let msg = "";
       if (formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") {
@@ -404,8 +489,10 @@ export default function LeaveManagement() {
         const tarikhCutiList = validRows.map(r => r.tarikhCuti ? formatDate(r.tarikhCuti) : '').filter(Boolean).join(', ');
         const tarikhGantiList = validRows.map(r => r.tarikhGanti ? formatDate(r.tarikhGanti) : '').filter(Boolean).join(', ');
         msg = `Adakah anda pasti untuk memohon ${typeStr}?\nTarikh Cuti: ${tarikhCutiList || '-'}\nTarikh/Hari Cuti Ganti: ${tarikhGantiList || '-'}\nTempoh Cuti Ganti: ${daysStr} Hari`;
+      } else if (formData.durationMode === "half") {
+        msg = `Adakah anda pasti untuk memohon ${typeStr} pada ${displayStart} selama ${daysStr} Hari (${sessionNote || 'Separuh Hari'})?`;
       } else {
-        msg = `Adakah anda pasti untuk memohon ${typeStr} dari : ${displayStart} hingga ${displayEnd} selama ${daysStr} Hari ?`;
+        msg = `Adakah anda pasti untuk memohon ${typeStr} dari : ${displayStart} hingga ${displayEnd} selama ${daysStr} Hari${sessionNote ? ` (${sessionNote})` : ''} ?`;
       }
       
       if (window.confirm(msg)) {
@@ -430,7 +517,26 @@ export default function LeaveManagement() {
         : "";
 
       let startDatePayload = formData.tarikhMula;
-      let endDatePayload = formData.tarikhAkhir;
+      let endDatePayload = formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir;
+
+      const isReplacementType = leaveType === "Replacement Leave" || leaveType === "Cuti Ganti";
+      const leaveSessionPayload = isReplacementType
+        ? "FULL"
+        : formData.durationMode === "half"
+          ? `HALF_${formData.halfDaySession}`
+          : (formData.startSession !== "FULL" || formData.endSession !== "FULL")
+            ? "MULTI_HALF"
+            : "FULL";
+      const startSessionPayload = isReplacementType
+        ? "FULL"
+        : formData.durationMode === "half"
+          ? formData.halfDaySession
+          : formData.startSession;
+      const endSessionPayload = isReplacementType
+        ? "FULL"
+        : formData.durationMode === "half"
+          ? "FULL"
+          : (startDatePayload === endDatePayload ? "FULL" : formData.endSession);
 
       if (leaveType === "Replacement Leave" || leaveType === "Cuti Ganti") {
         const validRows = formData.cutiGantiRows.filter(r => r.tarikhCuti);
@@ -452,7 +558,10 @@ export default function LeaveManagement() {
       payload.append("leave_type", leaveType);
       payload.append("start_date", startDatePayload);
       payload.append("end_date", endDatePayload);
-      payload.append("days", String(formData.bilanganHari));
+      payload.append("days", String(roundLeaveDays(formData.bilanganHari)));
+      payload.append("leave_session", leaveSessionPayload);
+      payload.append("start_session", startSessionPayload);
+      payload.append("end_session", endSessionPayload);
       payload.append("reason", formData.tujuanCuti + serializedGanti);
       payload.append("waris_nama", formData.warisNama);
       payload.append("waris_phone", formData.warisPhone);
@@ -501,7 +610,10 @@ export default function LeaveManagement() {
         type: leaveType,
         from: startDatePayload,
         to: endDatePayload,
-        days: formData.bilanganHari,
+        days: roundLeaveDays(formData.bilanganHari),
+        leaveSession: leaveSessionPayload,
+        startSession: startSessionPayload,
+        endSession: endSessionPayload,
         status: data.leaveRequest?.status || "Pending HOD",
         reason: formData.tujuanCuti + serializedGanti,
         appliedAt,
@@ -708,32 +820,237 @@ export default function LeaveManagement() {
                   </div>
 
                   {!(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Mula <span className="text-red-500">*</span></Label>
-                        <DatePickerInput
-                          value={formData.tarikhMula}
-                          minDate={new Date().toISOString().split('T')[0]}
-                          onChange={(val) => setFormData({ ...formData, tarikhMula: val })}
-                          className="bg-muted/30 border-border/50"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Akhir <span className="text-red-500">*</span></Label>
-                        <DatePickerInput
-                          value={formData.tarikhAkhir}
-                          minDate={formData.tarikhMula || new Date().toISOString().split('T')[0]}
-                          onChange={(val) => setFormData({ ...formData, tarikhAkhir: val })}
-                          className="bg-muted/30 border-border/50"
-                        />
-                      </div>
+                    <div className="space-y-4">
+                      {/* Idea A: Full / Multi-Day vs Single Half-Day (0.5 Hari) Toggle */}
+                      {allowHalfDayPolicy && (
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
+                            Tempoh Permohonan / Leave Duration
+                          </Label>
+                          <div className="grid grid-cols-2 gap-2 p-1.5 bg-muted/40 dark:bg-slate-900/60 rounded-2xl border border-border/60">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  durationMode: "full",
+                                  tarikhAkhir: prev.tarikhAkhir || prev.tarikhMula,
+                                }))
+                              }
+                              className={`py-2.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                formData.durationMode === "full"
+                                  ? "bg-[#942392] text-white shadow-md shadow-[#942392]/25"
+                                  : "text-foreground/70 hover:text-foreground hover:bg-background/60"
+                              }`}
+                            >
+                              Full / Multi-Day (1.0+ Hari)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  durationMode: "half",
+                                  tarikhAkhir: prev.tarikhMula || prev.tarikhAkhir,
+                                  startSession: "FULL",
+                                  endSession: "FULL",
+                                }))
+                              }
+                              className={`py-2.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                formData.durationMode === "half"
+                                  ? "bg-[#942392] text-white shadow-md shadow-[#942392]/25"
+                                  : "text-foreground/70 hover:text-foreground hover:bg-background/60"
+                              }`}
+                            >
+                              Half Day • 0.5 Hari
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {formData.durationMode === "half" ? (
+                        /* Idea A: Single Date + Morning (AM) / Afternoon (PM) Session Cards */
+                        <div className="space-y-4 animate-in fade-in duration-300">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
+                              Tarikh Cuti Separuh Hari <span className="text-red-500">*</span>
+                            </Label>
+                            <DatePickerInput
+                              value={formData.tarikhMula}
+                              minDate={new Date().toISOString().split('T')[0]}
+                              onChange={(val) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  tarikhMula: val,
+                                  tarikhAkhir: val,
+                                }))
+                              }
+                              className="bg-muted/30 border-border/50"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">
+                              Pilih Sesi Separuh Hari (0.5 Hari) <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setFormData((prev) => ({ ...prev, halfDaySession: "AM" }))}
+                                className={`text-left p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                                  formData.halfDaySession === "AM"
+                                    ? "border-[#942392] bg-[#942392]/10 shadow-sm"
+                                    : "border-border/60 bg-muted/20 hover:border-[#942392]/40"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs font-black uppercase tracking-wider text-[#942392]">
+                                    Sesi Pagi • Morning (AM)
+                                  </span>
+                                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#942392] text-white">
+                                    0.5d
+                                  </span>
+                                </div>
+                                <p className="text-[11px] font-bold text-foreground">8:30 AM – 1:00 PM</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                  Masuk kerja sesi petang (2:00 PM)
+                                </p>
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={Boolean(zoneDayMeta.isStartHalfWorkday)}
+                                onClick={() => setFormData((prev) => ({ ...prev, halfDaySession: "PM" }))}
+                                className={`text-left p-4 rounded-2xl border-2 transition-all ${
+                                  zoneDayMeta.isStartHalfWorkday
+                                    ? "opacity-45 cursor-not-allowed border-border/40 bg-muted/10"
+                                    : formData.halfDaySession === "PM"
+                                      ? "border-[#942392] bg-[#942392]/10 shadow-sm cursor-pointer"
+                                      : "border-border/60 bg-muted/20 hover:border-[#942392]/40 cursor-pointer"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs font-black uppercase tracking-wider text-[#942392]">
+                                    Sesi Petang • Afternoon (PM)
+                                  </span>
+                                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#942392] text-white">
+                                    0.5d
+                                  </span>
+                                </div>
+                                <p className="text-[11px] font-bold text-foreground">2:00 PM – 5:30 PM</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                  {zoneDayMeta.isStartHalfWorkday
+                                    ? "Pejabat tutup jam 1:00 PM pada hari separuh kerja ini"
+                                    : "Bekerja sesi pagi hingga 1:00 PM"}
+                                </p>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Idea B: Start/End Date Pickers + Optional Start/End Half-Day Session Dropdowns (e.g. 1.5, 2.5 Days) */
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-300">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Mula <span className="text-red-500">*</span></Label>
+                            <DatePickerInput
+                              value={formData.tarikhMula}
+                              minDate={new Date().toISOString().split('T')[0]}
+                              onChange={(val) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  tarikhMula: val,
+                                  tarikhAkhir: prev.tarikhAkhir && prev.tarikhAkhir >= val ? prev.tarikhAkhir : val,
+                                }))
+                              }
+                              className="bg-muted/30 border-border/50"
+                            />
+                            {allowHalfDayPolicy && formData.tarikhMula && (
+                              <div className="pt-1">
+                                <Label className="text-[9px] font-black uppercase tracking-wider text-muted-foreground px-1 block mb-1">
+                                  Sesi Hari Mula (Start Session)
+                                </Label>
+                                <Select
+                                  value={formData.startSession}
+                                  onValueChange={(val) => setFormData((prev) => ({ ...prev, startSession: val as BoundarySession }))}
+                                >
+                                  <SelectTrigger className="h-9 text-xs font-bold rounded-xl bg-muted/20 border-border/50">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-xl">
+                                    <SelectItem value="FULL" className="text-xs font-bold">Sepenuh Hari • Full Day (1.0d)</SelectItem>
+                                    {formData.tarikhMula === formData.tarikhAkhir && (
+                                      <SelectItem value="AM" className="text-xs font-bold">Separuh Hari • Pagi / AM (0.5d)</SelectItem>
+                                    )}
+                                    <SelectItem value="PM" className="text-xs font-bold">Separuh Hari • Petang / PM (0.5d)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-foreground px-1">Tarikh Akhir <span className="text-red-500">*</span></Label>
+                            <DatePickerInput
+                              value={formData.tarikhAkhir}
+                              minDate={formData.tarikhMula || new Date().toISOString().split('T')[0]}
+                              onChange={(val) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  tarikhAkhir: val,
+                                  startSession: val !== prev.tarikhMula && prev.startSession === "AM" ? "FULL" : prev.startSession,
+                                  endSession: val === prev.tarikhMula ? "FULL" : prev.endSession,
+                                }))
+                              }
+                              className="bg-muted/30 border-border/50"
+                            />
+                            {allowHalfDayPolicy && formData.tarikhMula && formData.tarikhAkhir && formData.tarikhAkhir > formData.tarikhMula && (
+                              <div className="pt-1">
+                                <Label className="text-[9px] font-black uppercase tracking-wider text-muted-foreground px-1 block mb-1">
+                                  Sesi Hari Akhir (End Session)
+                                </Label>
+                                <Select
+                                  value={formData.endSession}
+                                  onValueChange={(val) => setFormData((prev) => ({ ...prev, endSession: val as BoundarySession }))}
+                                >
+                                  <SelectTrigger className="h-9 text-xs font-bold rounded-xl bg-muted/20 border-border/50">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-xl">
+                                    <SelectItem value="FULL" className="text-xs font-bold">Sepenuh Hari • Full Day (1.0d)</SelectItem>
+                                    <SelectItem value="AM" className="text-xs font-bold">Separuh Hari • Pagi / AM (0.5d)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {!(formData.jenisCuti === "Replacement Leave" || formData.jenisCuti === "Cuti Ganti") && (
-                    <div className="flex items-center justify-between p-5 bg-[#942392]/5 rounded-3xl border-2 border-[#942392]/10">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-[#942392]">Bilangan Hari</span>
-                      <span className="text-3xl sm:text-4xl font-black text-[#942392] tracking-tighter">{formData.bilanganHari} <span className="text-sm">HARI</span></span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-5 bg-[#942392]/5 rounded-3xl border-2 border-[#942392]/10">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#942392] block">Bilangan Hari</span>
+                        {(() => {
+                          const label = getLeaveSessionLabel({
+                            leaveSession: formData.durationMode === "half" ? `HALF_${formData.halfDaySession}` : (formData.startSession !== "FULL" || formData.endSession !== "FULL" ? "MULTI_HALF" : "FULL"),
+                            startSession: formData.durationMode === "half" ? formData.halfDaySession : formData.startSession,
+                            endSession: formData.durationMode === "half" ? "FULL" : formData.endSession,
+                            from: formData.tarikhMula,
+                            to: formData.durationMode === "half" ? formData.tarikhMula : formData.tarikhAkhir,
+                            days: formData.bilanganHari,
+                          });
+                          return label ? (
+                            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-[#942392]/15 text-[#942392] text-[10px] font-black uppercase tracking-wider">
+                              {label}
+                            </span>
+                          ) : null;
+                        })()}
+                      </div>
+                      <span className="text-3xl sm:text-4xl font-black text-[#942392] tracking-tighter">
+                        {formatLeaveDays(formData.bilanganHari)} <span className="text-sm">DAYS</span>
+                      </span>
                     </div>
                   )}
 
@@ -746,16 +1063,20 @@ export default function LeaveManagement() {
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1 text-center">
                           <p className="text-[8px] uppercase font-black text-amber-700 dark:text-amber-400 opacity-90">Baki Layak</p>
-                          <div className="bg-white dark:bg-slate-900 border border-amber-200/50 dark:border-amber-900/50 text-slate-900 dark:text-slate-100 h-10 flex items-center justify-center rounded-xl font-black text-sm shadow-sm">{formData.bakiTerdahulu}</div>
+                          <div className="bg-white dark:bg-slate-900 border border-amber-200/50 dark:border-amber-900/50 text-slate-900 dark:text-slate-100 h-10 flex items-center justify-center rounded-xl font-black text-xs sm:text-sm shadow-sm">
+                            {formatLeaveDays(formData.bakiTerdahulu)} Days
+                          </div>
                         </div>
                         <div className="space-y-1 text-center">
                           <p className="text-[8px] uppercase font-black text-amber-700 dark:text-amber-400 opacity-90">Mohon</p>
-                          <div className="bg-white dark:bg-slate-900 border border-amber-200/50 dark:border-amber-900/50 text-slate-900 dark:text-slate-100 h-10 flex items-center justify-center rounded-xl font-black text-sm shadow-sm">{formData.mohon}</div>
+                          <div className="bg-white dark:bg-slate-900 border border-amber-200/50 dark:border-amber-900/50 text-slate-900 dark:text-slate-100 h-10 flex items-center justify-center rounded-xl font-black text-xs sm:text-sm shadow-sm">
+                            {formatLeaveDays(formData.mohon)} Days
+                          </div>
                         </div>
                         <div className="space-y-1 text-center">
                           <p className="text-[8px] uppercase font-black text-amber-700 dark:text-amber-400 opacity-90">Baki Akhir</p>
-                          <div className={`h-10 flex items-center justify-center rounded-xl font-black text-sm text-white ${formData.bakiAkhir < 0 ? 'bg-rose-500 shadow-lg shadow-rose-500/20' : 'bg-[#942392] shadow-lg shadow-purple-900/20'}`}>
-                            {formData.bakiAkhir}
+                          <div className={`h-10 flex items-center justify-center rounded-xl font-black text-xs sm:text-sm text-white ${formData.bakiAkhir < 0 ? 'bg-rose-500 shadow-lg shadow-rose-500/20' : 'bg-[#942392] shadow-lg shadow-purple-900/20'}`}>
+                            {formatLeaveDays(formData.bakiAkhir)} Days
                           </div>
                         </div>
                       </div>

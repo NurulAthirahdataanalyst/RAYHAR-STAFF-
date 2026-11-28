@@ -195,6 +195,7 @@ export interface LeaveTypeSetting {
   default_entitlement_days: number;
   escalate_to_parent: boolean;
   mc_required: boolean;
+  allow_half_day?: boolean;
 }
 
 export type WorkflowBranchScope = 'HQ' | 'OTHER_BRANCHES' | 'ALL' | string;

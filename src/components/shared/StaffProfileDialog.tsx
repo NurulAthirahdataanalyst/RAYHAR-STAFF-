@@ -1679,15 +1679,15 @@ export function StaffProfileDialog({
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <p className="text-xs print:text-[11px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Total Entitled</p>
-                              <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.entitlement}</p>
+                              <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{Number(analytics.leave.entitlement || 0).toFixed(1)} <span className="text-xs font-bold">Days</span></p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <p className="text-xs print:text-[11px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1.5">Approved Taken</p>
-                              <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{analytics.leave.used}</p>
+                              <p className="text-2xl font-black text-slate-800 dark:text-slate-200 tracking-tighter">{Number(analytics.leave.used || 0).toFixed(1)} <span className="text-xs font-bold">Days</span></p>
                             </div>
                             <div className="rounded-xl border-2 border-emerald-500/20 dark:border-emerald-700/50 p-3 bg-emerald-50/30 dark:bg-emerald-950/40 shadow-sm flex flex-col justify-between">
                               <p className="text-xs print:text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1.5">Remaining Balance</p>
-                              <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{analytics.leave.remaining}</p>
+                              <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{Number(analytics.leave.remaining || 0).toFixed(1)} <span className="text-xs font-bold">Days</span></p>
                             </div>
                             <div className="rounded-xl border border-slate-200 dark:border-slate-800/60 p-3 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                               <Tooltip>
@@ -1803,14 +1803,14 @@ export function StaffProfileDialog({
                               <p className="text-xs print:text-[11px] font-bold uppercase tracking-widest text-foreground dark:text-foreground mb-1 flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span><Stethoscope className="w-3 h-3 text-muted-foreground" />Medical Leave (Sick Leave)</p>
                               <div className="my-1.5">
                                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter">
-                                  {analytics.leave?.sick?.taken || 0}
+                                  {Number(analytics.leave?.sick?.taken || 0).toFixed(1)}
                                 </span>
                                 <span className="text-xs font-semibold text-foreground ml-1.5">Days Taken</span>
                               </div>
                               <div className="mt-1">
                                 <div className="flex justify-between items-center text-xs print:text-[11px] font-bold text-foreground mb-1">
                                   <span className="uppercase tracking-wider">Progress</span>
-                                  <span>{analytics.leave?.sick?.taken || 0} / {analytics.leave?.sick?.entitlement || 14}</span>
+                                  <span>{Number(analytics.leave?.sick?.taken || 0).toFixed(1)} / {Number(analytics.leave?.sick?.entitlement || 14).toFixed(1)} Days</span>
                                 </div>
                                 <Progress 
                                   value={Math.min(100, Math.round(((analytics.leave?.sick?.taken || 0) / (analytics.leave?.sick?.entitlement || 14)) * 100))} 

@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { API_BASE_URL } from "@/config/api";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { TableScrollTopButton } from "@/components/shared/TableScrollTopButton";
+import { formatLeaveDays, formatLeaveBalance } from "@/utils/leaveFormat";
 import { 
   ArrowLeft, 
   Search, 
@@ -303,14 +304,14 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
       `"${(e.branch || '—').replace(/"/g, '""')}"`,
       `"${(e.department || '—').replace(/"/g, '""')}"`,
       `"${(e.position || '—').replace(/"/g, '""')}"`,
-      e.annual.remaining,
-      e.annual.entitlement,
-      e.medical.remaining,
-      e.medical.entitlement,
-      e.unpaid.taken,
-      e.replacement.remaining,
-      e.replacement.entitlement,
-      e.totalBalance,
+      formatLeaveDays(e.annual.remaining),
+      formatLeaveDays(e.annual.entitlement),
+      formatLeaveDays(e.medical.remaining),
+      formatLeaveDays(e.medical.entitlement),
+      formatLeaveDays(e.unpaid.taken),
+      formatLeaveDays(e.replacement.remaining),
+      formatLeaveDays(e.replacement.entitlement),
+      formatLeaveDays(e.totalBalance),
       `"${e.status}"`
     ]);
 
@@ -388,11 +389,11 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
                     <td>${e.branch}</td>
                     <td>${e.department}</td>
                     <td>${e.position}</td>
-                    <td class="text-center">${e.annual.remaining} / ${e.annual.entitlement}d</td>
-                    <td class="text-center">${e.medical.remaining} / ${e.medical.entitlement}d</td>
-                    <td class="text-center">${e.unpaid.taken} days taken</td>
-                    <td class="text-center">${e.replacement.remaining} / ${e.replacement.entitlement}d</td>
-                    <td class="text-center font-bold" style="color: #942392;">${e.totalBalance} Days</td>
+                    <td class="text-center">${formatLeaveDays(e.annual.remaining)} / ${formatLeaveDays(e.annual.entitlement)}d</td>
+                    <td class="text-center">${formatLeaveDays(e.medical.remaining)} / ${formatLeaveDays(e.medical.entitlement)}d</td>
+                    <td class="text-center">${formatLeaveDays(e.unpaid.taken)} Days taken</td>
+                    <td class="text-center">${formatLeaveDays(e.replacement.remaining)} / ${formatLeaveDays(e.replacement.entitlement)}d</td>
+                    <td class="text-center font-bold" style="color: #942392;">${formatLeaveBalance(e.totalBalance)}</td>
                     <td class="${statusClass}">${e.status}</td>
                   </tr>
                 `;
@@ -480,7 +481,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           </div>
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Entitlement</p>
-            <p className="text-2xl font-black text-foreground mt-0.5">{summary.totalEntitlement.toLocaleString()} Days</p>
+            <p className="text-2xl font-black text-foreground mt-0.5">{formatLeaveBalance(summary.totalEntitlement)}</p>
           </div>
         </Card>
 
@@ -490,7 +491,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           </div>
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Leave Taken</p>
-            <p className="text-2xl font-black text-foreground mt-0.5">{summary.totalTaken.toLocaleString()} Days</p>
+            <p className="text-2xl font-black text-foreground mt-0.5">{formatLeaveBalance(summary.totalTaken)}</p>
           </div>
         </Card>
 
@@ -500,7 +501,7 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
           </div>
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Leave Balance</p>
-            <p className="text-2xl font-black text-foreground mt-0.5">{summary.totalBalance.toLocaleString()} Days</p>
+            <p className="text-2xl font-black text-foreground mt-0.5">{formatLeaveBalance(summary.totalBalance)}</p>
           </div>
         </Card>
       </div>
@@ -748,28 +749,28 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
                     <td className="p-3 font-medium text-foreground">{emp.department}</td>
 
                     <td className="p-3 text-center">
-                      <span className="font-black text-foreground">{emp.annual.remaining}</span>
-                      <span className="text-[10px] text-muted-foreground"> / {emp.annual.entitlement}d</span>
+                      <span className="font-black text-foreground">{formatLeaveDays(emp.annual.remaining)}</span>
+                      <span className="text-[10px] text-muted-foreground"> / {formatLeaveDays(emp.annual.entitlement)} Days</span>
                     </td>
 
                     <td className="p-3 text-center">
-                      <span className="font-black text-foreground">{emp.medical.remaining}</span>
-                      <span className="text-[10px] text-muted-foreground"> / {emp.medical.entitlement}d</span>
+                      <span className="font-black text-foreground">{formatLeaveDays(emp.medical.remaining)}</span>
+                      <span className="text-[10px] text-muted-foreground"> / {formatLeaveDays(emp.medical.entitlement)} Days</span>
                     </td>
 
                     <td className="p-3 text-center">
-                      <span className="font-black text-foreground">{emp.unpaid.taken}</span>
-                      <span className="text-[10px] text-muted-foreground"> days taken</span>
+                      <span className="font-black text-foreground">{formatLeaveDays(emp.unpaid.taken)}</span>
+                      <span className="text-[10px] text-muted-foreground"> Days taken</span>
                     </td>
 
                     <td className="p-3 text-center">
-                      <span className="font-black text-foreground">{emp.replacement.remaining}</span>
-                      <span className="text-[10px] text-muted-foreground"> / {emp.replacement.entitlement}d</span>
+                      <span className="font-black text-foreground">{formatLeaveDays(emp.replacement.remaining)}</span>
+                      <span className="text-[10px] text-muted-foreground"> / {formatLeaveDays(emp.replacement.entitlement)} Days</span>
                     </td>
 
                     <td className="p-3 text-center font-black">
                       <span className="px-2.5 py-1 rounded-full bg-[#942392]/10 text-[#942392] text-xs font-black">
-                        {emp.totalBalance} Days
+                        {formatLeaveBalance(emp.totalBalance)}
                       </span>
                     </td>
 
@@ -884,26 +885,26 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
               </thead>
               <tbody className="divide-y divide-border/30">
                 <tr>
-                  <td className="p-2.5 pl-3 font-bold">Annual Leave</td>
-                  <td className="p-2.5 text-center font-semibold">{selectedEmpDetail?.annual.entitlement}</td>
-                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.annual.taken}</td>
-                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.annual.pending}</td>
-                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{selectedEmpDetail?.annual.remaining}</td>
+                  <td className="p-2.5 pl-3 font-bold">Annual &amp; Emergency Leave</td>
+                  <td className="p-2.5 text-center font-semibold">{formatLeaveDays(selectedEmpDetail?.annual.entitlement)}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.annual.taken)}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.annual.pending)}</td>
+                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{formatLeaveBalance(selectedEmpDetail?.annual.remaining)}</td>
                 </tr>
 
                 <tr>
                   <td className="p-2.5 pl-3 font-bold">Medical Leave</td>
-                  <td className="p-2.5 text-center font-semibold">{selectedEmpDetail?.medical.entitlement}</td>
-                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.medical.taken}</td>
-                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.medical.pending}</td>
-                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{selectedEmpDetail?.medical.remaining}</td>
+                  <td className="p-2.5 text-center font-semibold">{formatLeaveDays(selectedEmpDetail?.medical.entitlement)}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.medical.taken)}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.medical.pending)}</td>
+                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{formatLeaveBalance(selectedEmpDetail?.medical.remaining)}</td>
                 </tr>
 
                 <tr>
                   <td className="p-2.5 pl-3 font-bold">Unpaid Leave (Cuti Tanpa Gaji)</td>
                   <td className="p-2.5 text-center font-semibold">—</td>
-                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.unpaid.taken}</td>
-                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.unpaid.pending}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.unpaid.taken)}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.unpaid.pending)}</td>
                   <td className="p-2.5 text-center font-black text-muted-foreground pr-3">—</td>
                 </tr>
 
@@ -912,21 +913,21 @@ export function WorkforceLeaveBalancePanel({ onCancel }: { onCancel: () => void 
                     Replacement Leave
                     <span className="text-[9px] text-muted-foreground font-normal">(Earned)</span>
                   </td>
-                  <td className="p-2.5 text-center font-semibold">{selectedEmpDetail?.replacement.entitlement}</td>
-                  <td className="p-2.5 text-center text-rose-600 font-semibold">{selectedEmpDetail?.replacement.taken}</td>
-                  <td className="p-2.5 text-center text-amber-600 font-semibold">{selectedEmpDetail?.replacement.pending}</td>
-                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{selectedEmpDetail?.replacement.remaining}</td>
+                  <td className="p-2.5 text-center font-semibold">{formatLeaveDays(selectedEmpDetail?.replacement.entitlement)}</td>
+                  <td className="p-2.5 text-center text-rose-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.replacement.taken)}</td>
+                  <td className="p-2.5 text-center text-amber-600 font-semibold">{formatLeaveDays(selectedEmpDetail?.replacement.pending)}</td>
+                  <td className="p-2.5 text-center font-black text-emerald-600 pr-3">{formatLeaveBalance(selectedEmpDetail?.replacement.remaining)}</td>
                 </tr>
               </tbody>
               <tfoot className="border-t-2 border-border/60 bg-muted/20 font-black">
                 <tr>
                   <td className="p-2.5 pl-3">Total Balance</td>
-                  <td className="p-2.5 text-center">{selectedEmpDetail?.totalEntitlement}</td>
-                  <td className="p-2.5 text-center text-rose-600">{selectedEmpDetail?.totalTaken}</td>
+                  <td className="p-2.5 text-center">{formatLeaveDays(selectedEmpDetail?.totalEntitlement)}</td>
+                  <td className="p-2.5 text-center text-rose-600">{formatLeaveDays(selectedEmpDetail?.totalTaken)}</td>
                   <td className="p-2.5 text-center text-amber-600">
-                    {(selectedEmpDetail?.annual.pending || 0) + (selectedEmpDetail?.medical.pending || 0) + (selectedEmpDetail?.unpaid.pending || 0) + (selectedEmpDetail?.replacement.pending || 0)}
+                    {formatLeaveDays((selectedEmpDetail?.annual.pending || 0) + (selectedEmpDetail?.medical.pending || 0) + (selectedEmpDetail?.unpaid.pending || 0) + (selectedEmpDetail?.replacement.pending || 0))}
                   </td>
-                  <td className="p-2.5 text-center text-[#942392] text-sm pr-3">{selectedEmpDetail?.totalBalance} Days</td>
+                  <td className="p-2.5 text-center text-[#942392] text-sm pr-3">{formatLeaveBalance(selectedEmpDetail?.totalBalance)}</td>
                 </tr>
               </tfoot>
             </table>

@@ -14,6 +14,7 @@ import PageActions, { PageToolbar } from "@/components/layout/PageActions";
 import { YearPopover } from "@/components/shared/YearPopover";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import { CustomDatePicker, TablePagination } from "@/components/common/TablePagination";
+import { formatLeaveBalance, formatLeaveDays, getCompactSessionBadge } from "@/utils/leaveFormat";
 
 const formatDate = (value: string) => (value ? value.slice(0, 10) : "");
 
@@ -253,7 +254,7 @@ export default function LeaveReports() {
       `"${(a.leave_type || '').replace(/"/g, '""')}"`,
       `"${(formatDate(a.start_date) || '').replace(/"/g, '""')}"`,
       `"${(formatDate(a.end_date) || '').replace(/"/g, '""')}"`,
-      a.days,
+      formatLeaveDays(a.days),
       `"${(a.status || '').replace(/"/g, '""')}"`
     ]);
 
@@ -443,7 +444,7 @@ export default function LeaveReports() {
               <div>
                 <p className="text-sm font-medium text-foreground">Total Leave Days</p>
                 <h3 className="text-3xl font-bold mt-1 text-orange-600 dark:text-orange-400">
-                  {totalLeaveDays}
+                  {formatLeaveBalance(totalLeaveDays)}
                 </h3>
               </div>
             </CardContent>
@@ -526,7 +527,16 @@ export default function LeaveReports() {
                           <TableCell>{req.leave_type}</TableCell>
                           <TableCell>{formatDate(req.start_date)}</TableCell>
                           <TableCell>{formatDate(req.end_date)}</TableCell>
-                          <TableCell>{req.days}</TableCell>
+                          <TableCell>
+                            <div className="inline-flex flex-col items-start gap-0.5">
+                              <span className="font-bold">{formatLeaveBalance(req.days)}</span>
+                              {getCompactSessionBadge(req) && (
+                                <span className="px-1.5 py-0 rounded bg-[#942392]/10 text-[#942392] text-[8px] font-black uppercase tracking-wider">
+                                  {getCompactSessionBadge(req)}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <span className={`inline-flex items-center justify-center px-3 py-1 text-[10px] tracking-wider font-extrabold uppercase rounded-full border-[1.5px] whitespace-nowrap ${
                               req.status === 'Approved' ? 'bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:border-green-500/20' :

@@ -2366,20 +2366,20 @@ function getEffectiveCompanyIdSql(profileAlias = "p") {
 
 function getEffectiveAnnualEntitlementSql(profileAlias = "p") {
   const p = toSafeSqlColumn(profileAlias);
-  return `COALESCE(
+  return `(COALESCE(
     (SELECT ls_a.default_entitlement_days FROM leave_settings ls_a WHERE ls_a.company_id = ${getEffectiveCompanyIdSql(p)} AND ls_a.leave_type = 'Annual Leave' LIMIT 1),
     ${p}.annual_leave_entitlement,
     14
-  )`;
+  ))::float`;
 }
 
 function getEffectiveMedicalEntitlementSql(profileAlias = "p") {
   const p = toSafeSqlColumn(profileAlias);
-  return `COALESCE(
+  return `(COALESCE(
     (SELECT ls_m.default_entitlement_days FROM leave_settings ls_m WHERE ls_m.company_id = ${getEffectiveCompanyIdSql(p)} AND ls_m.leave_type = 'Sick Leave' LIMIT 1),
     ${p}.medical_leave_entitlement,
     14
-  )`;
+  ))::float`;
 }
 
 async function getCompanyLeaveEntitlements(companyId) {
@@ -2395,10 +2395,10 @@ async function getCompanyLeaveEntitlements(companyId) {
       const aRow = rows.find((r) => r.leave_type === "Annual Leave");
       const sRow = rows.find((r) => r.leave_type === "Sick Leave");
       if (aRow && aRow.default_entitlement_days !== null && aRow.default_entitlement_days !== undefined) {
-        annual = parseInt(aRow.default_entitlement_days, 10);
+        annual = Math.round(parseFloat(aRow.default_entitlement_days) * 10) / 10;
       }
       if (sRow && sRow.default_entitlement_days !== null && sRow.default_entitlement_days !== undefined) {
-        medical = parseInt(sRow.default_entitlement_days, 10);
+        medical = Math.round(parseFloat(sRow.default_entitlement_days) * 10) / 10;
       }
     }
   } catch (e) {
@@ -2842,6 +2842,21 @@ process.env.PGTZ = 'Asia/Kuala_Lumpur';
     await connection.query(`UPDATE replacement_leave_requests SET validation_status = 'Passed' WHERE validation_status = 'Validated'`).catch(() => {});
     await connection.query(`UPDATE replacement_leave_requests SET validation_status = 'Awaiting Replacement Date' WHERE validation_status = 'Waiting for Replacement Date'`).catch(() => {});
     console.log('✅ Auto-migration for replacement_leave_requests completed.');
+
+    // Auto-migrate decimal (0.5-day) leave support and half-day session columns
+    await connection.query(`ALTER TABLE profiles ALTER COLUMN annual_leave_entitlement TYPE NUMERIC(5,1) USING annual_leave_entitlement::numeric(5,1)`).catch(() => {});
+    await connection.query(`ALTER TABLE profiles ALTER COLUMN annual_leave_entitlement SET DEFAULT 14.0`).catch(() => {});
+    await connection.query(`ALTER TABLE profiles ALTER COLUMN medical_leave_entitlement TYPE NUMERIC(5,1) USING medical_leave_entitlement::numeric(5,1)`).catch(() => {});
+    await connection.query(`ALTER TABLE profiles ALTER COLUMN medical_leave_entitlement SET DEFAULT 14.0`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_settings ALTER COLUMN default_entitlement_days TYPE NUMERIC(5,1) USING default_entitlement_days::numeric(5,1)`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_settings ALTER COLUMN default_entitlement_days SET DEFAULT 14.0`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_settings ADD COLUMN IF NOT EXISTS allow_half_day BOOLEAN DEFAULT TRUE`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_requests ALTER COLUMN days TYPE NUMERIC(5,1) USING days::numeric(5,1)`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS leave_session VARCHAR(30) DEFAULT 'FULL'`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS start_session VARCHAR(20) DEFAULT 'FULL'`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS end_session VARCHAR(20) DEFAULT 'FULL'`).catch(() => {});
+    await connection.query(`ALTER TABLE leave_balance_adjustments ALTER COLUMN adjustment_days TYPE NUMERIC(5,1) USING adjustment_days::numeric(5,1)`).catch(() => {});
+    console.log('✅ Auto-migration for decimal leave balances & half-day sessions completed.');
 
     // Auto-migrate telegram_daily_digests table (tracks pinned Staff On Leave Today message per day)
     await connection.query(`
@@ -4819,7 +4834,7 @@ app.get("/api/branch-employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0) AS annual_leave_balance,
+        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.total_adjustment, 0)) - COALESCE(lr.annual_days_used, 0), 0)::float AS annual_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         today.clock_in AS today_clock_in,
@@ -5077,20 +5092,21 @@ app.get("/api/leave-entitlements", async (req, res) => {
 app.post("/api/profiles/:userId/leave-adjustments", async (req, res) => {
   const userId = safeString(req.params.userId);
   const leaveType = safeString(req.body?.leaveType);
-  const adjustmentDays = req.body?.adjustmentDays;
+  const adjustmentDays = Number(req.body?.adjustmentDays);
   const reason = safeString(req.body?.reason);
   const approvedBy = safeString(req.body?.approvedBy);
 
-  if (!userId || !leaveType) {
+  if (!userId || !leaveType || !Number.isFinite(adjustmentDays)) {
     return res.status(400).json({ error: "Invalid input format" });
   }
+  const roundedAdj = Math.round(adjustmentDays * 10) / 10;
 
   try {
     // Insert into leave_balance_adjustments
     await pool.query(
       `INSERT INTO leave_balance_adjustments (employee_id, leave_type, adjustment_days, reason, approved_by)
        VALUES (?, ?, ?, ?, ?)`,
-      [userId, leaveType, adjustmentDays, reason, approvedBy || 'Admin']
+      [userId, leaveType, roundedAdj, reason, approvedBy || 'Admin']
     );
 
     res.json({ message: "Leave adjustment applied successfully" });
@@ -6091,7 +6107,10 @@ app.get("/api/leave-requests", async (req, res) => {
         lr.leave_type,
         lr.start_date,
         lr.end_date,
-        lr.days,
+        lr.days::float AS days,
+        COALESCE(lr.leave_session, 'FULL') AS leave_session,
+        COALESCE(lr.start_session, 'FULL') AS start_session,
+        COALESCE(lr.end_session, 'FULL') AS end_session,
         lr.reason,
         lr.status AS status,
         lr.approver_id,
@@ -6141,16 +6160,16 @@ app.get("/api/leave-requests", async (req, res) => {
         COALESCE(lr.phone, p.phone, '') AS phone,
         COALESCE(p_appr.full_name, '') AS approver_name,
         COALESCE(ur_approver.role, p_appr.role, '') AS approver_role,
-        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::int AS annual_leave_balance,
-        GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)::int AS medical_leave_balance,
-        GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
+        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)::float AS annual_leave_balance,
+        GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)::float AS medical_leave_balance,
+        GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)::float AS replacement_leave_balance,
         (
           CASE 
             WHEN UPPER(lr.leave_type) IN ('SICK LEAVE', 'MEDICAL LEAVE', 'CUTI SAKIT') THEN GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(l_used.medical_days_used, 0), 0)
             WHEN UPPER(lr.leave_type) IN ('REPLACEMENT LEAVE', 'CUTI GANTI') THEN GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(l_used.replacement_days_used, 0), 0)
             ELSE GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(l_used.annual_days_used, 0), 0)
           END
-        )::int AS balance,
+        )::float AS balance,
         (
           SELECT json_agg(
             json_build_object(
@@ -6379,21 +6398,63 @@ app.get("/api/calculate-leave-days", async (req, res) => {
   const start = safeString(req.query.start);
   const end = safeString(req.query.end);
   const branch = safeString(req.query.branch);
+  const durationMode = safeLower(req.query.durationMode || req.query.duration_mode || 'full');
+  const halfDaySession = safeString(req.query.halfDaySession || req.query.half_day_session || '').toUpperCase();
+  const startSession = safeString(req.query.startSession || req.query.start_session || 'FULL').toUpperCase();
+  const endSession = safeString(req.query.endSession || req.query.end_session || 'FULL').toUpperCase();
   if (!start || !end) return res.status(400).json({ success: false, error: "Missing dates" });
 
   try {
     const branchZoneMap = await getBranchZoneMap();
-    const userZone = branchZoneMap.get(branch) || 'ZONE_B';
+    const userZone = branchZoneMap.get(branch) || (String(branch).toUpperCase() === 'HQ' ? 'ZONE_A' : 'ZONE_B');
 
-    let d1 = new Date(start);
-    let d2 = new Date(end);
-    let days = 0;
+    const parseLocalDate = (iso) => {
+      const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0) : new Date(iso);
+    };
+
+    const isShortDayForZone = (dt) => {
+      if (isNaN(dt.getTime())) return false;
+      const dow = dt.getDay(); // 0 Sun .. 6 Sat
+      const dom = dt.getDate();
+      if (userZone === 'ZONE_A') {
+        // Zone A: Thursday is 08:30-13:00 except first Thursday when full
+        return dow === 4 && dom > 7;
+      }
+      // Zone B: Saturday is 08:30-13:00 except first Saturday (closed)
+      return dow === 6 && dom > 7;
+    };
+
+    const d1 = parseLocalDate(start);
+    const d2 = parseLocalDate(end);
+    let baseDays = 0;
 
     for (let d = new Date(d1); d <= d2; d.setDate(d.getDate() + 1)) {
-      days++;
+      baseDays++;
     }
 
-    res.json({ success: true, days });
+    let days = baseDays;
+    if (baseDays <= 0) {
+      days = 0;
+    } else if (durationMode === 'half' || (start === end && (halfDaySession === 'AM' || halfDaySession === 'PM' || startSession === 'AM' || startSession === 'PM'))) {
+      days = 0.5;
+    } else if (baseDays === 1) {
+      days = (startSession === 'AM' || startSession === 'PM') ? 0.5 : 1.0;
+    } else {
+      let deduction = 0;
+      if (startSession === 'PM' || startSession === 'AM') deduction += 0.5;
+      if (endSession === 'AM' || endSession === 'PM') deduction += 0.5;
+      days = Math.max(0.5, Math.round((baseDays - deduction) * 10) / 10);
+    }
+
+    res.json({
+      success: true,
+      days,
+      baseDays,
+      zone: userZone,
+      isStartHalfWorkday: isShortDayForZone(d1),
+      isEndHalfWorkday: isShortDayForZone(d2),
+    });
   } catch (err) {
     console.error("Calculate Leave Days Error:", err);
     res.status(500).json({ success: false, error: err.message });
@@ -6546,7 +6607,11 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
   const leave_type = safeString(req.body?.leave_type);
   const start_date = safeString(req.body?.start_date);
   const end_date = safeString(req.body?.end_date);
-  const days = req.body?.days;
+  const rawDays = Number(req.body?.days);
+  const days = Number.isFinite(rawDays) ? Math.round(rawDays * 10) / 10 : NaN;
+  const leave_session = safeString(req.body?.leave_session || 'FULL').toUpperCase() || 'FULL';
+  const start_session = safeString(req.body?.start_session || 'FULL').toUpperCase() || 'FULL';
+  const end_session = safeString(req.body?.end_session || 'FULL').toUpperCase() || 'FULL';
   const reason = req.body?.reason;
   const safeReason = safeString(reason);
   const waris_nama = safeString(req.body?.waris_nama) || null;
@@ -6584,10 +6649,17 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
     return res.json({ success: true, message: "Replacement Leave credit claimed and is pending validation." });
   }
 
-  if (!user_id || !leave_type || !start_date || !end_date || !days) {
+  if (!user_id || !leave_type || !start_date || !end_date || !Number.isFinite(days) || days <= 0) {
     return res.status(400).json({
       success: false,
-      error: `Missing required fields: user_id=${!!user_id}, leave_type=${!!leave_type}, start_date=${!!start_date}, end_date=${!!end_date}, days=${!!days}`,
+      error: `Missing or invalid required fields: user_id=${!!user_id}, leave_type=${!!leave_type}, start_date=${!!start_date}, end_date=${!!end_date}, days=${days}`,
+    });
+  }
+
+  if (Math.abs(days * 2 - Math.round(days * 2)) > 1e-6) {
+    return res.status(400).json({
+      success: false,
+      error: "Leave days must be in 0.5-day increments (e.g., 0.5, 1.0, 1.5).",
     });
   }
 
@@ -6823,16 +6895,20 @@ app.post("/api/leave-requests", uploadLimiter, upload.single("lampiranMc"), asyn
       await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS created_by VARCHAR(100)`);
       await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS employee_id VARCHAR(100)`);
       await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS telegram_message_id BIGINT`);
+      await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS leave_session VARCHAR(30) DEFAULT 'FULL'`);
+      await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS start_session VARCHAR(20) DEFAULT 'FULL'`);
+      await pool.query(`ALTER TABLE leave_requests ADD COLUMN IF NOT EXISTS end_session VARCHAR(20) DEFAULT 'FULL'`);
+      await pool.query(`ALTER TABLE leave_requests ALTER COLUMN days TYPE NUMERIC(5,1) USING days::numeric(5,1)`);
     } catch(migErr) {}
 
     const [result] = await pool.query(
       `
       INSERT INTO leave_requests
-        (user_id, created_by, employee_id, leave_type, start_date, end_date, days, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url, phone)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (user_id, created_by, employee_id, leave_type, start_date, end_date, days, leave_session, start_session, end_session, reason, status, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh, cuti_ganti_hari, cuti_ganti_jam, cuti_tanpa_gaji_phone, cuti_tanpa_gaji_signature, mc_file_url, phone)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        user_id, user_id, user_id, leave_type, start_date, end_date, days, safeReason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url, applicantPhone
+        user_id, user_id, user_id, leave_type, start_date, end_date, days, leave_session, start_session, end_session, safeReason, initialStatus, waris_nama, waris_phone, waris_alamat, waris_hubungan, cuti_ganti_tarikh || null, cuti_ganti_hari || null, cuti_ganti_jam || null, cuti_tanpa_gaji_phone || null, signature_val, mc_file_url, applicantPhone
       ]
     );
 
@@ -9221,7 +9297,20 @@ app.get("/api/employees/:userId/analytics", async (req, res) => {
       const d = klTime.toISOString().split('T')[0];
       const hh = klTime.getUTCHours();
       const mm = klTime.getUTCMinutes();
-      const lateTimeStr = employee.shift_id ? (employee.shift_start || '09:00:00') : '09:00:00';
+      const hasMorningHalfDay = userLeaves.some((ul) => {
+        const sDate = ul.start_date ? new Date(ul.start_date).toISOString().split('T')[0] : '';
+        const eDate = ul.end_date ? new Date(ul.end_date).toISOString().split('T')[0] : sDate;
+        const sess = String(ul.leave_session || '').toUpperCase();
+        const sSess = String(ul.start_session || '').toUpperCase();
+        const eSess = String(ul.end_session || '').toUpperCase();
+        return (
+          (d === sDate && (sess === 'HALF_AM' || sSess === 'AM')) ||
+          (d === eDate && eSess === 'AM')
+        );
+      });
+      const lateTimeStr = hasMorningHalfDay
+        ? '14:10:00'
+        : (employee.shift_id ? (employee.shift_start || '09:00:00') : '09:00:00');
       const [lhStr, lmStr] = lateTimeStr.split(':');
       const lh = parseInt(lhStr);
       const lm = parseInt(lmStr);
@@ -9390,15 +9479,15 @@ app.get("/api/employees", async (req, res) => {
         COALESCE(lr.rejected_leaves, 0) AS rejected_leaves,
         COALESCE(lr.total_leave_requests, 0) AS total_leave_requests,
         COALESCE(lr.mc_leaves, 0) AS mc_leaves,
-        ${getEffectiveAnnualEntitlementSql("p")}::int AS annual_leave_entitlement,
-        ${getEffectiveMedicalEntitlementSql("p")}::int AS medical_leave_entitlement,
-        COALESCE(adj.annual_adj, 0) AS annual_adj,
-        COALESCE(adj.medical_adj, 0) AS medical_adj,
-        COALESCE(adj.replacement_adj, 0) AS replacement_adj,
-        COALESCE(lr.annual_days_used, 0) AS annual_days_used,
-        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(lr.annual_days_used, 0), 0)::int AS annual_leave_balance,
-        GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(lr.medical_days_used, 0), 0)::int AS medical_leave_balance,
-        GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(lr.replacement_days_used, 0), 0)::int AS replacement_leave_balance,
+        ${getEffectiveAnnualEntitlementSql("p")} AS annual_leave_entitlement,
+        ${getEffectiveMedicalEntitlementSql("p")} AS medical_leave_entitlement,
+        COALESCE(adj.annual_adj, 0)::float AS annual_adj,
+        COALESCE(adj.medical_adj, 0)::float AS medical_adj,
+        COALESCE(adj.replacement_adj, 0)::float AS replacement_adj,
+        COALESCE(lr.annual_days_used, 0)::float AS annual_days_used,
+        GREATEST((${getEffectiveAnnualEntitlementSql("p")} + COALESCE(adj.annual_adj, 0)) - COALESCE(lr.annual_days_used, 0), 0)::float AS annual_leave_balance,
+        GREATEST((${getEffectiveMedicalEntitlementSql("p")} + COALESCE(adj.medical_adj, 0)) - COALESCE(lr.medical_days_used, 0), 0)::float AS medical_leave_balance,
+        GREATEST(COALESCE(adj.replacement_adj, 0) - COALESCE(lr.replacement_days_used, 0), 0)::float AS replacement_leave_balance,
         COALESCE(att.days_present, 0) AS days_present,
         LEAST(100, ROUND((COALESCE(att.days_present, 0)::numeric / NULLIF(EXTRACT(DAY FROM CURRENT_DATE), 0)) * 100)) AS attendance_rate,
         COALESCE(leave_today.is_on_leave_today, 0) AS is_on_leave_today,
@@ -10022,12 +10111,12 @@ app.get("/api/user-details/:identifier", async (req, res) => {
         p.department,
         p.created_at,
         p.updated_at,
-        ${getEffectiveAnnualEntitlementSql("p")}::int AS annual_leave_entitlement,
-        ${getEffectiveMedicalEntitlementSql("p")}::int AS medical_leave_entitlement,
+        ${getEffectiveAnnualEntitlementSql("p")} AS annual_leave_entitlement,
+        ${getEffectiveMedicalEntitlementSql("p")} AS medical_leave_entitlement,
         b.operating_zone,
-        COALESCE(adj.total_adjustment, 0)::int AS total_adjustment,
-        COALESCE(adj.medical_adj, 0)::int AS medical_adj,
-        COALESCE(adj.replacement_adj, 0)::int AS replacement_adj,
+        COALESCE(adj.total_adjustment, 0)::float AS total_adjustment,
+        COALESCE(adj.medical_adj, 0)::float AS medical_adj,
+        COALESCE(adj.replacement_adj, 0)::float AS replacement_adj,
         COALESCE(ur.role, p.role, 'employee') AS role,
         COALESCE(p.role_id, ur.role_id, r.id) AS role_id,
         COALESCE(r.name, ur.role, p.role, 'Employee') AS role_name,
@@ -16487,7 +16576,10 @@ app.get("/api/who-out-today", async (req, res) => {
         lr.leave_type,
         lr.start_date,
         lr.end_date,
-        lr.days,
+        lr.days::float AS days,
+        COALESCE(lr.leave_session, 'FULL') AS leave_session,
+        COALESCE(lr.start_session, 'FULL') AS start_session,
+        COALESCE(lr.end_session, 'FULL') AS end_session,
         lr.reason,
         lr.cuti_ganti_tarikh,
         p.full_name,

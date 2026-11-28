@@ -1259,8 +1259,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 <Skeleton className="h-8 w-20 my-0.5" />
               ) : (
                 <>
-                  <span className="text-3xl font-black text-foreground">{leaveBalanceRemaining}</span>
-                  <span className="text-sm font-bold text-foreground">/ {totalEntitlement}</span>
+                  <span className="text-3xl font-black text-foreground">{Number(leaveBalanceRemaining || 0).toFixed(1)}</span>
+                  <span className="text-sm font-bold text-foreground">/ {Number(totalEntitlement || 0).toFixed(1)} Days</span>
                 </>
               )}
             </div>
@@ -1919,7 +1919,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     {isLoading ? (
                       <Skeleton className="h-4 w-16" />
                     ) : (
-                      <span className="text-sm font-bold text-foreground">{annualLeavesUsed + emergencyLeavesUsed} / {totalEntitlement} Days</span>
+                      <span className="text-sm font-bold text-foreground">{Number(annualLeavesUsed + emergencyLeavesUsed).toFixed(1)} / {Number(totalEntitlement).toFixed(1)} Days</span>
                     )}
                   </div>
                   {isLoading ? (
@@ -1937,7 +1937,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       </>
                     ) : (
                       <>
-                        <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed))} Days Available</span>
+                        <span className="text-xs font-black text-foreground">{Math.max(0, totalEntitlement - (annualLeavesUsed + emergencyLeavesUsed)).toFixed(1)} Days Available</span>
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{annualApps + emergencyApps} APPLICATION{(annualApps + emergencyApps) !== 1 ? 'S' : ''}</span>
                       </>
                     )}
@@ -1951,7 +1951,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     {isLoading ? (
                       <Skeleton className="h-4 w-16" />
                     ) : (
-                      <span className="text-sm font-bold text-foreground">{sickLeavesUsed} / {totalSick} Days</span>
+                      <span className="text-sm font-bold text-foreground">{Number(sickLeavesUsed).toFixed(1)} / {Number(totalSick).toFixed(1)} Days</span>
                     )}
                   </div>
                   {isLoading ? (
@@ -1969,7 +1969,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       </>
                     ) : (
                       <>
-                        <span className="text-xs font-black text-foreground">{sickRemaining} Days Available</span>
+                        <span className="text-xs font-black text-foreground">{Number(sickRemaining).toFixed(1)} Days Available</span>
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{sickApps} APPLICATION{sickApps !== 1 ? 'S' : ''}</span>
                       </>
                     )}

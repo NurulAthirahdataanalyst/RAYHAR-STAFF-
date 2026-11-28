@@ -1941,7 +1941,7 @@ export default function Employees() {
                               <TableCell className="font-bold text-xs">{req.leave_type}</TableCell>
                               <TableCell className="text-xs">{fromStr}</TableCell>
                               <TableCell className="text-xs">{toStr}</TableCell>
-                              <TableCell className="text-xs print:text-[11px] font-bold">{req.days}</TableCell>
+                              <TableCell className="text-xs print:text-[11px] font-bold">{Number(req.days || 0).toFixed(1)} Days</TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   variant="outline"
@@ -2048,11 +2048,11 @@ export default function Employees() {
                         </div>
                         <div className="space-y-1 print:space-y-1.5">
                           <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Bilangan Hari</span>
-                          <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{req.days}</p>
+                          <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{Number(req.days || 0).toFixed(1)} Days</p>
                         </div>
                         <div className="space-y-1 print:space-y-1.5">
                           <span className="text-[9px] print:text-[13px] uppercase font-black text-slate-950 dark:text-slate-50">Baki Layak</span>
-                          <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{req.balance ?? "-"} HARI</p>
+                          <p className="border-b pb-1 print:pb-2 border-border/40 font-bold text-foreground">{req.balance !== undefined && req.balance !== null ? `${Number(req.balance).toFixed(1)} Days` : "-"}</p>
                         </div>
                       </div>
                     ) : (
