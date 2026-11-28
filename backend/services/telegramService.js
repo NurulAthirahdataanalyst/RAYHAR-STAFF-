@@ -47,8 +47,23 @@ function formatTelegramDate(value) {
 function formatDaysTitleCase(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return "-";
-  const formatted = Number.isInteger(num) ? String(num) : String(Number(num.toFixed(2)));
-  return `${formatted} ${num === 1 ? "Day" : "Days"}`;
+  const rounded = Math.round(num * 100) / 100;
+  const formatted = Number.isInteger(rounded * 10)
+    ? rounded.toFixed(1)
+    : rounded.toFixed(2);
+  return `${formatted} Days`;
+}
+
+function formatLeaveSessionSuffix(leaveData) {
+  const sess = String(leaveData?.leave_session || "").trim().toUpperCase();
+  const sSess = String(leaveData?.start_session || "").trim().toUpperCase();
+  const eSess = String(leaveData?.end_session || "").trim().toUpperCase();
+  if (sess === "HALF_AM") return " (Half Day - Morning AM)";
+  if (sess === "HALF_PM") return " (Half Day - Afternoon PM)";
+  const parts = [];
+  if (sSess === "AM" || sSess === "PM") parts.push(`Start: Half Day ${sSess}`);
+  if (eSess === "AM" || eSess === "PM") parts.push(`End: Half Day ${eSess}`);
+  return parts.length > 0 ? ` (${parts.join(", ")})` : "";
 }
 
 function isAnnualOrEmergencyLeave(leaveType) {
@@ -855,7 +870,7 @@ function buildLeaveRequestMessage(leaveData, meta = {}) {
   const startDate = formatTelegramDate(leaveData?.start_date);
   const endDate = formatTelegramDate(leaveData?.end_date);
   const leavePeriod = `${startDate} – ${endDate}`;
-  const totalLeave = formatDaysTitleCase(leaveData?.days);
+  const totalLeave = `${formatDaysTitleCase(leaveData?.days)}${formatLeaveSessionSuffix(leaveData)}`;
   const statusLabel = escapeTelegramHtml(
     formatTelegramLeaveStatus(leaveData?.status, {
       isAutoApproved: Boolean(meta.isAutoApproved),
@@ -1164,31 +1179,107 @@ async function sendLeaveStatusUpdateTelegramNotification(
   return { updated: false };
 }
 
+const DIGEST_LEAVE_TYPE_ORDER = [
+  "Annual & Emergency Leave",
+  "Replacement Leave",
+  "Sick Leave",
+  "Unpaid Leave",
+  "Maternity Leave",
+  "Paternity Leave",
+  "Compassionate Leave",
+  "Marriage Leave",
+];
+
+function formatDigestLeaveType(leaveType) {
+  const raw = String(leaveType || "").trim();
+  if (!raw) return "Other Leave";
+  const lower = raw.toLowerCase();
+
+  if (
+    isAnnualOrEmergencyLeave(raw) ||
+    lower.includes("annual") ||
+    lower.includes("emergency") ||
+    lower.includes("tahunan") ||
+    lower.includes("kecemasan")
+  ) {
+    return "Annual & Emergency Leave";
+  }
+  if (isReplacementLeave(raw)) {
+    return "Replacement Leave";
+  }
+  if (
+    isSickLeave(raw) ||
+    lower.includes("sick") ||
+    lower.includes("medical") ||
+    lower.includes("sakit")
+  ) {
+    return "Sick Leave";
+  }
+  if (lower.includes("unpaid") || lower.includes("tanpa gaji")) {
+    return "Unpaid Leave";
+  }
+  if (lower.includes("maternity") || lower.includes("bersalin")) {
+    return "Maternity Leave";
+  }
+  if (lower.includes("paternity") || lower.includes("paterniti")) {
+    return "Paternity Leave";
+  }
+  if (lower.includes("compassionate") || lower.includes("ehsan")) {
+    return "Compassionate Leave";
+  }
+  if (lower.includes("marriage") || lower.includes("kahwin") || lower.includes("perkahwinan")) {
+    return "Marriage Leave";
+  }
+
+  return raw;
+}
+
 /**
- * Build the "Staff On Leave Today" digest message.
- * @param {Array<{ full_name?: string, company_name?: string, branch?: string }>} staffList
+ * Build the "Staff On Leave Today" digest message grouped by applied leave type.
+ * @param {Array<{ full_name?: string, employee_name?: string, user_id?: string, company_name?: string, branch?: string, leave_type?: string }>} staffList
  * @param {string|Date} [dateValue]
  */
 function buildStaffOnLeaveTodayMessage(staffList = [], dateValue = new Date()) {
   if (!Array.isArray(staffList) || staffList.length === 0) return "";
 
   const dateHeader = formatTelegramDate(dateValue);
-  const lines = [
-    "🏖️ <b>Staff On Leave Today</b>",
-    `<i>${escapeTelegramHtml(dateHeader)}</i>`,
-    "",
-  ];
+  const grouped = new Map();
 
   for (const item of staffList) {
+    const typeLabel = formatDigestLeaveType(item?.leave_type);
+    if (!grouped.has(typeLabel)) {
+      grouped.set(typeLabel, []);
+    }
     const name = escapeTelegramHtml(
       String(item?.full_name || item?.employee_name || item?.user_id || "Unknown Staff").trim()
     );
     const company = String(item?.company_name || item?.branch || "").trim();
-    if (company) {
-      lines.push(`• ${name} • ${escapeTelegramHtml(company)}`);
-    } else {
-      lines.push(`• ${name}`);
-    }
+    const bulletLine = company
+      ? `• ${name} • ${escapeTelegramHtml(company)}`
+      : `• ${name}`;
+    grouped.get(typeLabel).push(bulletLine);
+  }
+
+  const orderedTypes = Array.from(grouped.keys()).sort((a, b) => {
+    const idxA = DIGEST_LEAVE_TYPE_ORDER.indexOf(a);
+    const idxB = DIGEST_LEAVE_TYPE_ORDER.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    if (a === "Other Leave") return 1;
+    if (b === "Other Leave") return -1;
+    return a.localeCompare(b);
+  });
+
+  const lines = [
+    "🏖️ <b>Staff On Leave Today</b>",
+    `<i>${escapeTelegramHtml(dateHeader)}</i>`,
+  ];
+
+  for (const typeLabel of orderedTypes) {
+    const entries = grouped.get(typeLabel) || [];
+    if (entries.length === 0) continue;
+    lines.push("", `<b>${escapeTelegramHtml(typeLabel)}</b>`, ...entries);
   }
 
   return lines.join("\n");
@@ -1208,8 +1299,8 @@ async function sendStaffOnLeaveTodayTelegramNotification(
     try {
       const editRes = await editTelegramMessage(numericExistingId, message);
       if (editRes && !editRes.skipped) {
-        let pinned = false;
-        if (autoPin) {
+        let pinned = Boolean(autoPin);
+        if (autoPin && !editRes.unmodified) {
           const pinRes = await pinTelegramMessage(numericExistingId, { disableNotification: true });
           pinned = Boolean(pinRes?.pinned);
         }
@@ -1377,6 +1468,7 @@ module.exports = {
   sendLeaveMcAttachmentTelegramNotification,
   sendLeaveStatusUpdateTelegramNotification,
   sendReplacementLeaveValidationTelegramNotification,
+  formatDigestLeaveType,
   buildStaffOnLeaveTodayMessage,
   sendStaffOnLeaveTodayTelegramNotification,
 };

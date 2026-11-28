@@ -35,6 +35,7 @@ const attendanceVerificationService = require("./services/attendanceVerification
 const {
   isAnnualOrEmergencyLeave,
   isReplacementLeave,
+  formatDigestLeaveType,
   formatWorkingHoursDuration,
   sendNewLeaveRequestTelegramNotification,
   sendLeaveMcAttachmentTelegramNotification,
@@ -5732,7 +5733,32 @@ async function clearStaleStaffOnLeavePin(
   }
 }
 
-async function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateStr()) {
+function isDigestLeaveActiveOnDate(leaveRow, targetDateStr) {
+  if (!leaveRow || !targetDateStr) return false;
+  if (isReplacementLeave(leaveRow.leave_type) && typeof leaveRow.reason === "string") {
+    const match = leaveRow.reason.match(/\[CUTI_GANTI_DATA:([\s\S]*?)\]\]/);
+    if (match) {
+      const cgDates = getCutiGantiDates(leaveRow.reason, null);
+      if (cgDates && cgDates.length > 0) {
+        return cgDates.includes(targetDateStr);
+      }
+    }
+  }
+  return isLeaveActiveOnDate(leaveRow.start_date, leaveRow.end_date, targetDateStr);
+}
+
+let staffOnLeaveDigestChain = Promise.resolve();
+
+function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateStr()) {
+  const run = staffOnLeaveDigestChain.then(
+    () => runStaffOnLeaveTodayDigest(targetDateStr),
+    () => runStaffOnLeaveTodayDigest(targetDateStr)
+  );
+  staffOnLeaveDigestChain = run.catch(() => {});
+  return run;
+}
+
+async function runStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateStr()) {
   try {
     await ensureTelegramDailyDigestsTable();
 
@@ -5755,12 +5781,18 @@ async function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateS
 
     const existingMessageId = todayDigest?.telegram_message_id || null;
 
-    const [rows] = await pool.query(
-      `SELECT DISTINCT ON (p.user_id)
+    const [rawRows] = await pool.query(
+      `SELECT
          p.user_id,
          p.full_name,
          p.branch,
-         COALESCE(c.company_name, '') AS company_name
+         COALESCE(c.company_name, '') AS company_name,
+         lr.leave_id,
+         lr.leave_type,
+         lr.reason,
+         lr.cuti_ganti_tarikh,
+         lr.start_date,
+         lr.end_date
        FROM leave_requests lr
        JOIN profiles p ON p.user_id = lr.user_id
        LEFT JOIN branches b ON UPPER(b.code) = UPPER(p.branch)
@@ -5775,11 +5807,22 @@ async function sendStaffOnLeaveTodayDigest(targetDateStr = getMalaysiaTodayDateS
        )
        WHERE lr.status = 'Approved'
          AND ?::date BETWEEN lr.start_date::date AND lr.end_date::date
-       ORDER BY p.user_id, lr.leave_id DESC`,
+       ORDER BY lr.leave_id DESC`,
       [targetDateStr]
     );
 
-    if (!rows || rows.length === 0) {
+    const seenStaffByType = new Set();
+    const rows = [];
+    for (const row of rawRows || []) {
+      if (!isDigestLeaveActiveOnDate(row, targetDateStr)) continue;
+      const typeKey = formatDigestLeaveType(row.leave_type);
+      const dedupeKey = `${row.user_id}::${typeKey}`;
+      if (seenStaffByType.has(dedupeKey)) continue;
+      seenStaffByType.add(dedupeKey);
+      rows.push(row);
+    }
+
+    if (rows.length === 0) {
       if (todayDigest?.telegram_message_id) {
         const unpinRes = await unpinTelegramMessage(todayDigest.telegram_message_id);
         if (unpinRes?.unpinned) {
@@ -5853,24 +5896,30 @@ async function reconcileStaffOnLeavePinAndDigest({ forceLiveChatCheck = false } 
       lastLiveChatCheckAt = Date.now();
     }
 
-    // If the server started or woke up at/after 08:30 AM MYT and missed the 08:30 cron, catch up once per day
-    const isAtOrAfter830 = hour > 8 || (hour === 8 && minute >= 30);
+    // If the server started or woke up at/after 08:30 AM MYT and missed the 08:30 cron, catch up once per day.
+    // On server boot (forceLiveChatCheck), also refresh any existing digest in-place so format/status changes apply live.
+    const isAtOrAfter830 =
+      hour > 8 || (hour === 8 && (forceLiveChatCheck ? minute >= 30 : minute >= 31));
     if (isAtOrAfter830 && lastProcessedDigestDateStr !== dateStr) {
-      const todayKey = `staff_on_leave_today:${dateStr}`;
-      const [existingToday] = await pool
-        .query(
-          `SELECT telegram_message_id FROM telegram_daily_digests
-           WHERE (digest_key = ? OR digest_key = 'staff_on_leave_today')
-             AND digest_date = ?::date
-           LIMIT 1`,
-          [todayKey, dateStr]
-        )
-        .catch(() => [[]]);
-
-      if (existingToday && existingToday.length > 0) {
-        lastProcessedDigestDateStr = dateStr;
-      } else {
+      if (forceLiveChatCheck) {
         await sendStaffOnLeaveTodayDigest(dateStr);
+      } else {
+        const todayKey = `staff_on_leave_today:${dateStr}`;
+        const [existingToday] = await pool
+          .query(
+            `SELECT telegram_message_id FROM telegram_daily_digests
+             WHERE (digest_key = ? OR digest_key = 'staff_on_leave_today')
+               AND digest_date = ?::date
+             LIMIT 1`,
+            [todayKey, dateStr]
+          )
+          .catch(() => [[]]);
+
+        if (existingToday && existingToday.length > 0) {
+          lastProcessedDigestDateStr = dateStr;
+        } else {
+          await sendStaffOnLeaveTodayDigest(dateStr);
+        }
       }
     }
   } catch (err) {
