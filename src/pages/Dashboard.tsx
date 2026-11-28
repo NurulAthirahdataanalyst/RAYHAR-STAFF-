@@ -41,6 +41,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
+import { formatLeaveDays } from "@/utils/leaveFormat";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isToday } from "date-fns";
@@ -1021,7 +1022,7 @@ export default function Dashboard() {
                     {loading ? (
                       <Skeleton className="h-8 w-24 rounded-lg bg-purple-200/60 dark:bg-purple-900/40" />
                     ) : (
-                      <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{stats.leaveBalance} days</span>
+                      <span className="text-3xl font-black text-purple-700 dark:text-purple-300 leading-none">{formatLeaveDays(stats.leaveBalance)} Days</span>
                     )}
                   </div>
                 </div>
@@ -1038,7 +1039,7 @@ export default function Dashboard() {
                       </p>
                       {(stats as any)?.annualEntitlement !== undefined && (
                         <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400">
-                          {(stats as any)?.annualLeavesUsed ?? 0} / {(stats as any)?.annualEntitlement} used
+                          {formatLeaveDays((stats as any)?.annualLeavesUsed ?? 0)} / {formatLeaveDays((stats as any)?.annualEntitlement)} used
                         </span>
                       )}
                     </>

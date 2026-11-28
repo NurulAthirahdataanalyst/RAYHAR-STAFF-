@@ -16,8 +16,9 @@ import {
   Timer, Activity, Target, Loader2, ChevronRight,
   ArrowUpRight, Star,
 } from "lucide-react";
-import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL, getActiveCompanyId } from "../config/api";
 import EmployeeAnalyticsView from "./EmployeeAnalyticsView";
+import { TiltKpiCard } from "@/components/shared/TiltKpiCard";
 import { MonthPicker } from "@/components/shared/MonthPicker";
 import PageActions, { PageHeaderMeta } from "@/components/layout/PageActions";
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -474,9 +475,10 @@ export default function EmployeeAnalytics() {
     const maxRetries = 2;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
+        const activeCompId = getActiveCompanyId() || "1";
         const [attRes, leaveRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/attendance/history?userId=${userId}&month=${selectedMonth}&year=${selectedYear}`),
-          fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId!)}`),
+          fetch(`${API_BASE_URL}/api/leave-requests?userId=${encodeURIComponent(userId!)}&company_id=${encodeURIComponent(activeCompId)}`),
         ]);
         if (!attRes.ok || !leaveRes.ok) {
           throw new Error("Server response not ok");
@@ -509,7 +511,12 @@ export default function EmployeeAnalytics() {
           setMyLogs(historyData);
         }
         if (leaveData.success && Array.isArray(leaveData.leaveRequests)) {
-          setLeaveRequests(leaveData.leaveRequests);
+          setLeaveRequests(
+            leaveData.leaveRequests.map((r: any) => ({
+              ...r,
+              days: Number(r.days || 0),
+            }))
+          );
         }
         setLoadingMe(false);
         return;
@@ -685,7 +692,8 @@ export default function EmployeeAnalytics() {
           </div>
 
           {/* Leaderboard */}
-          <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-[#942392]/20 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+          <TiltKpiCard fillHeight={false}>
+          <Card className="kpi-interactive-card border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group ring-1 ring-border/20 shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
             <CardHeader className="border-b border-border/40">
               <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                 <div className="p-2 bg-[#942392]/10 rounded-xl"><Award className="w-4 h-4 text-[#942392]" /></div>
@@ -881,13 +889,15 @@ export default function EmployeeAnalytics() {
               )}
             </CardContent>
           </Card>
+          </TiltKpiCard>
 
           {/* ── Overtime Monitoring ── */}
           {showOvertime && (showEmpOvertime || showDeptOvertime) && (
             <div className={`grid grid-cols-1 ${showEmpOvertime && showDeptOvertime ? 'lg:grid-cols-2' : ''} gap-4 sm:gap-5`}>
               {/* Employee Average Working Hours Bar */}
               {showEmpOvertime && (
-                <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
+                <TiltKpiCard>
+                <Card className="kpi-interactive-card h-full border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group ring-1 ring-border/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
                   <CardHeader className="border-b border-border/40 pb-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
@@ -986,11 +996,13 @@ export default function EmployeeAnalytics() {
                     )}
                   </CardContent>
                 </Card>
+                </TiltKpiCard>
               )}
 
               {/* Department Overtime Trend */}
               {showDeptOvertime && (
-                <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
+                <TiltKpiCard>
+                <Card className="kpi-interactive-card h-full border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[32px] overflow-hidden group ring-1 ring-border/20 shadow-[0_15px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_15px_40px_rgba(0,0,0,0.25)]">
                 <CardHeader className="border-b border-border/40">
                   <CardTitle className="text-sm font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
                     <div className="p-2 bg-blue-500/10 rounded-xl"><TrendingUp className="w-4 h-4 text-blue-500" /></div>
@@ -1076,13 +1088,15 @@ export default function EmployeeAnalytics() {
                   )}
                 </CardContent>
               </Card>
+              </TiltKpiCard>
               )}
             </div>
           )}
 
           {/* ── Summary Strip ── */}
           {(loadingTeam || teamMetrics.length > 0) && showOvertime && (
-            <Card className="border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[24px] group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
+            <TiltKpiCard fillHeight={false}>
+            <Card className="kpi-interactive-card border-2 border-slate-300 dark:border-slate-600 bg-card/80 backdrop-blur-md rounded-[24px] group ring-1 ring-border/20 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
               <CardContent className="p-5">
                 <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground">Team Summary:</span>
@@ -1113,6 +1127,7 @@ export default function EmployeeAnalytics() {
                 </div>
               </CardContent>
             </Card>
+            </TiltKpiCard>
           )}
         </>
       )}

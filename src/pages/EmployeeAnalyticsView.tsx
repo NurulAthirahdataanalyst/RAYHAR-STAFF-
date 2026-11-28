@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL, getActiveCompanyId } from "../config/api";
+import { formatLeaveDays, roundLeaveDays } from "@/utils/leaveFormat";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
 } from "recharts";
 import { Flame, Info, Trophy, Briefcase, CalendarCheck2, ArrowUpRight, ArrowDownRight, Clock, Zap, MapPin, Search, PlusCircle, AlertCircle, Calendar, Maximize, Minimize, FileText, X } from "lucide-react";
+import { TiltKpiCard, KPI_INTERACTIVE_STYLES } from "@/components/shared/TiltKpiCard";
 
 const formatShortDisplayDate = (dateStr: string): string => {
   if (!dateStr) return "-";
@@ -61,7 +63,7 @@ function PersonalAttendanceAlertCard({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Card className="p-5 shadow-sm border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 cursor-pointer hover:border-red-300 dark:hover:border-red-800 transition-all duration-300 rounded-[20px]">
+        <Card className="kpi-interactive-card h-full p-5 shadow-sm border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 cursor-pointer rounded-[20px]">
           <div className="flex justify-between items-center mb-4 border-b border-red-100 dark:border-red-900/20 pb-3">
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">{title}</h3>
           </div>
@@ -283,7 +285,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
       })
       .catch(console.error);
 
-    const p2 = fetch(`${API_BASE_URL}/api/user-details/${userId}`)
+    const activeCompId = getActiveCompanyId() || "1";
+    const p2 = fetch(`${API_BASE_URL}/api/user-details/${encodeURIComponent(userId)}?company_id=${encodeURIComponent(activeCompId)}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.profile) {
@@ -392,71 +395,53 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     const type = String(l.leave_type || "").toUpperCase();
     return type === 'CUTI TAHUNAN' || type === 'ANNUAL LEAVE' || type === 'ANNUAL/EMERGENCY LEAVE' || type === 'ANNUAL & EMERGENCY LEAVE';
   }).filter(l => getLocalDateString(l.start_date)?.startsWith(year));
-  const annualLeavesUsed = annualLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const annualLeavesUsed = roundLeaveDays(annualLeavesArr.reduce((acc, curr) => acc + Number(curr.days || 0), 0));
   const annualApps = annualLeavesArr.length;
 
   const sickLeavesArr = approvedLeaves.filter(l => {
     const type = String(l.leave_type || "").toUpperCase();
     return type === 'CUTI SAKIT' || type === 'SICK LEAVE';
   }).filter(l => getLocalDateString(l.start_date)?.startsWith(year));
-  const sickLeavesUsed = sickLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const sickLeavesUsed = roundLeaveDays(sickLeavesArr.reduce((acc, curr) => acc + Number(curr.days || 0), 0));
   const sickApps = sickLeavesArr.length;
 
   const emergencyLeavesArr = approvedLeaves.filter(l => {
     const type = String(l.leave_type || "").toUpperCase();
-    return type === 'KECEMASAN' || type === 'EMERGENCY';
+    return type === 'KECEMASAN' || type === 'EMERGENCY' || type === 'EMERGENCY LEAVE';
   }).filter(l => getLocalDateString(l.start_date)?.startsWith(year));
-  const emergencyLeavesUsed = emergencyLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const emergencyLeavesUsed = roundLeaveDays(emergencyLeavesArr.reduce((acc, curr) => acc + Number(curr.days || 0), 0));
   const emergencyApps = emergencyLeavesArr.length;
 
   const replacementLeavesArr = approvedLeaves.filter(l => {
     const type = String(l.leave_type || "").toUpperCase();
     return type === 'REPLACEMENT LEAVE' || type === 'CUTI GANTI';
   }).filter(l => (l.start_date ? getLocalDateString(l.start_date) : '')?.startsWith(year));
-  const replacementLeavesUsed = replacementLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const replacementLeavesUsed = roundLeaveDays(replacementLeavesArr.reduce((acc, curr) => acc + Number(curr.days || 0), 0));
   const replacementApps = replacementLeavesArr.length;
 
   const unpaidLeavesArr = approvedLeaves.filter(l => {
     const type = String(l.leave_type || "").toUpperCase();
     return type === 'UNPAID LEAVE' || type === 'CUTI TANPA GAJI';
   }).filter(l => (l.start_date ? getLocalDateString(l.start_date) : '')?.startsWith(year));
-  const unpaidLeavesUsed = unpaidLeavesArr.reduce((acc, curr) => acc + curr.days, 0);
+  const unpaidLeavesUsed = roundLeaveDays(unpaidLeavesArr.reduce((acc, curr) => acc + Number(curr.days || 0), 0));
   const unpaidApps = unpaidLeavesArr.length;
   
+  const sickEntitlement = Number(profile?.medical_leave_entitlement ?? 14);
+  const sickAdjustment = Number(profile?.medical_adj ?? 0);
+  const totalSick = roundLeaveDays(Math.max(sickEntitlement + sickAdjustment, 0));
+  const sickRemaining = roundLeaveDays(Math.max(0, totalSick - sickLeavesUsed));
 
-  
-    const sickEntitlement = Number(profile?.medical_leave_entitlement ?? 14);
-    const sickAdjustment = profile?.medical_adj || 0;
-    const totalSick = sickEntitlement + sickAdjustment;
-    const sickRemaining = Math.max(0, totalSick - sickLeavesUsed);
+  const replacementAdj = Number(profile?.replacement_adj ?? 0);
+  const replacementRemaining = roundLeaveDays(Math.max(0, replacementAdj - replacementLeavesUsed));
 
-    const replacementAdj = profile?.replacement_adj || 0;
-    const replacementRemaining = Math.max(0, replacementAdj - replacementLeavesUsed);
+  const totalLeavesUsed = roundLeaveDays(annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed);
+  // Strictly deduct Approved Annual/Emergency Leave only (matching Leave Overview & Dashboard)
+  const quotaLeavesUsed = roundLeaveDays(annualLeavesUsed + emergencyLeavesUsed);
 
-    const totalLeavesUsed = annualLeavesUsed + sickLeavesUsed + emergencyLeavesUsed;
-    let quotaLeavesUsed = leaveRequests
-      .filter(l => String(l.status || "").toUpperCase() !== "REJECTED")
-      .filter(l => {
-        const type = String(l.leave_type || "").toUpperCase();
-        return ['CUTI TAHUNAN', 'ANNUAL LEAVE', 'ANNUAL/EMERGENCY LEAVE', 'ANNUAL & EMERGENCY LEAVE', 'CUTI SAKIT', 'SICK LEAVE', 'KECEMASAN', 'EMERGENCY'].includes(type);
-      })
-      .filter(l => {
-        const startStr = getLocalDateString(l.start_date);
-        return startStr ? startStr.startsWith(year) : false;
-      })
-      .reduce((acc, curr) => acc + Number(curr.days || 0), 0);
-    
-  // Add temporary deductions for Replacement Leaves
-  const pendingReplacementDeduction = replacementLeaves
-    .filter(r => ['Pending', 'Approved', 'Awaiting Replacement Date', 'Waiting for Replacement Date', 'Failed'].includes(r.validation_status))
-    .length; // Assuming each replacement day corresponds to 1 day of leave (since required_hours is usually for a day, but ideally it should check the main leave_request's days or we just count rows if 1 row = 1 day. Wait, days is in leaveRequests).
-
-  quotaLeavesUsed += pendingReplacementDeduction;
-    
   const baseEntitlement = Number(profile?.annual_leave_entitlement ?? 14);
-  const totalAdjustment = profile?.total_adjustment || 0;
-  const totalEntitlement = baseEntitlement + totalAdjustment;
-  const leaveBalanceRemaining = Math.max(totalEntitlement - quotaLeavesUsed, 0);
+  const totalAdjustment = Number(profile?.annual_adj ?? profile?.total_adjustment ?? 0);
+  const totalEntitlement = roundLeaveDays(Math.max(baseEntitlement + totalAdjustment, 0));
+  const leaveBalanceRemaining = roundLeaveDays(Math.max(totalEntitlement - quotaLeavesUsed, 0));
 
   // Group myLogs by date and keep only the first clock-in per date
   const dailyUniqueLogs = useMemo(() => {
@@ -1106,7 +1091,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
     if (attendanceRate >= 95) list.push(`✅ Excellent attendance rate of ${attendanceRate}%.`);
     if (lateArrivals > 0) list.push(`⚠️ You have ${lateArrivals} late arrival${lateArrivals > 1 ? 's' : ''} this month.`);
     if (streak >= 10) list.push(`🎉 Perfect attendance streak of ${streak} days.`);
-    if (leaveBalanceRemaining > 0) list.push(`📌 You have ${leaveBalanceRemaining} leave Days.`);
+    if (leaveBalanceRemaining > 0) list.push(`📌 You have ${formatLeaveDays(leaveBalanceRemaining)} leave Days.`);
     
       try {
         const historyData = localStorage.getItem('leave_entitlement_history_v2');
@@ -1119,11 +1104,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             .sort((a: any, b: any) => new Date(b.created_at || b.timestamp || b.date).getTime() - new Date(a.created_at || a.timestamp || a.date).getTime())[0];
 
           if (recentAdj && recentAdj.adjustment !== 0) {
-            const absAdj = Math.abs(recentAdj.adjustment);
+            const absAdj = formatLeaveDays(Math.abs(recentAdj.adjustment));
             if (recentAdj.adjustment > 0) {
-              list.push(`➕ HR added ${absAdj} day${absAdj > 1 ? 's' : ''} of ${recentAdj.leave_type}. The current balance is now ${recentAdj.new_balance} days.`);
+              list.push(`➕ HR added ${absAdj} Days of ${recentAdj.leave_type}. The current balance is now ${formatLeaveDays(recentAdj.new_balance)} Days.`);
             } else {
-              list.push(`➖ HR deducted ${absAdj} day${absAdj > 1 ? 's' : ''} of ${recentAdj.leave_type}. The current balance after deducted is now ${recentAdj.new_balance} days.`);
+              list.push(`➖ HR deducted ${absAdj} Days of ${recentAdj.leave_type}. The current balance after deducted is now ${formatLeaveDays(recentAdj.new_balance)} Days.`);
             }
           }
         }
@@ -1139,10 +1124,12 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
 
   return (
     <div className="space-y-4 animate-in fade-in">
+      <style>{KPI_INTERACTIVE_STYLES}</style>
       {/* ROW 1: Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* Attendance Rate */}
-        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-[#942392]/[0.03] dark:bg-[#942392]/[0.05] group relative overflow-hidden">
+        <TiltKpiCard kpiRgb="148, 35, 146">
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-[#942392]/[0.03] dark:bg-[#942392]/[0.05] group relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <CalendarCheck2 className="w-28 h-28 text-[#942392]" />
           </div>
@@ -1183,9 +1170,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Late Arrivals */}
-        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-500/5 dark:bg-amber-500/10 group relative overflow-hidden">
+        <TiltKpiCard kpiRgb="245, 158, 11">
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-amber-500/5 dark:bg-amber-500/10 group relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Clock className="w-28 h-28 text-amber-500" />
           </div>
@@ -1213,9 +1202,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Absent Days */}
-        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-rose-500/5 dark:bg-rose-500/10 group relative overflow-hidden">
+        <TiltKpiCard kpiRgb="244, 63, 94">
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-rose-500/5 dark:bg-rose-500/10 group relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Flame className="w-28 h-28 text-rose-500" />
           </div>
@@ -1243,9 +1234,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Leave Balance */}
-        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-emerald-500/5 dark:bg-emerald-500/10 group relative overflow-hidden">
+        <TiltKpiCard kpiRgb="16, 185, 129">
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-emerald-500/5 dark:bg-emerald-500/10 group relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Briefcase className="w-28 h-28 text-emerald-500" />
           </div>
@@ -1276,9 +1269,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Outstation Requests */}
-        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-500/5 dark:bg-blue-500/10 group relative overflow-hidden">
+        <TiltKpiCard kpiRgb="59, 130, 246">
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-blue-500/5 dark:bg-blue-500/10 group relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <MapPin className="w-28 h-28 text-blue-500" />
           </div>
@@ -1306,9 +1301,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Top Leave */}
-        <Card className="rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-fuchsia-500/5 dark:bg-fuchsia-500/10 group relative overflow-hidden">
+        <TiltKpiCard kpiRgb="217, 70, 239">
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-[0_6px_16px_-2px_rgba(0,0,0,0.08)] dark:shadow-[0_6px_16px_-2px_rgba(0,0,0,0.4)] bg-fuchsia-500/5 dark:bg-fuchsia-500/10 group relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-10 dark:opacity-20 transition-transform duration-500 ease-out group-hover:scale-115 group-hover:rotate-12 group-hover:-translate-y-1.5 pointer-events-none">
             <Trophy className="w-28 h-28 text-fuchsia-500" />
           </div>
@@ -1336,13 +1333,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
       </div>
 
       {/* ROW 2: Middle Section (Summary, Leave, Calendar) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Attendance Summary */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <TiltKpiCard>
+        <Card className="kpi-interactive-card rounded-[20px] border border-border/50 shadow-sm bg-card h-full flex flex-col group ring-2 ring-slate-300 dark:ring-slate-600">
           <CardContent className="p-4 flex-1 flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-3">ATTENDANCE SUMMARY ({monthNameFull})</h3>
             
@@ -1415,9 +1414,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Leave Utilization (PIE CHART - AS REQUESTED) */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card h-full flex flex-col group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-blue-500/20">
+        <TiltKpiCard>
+        <Card className="kpi-interactive-card rounded-[20px] border border-border/50 shadow-sm bg-card h-full flex flex-col group ring-1 ring-border/20">
           <CardContent className="p-4 flex-1 flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-3">LEAVE UTILIZATION ({monthNameFull})</h3>
             
@@ -1436,7 +1437,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                 {isLoading ? (
                   <Skeleton className="h-5 w-16 mt-1" />
                 ) : (
-                  <span className="text-sm font-black text-foreground mt-0.5">{leaveBalanceRemaining} Days</span>
+                  <span className="text-sm font-black text-foreground mt-0.5">{formatLeaveDays(leaveBalanceRemaining)} Days</span>
                 )}
               </div>
             </div>
@@ -1510,9 +1511,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             )}
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Attendance Calendar */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <TiltKpiCard>
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-sm bg-card group ring-2 ring-slate-300 dark:ring-slate-600">
           <CardContent className="p-5 h-full flex flex-col">
              <div className="flex items-center justify-between pb-3 border-b mb-4">
                 <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">ATTENDANCE CALENDAR ({monthNameFull} {year})</h3>
@@ -1595,13 +1598,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
              )}
           </CardContent>
         </Card>
+        </TiltKpiCard>
       </div>
       
       {/* ROW 3: Bottom Section (Clock In, Trend, Score) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         
         {/* Clock In Analysis */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <TiltKpiCard>
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-sm bg-card group ring-2 ring-slate-300 dark:ring-slate-600">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
               <Clock className="w-3.5 h-3.5 text-[#942392]" /> CLOCK-IN ANALYSIS
@@ -1683,9 +1688,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Punctuality Trend Line Chart */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20 hover:ring-amber-500/20">
+        <TiltKpiCard>
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-sm bg-card group ring-1 ring-border/20">
           <CardContent className="p-5 h-full flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b mb-6">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground">PUNCTUALITY TREND ({monthNameFull})</h3>
@@ -1789,9 +1796,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             )}
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         {/* Attendance Score Breakdown */}
-        <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-2 ring-slate-300 dark:ring-slate-600 hover:ring-[#942392]/40">
+        <TiltKpiCard>
+        <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-sm bg-card group ring-2 ring-slate-300 dark:ring-slate-600">
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-4">ATTENDANCE SCORE BREAKDOWN</h3>
             
@@ -1855,13 +1864,15 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
       </div>
       
       {/* ROW 4: Upcoming Events and Personal Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
         
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <TiltKpiCard className="lg:col-span-1">
+          <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-sm bg-card group ring-1 ring-border/20">
 
           <CardContent className="p-5 h-full flex flex-col">
             <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
@@ -1904,9 +1915,11 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
 
         
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card lg:col-span-1 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <TiltKpiCard className="lg:col-span-1">
+          <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-sm bg-card group ring-1 ring-border/20">
             <CardContent className="p-5 h-full flex flex-col">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
                 <Calendar className="w-3.5 h-3.5 text-indigo-500" /> LEAVE BREAKDOWN
@@ -1983,7 +1996,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     {isLoading ? (
                       <Skeleton className="h-4 w-20" />
                     ) : (
-                      <span className="text-sm font-bold text-foreground">{rlStats.used} {rlStats.used === 1 ? 'Day Taken' : 'Days Taken'}</span>
+                      <span className="text-sm font-bold text-foreground">{formatLeaveDays(rlStats.used)} Days Taken</span>
                     )}
                   </div>
                   {isLoading ? (
@@ -2001,7 +2014,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                       </>
                     ) : (
                       <>
-                        <span className="text-xs font-black text-foreground">{rlStats.available} {rlStats.available === 1 ? 'Day Available' : 'Days Available'}</span>
+                        <span className="text-xs font-black text-foreground">{formatLeaveDays(rlStats.available)} Days Available</span>
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">{replacementApps} APPLICATION{replacementApps !== 1 ? 'S' : ''}</span>
                       </>
                     )}
@@ -2015,7 +2028,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
                     {isLoading ? (
                       <Skeleton className="h-4 w-14" />
                     ) : (
-                      <span className="text-sm font-bold text-foreground">{unpaidLeavesUsed} {unpaidLeavesUsed === 1 ? 'Day' : 'Days'}</span>
+                      <span className="text-sm font-bold text-foreground">{formatLeaveDays(unpaidLeavesUsed)} Days</span>
                     )}
                   </div>
                   {isLoading ? (
@@ -2038,8 +2051,10 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               </div>
             </CardContent>
           </Card>
+          </TiltKpiCard>
 
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ring-1 ring-border/20">
+          <TiltKpiCard>
+          <Card className="kpi-interactive-card h-full rounded-[20px] border border-border/50 shadow-sm bg-card group ring-1 ring-border/20">
             <CardContent className="p-5 h-full flex flex-col">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 pb-3 border-b mb-4">
                 <Zap className="w-3.5 h-3.5 text-amber-500" /> PERSONAL INSIGHTS
@@ -2059,12 +2074,14 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
             </div>
           </CardContent>
         </Card>
+        </TiltKpiCard>
       </div>
       
       {/* ROW 5: Replacement Leaves Table */}
       {replacementLeaves.length > 0 && (
         <div className="mt-3">
-          <Card className="rounded-[20px] border border-border/50 shadow-sm bg-card">
+          <TiltKpiCard fillHeight={false}>
+          <Card className="kpi-interactive-card rounded-[20px] border border-border/50 shadow-sm bg-card">
             <CardContent className="p-5">
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-foreground pb-3 border-b mb-4">EARNED REPLACEMENT LEAVES</h3>
               <div className="overflow-x-auto">
@@ -2103,11 +2120,13 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
               </div>
             </CardContent>
           </Card>
+          </TiltKpiCard>
         </div>
       )}
 
       {/* ROW 6: Personal Missing Punch & Total Absent Cards (50% / 50%) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+        <TiltKpiCard kpiRgb="239, 68, 68">
         <PersonalAttendanceAlertCard
           title="Total Missing Punch Out"
           subtitle="Total Number of Missing Punches"
@@ -2118,6 +2137,8 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           dates={missingPunchDates}
           isLoading={isLoading}
         />
+        </TiltKpiCard>
+        <TiltKpiCard kpiRgb="239, 68, 68">
         <PersonalAttendanceAlertCard
           title="Total Absent"
           subtitle="Most Absent Day"
@@ -2128,6 +2149,7 @@ export default function EmployeeAnalyticsView({ userId, userName, month, year, m
           dates={absentDates}
           isLoading={isLoading}
         />
+        </TiltKpiCard>
       </div>
 
       {/* Maximized Chart Modal */}
